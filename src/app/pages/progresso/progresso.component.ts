@@ -1,6 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DISCIPLINAS } from '../../data/curso.data';
+import { SheetsService } from '../../services/sheets.service';
 import { StorageService } from '../../services/storage.service';
 import { Disciplina } from '../../models/models';
 
@@ -84,17 +84,14 @@ import { Disciplina } from '../../models/models';
                 ></div>
               </div>
 
-              <!-- Mini lista de avaliações -->
-              <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+              <!-- Lista de avaliações -->
+              <div class="mt-3 space-y-1">
                 @for (av of d.avaliacoes; track av.id) {
                   <button
                     (click)="storage.toggleConcluida(av.id)"
-                    class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-left transition-colors w-full"
+                    class="flex items-center gap-3 w-full px-2 py-2 rounded-lg text-left transition-colors"
                     [class.bg-green-50]="storage.isConcluida(av.id)"
-                    [class.text-green-700]="storage.isConcluida(av.id)"
                     [class.bg-slate-50]="!storage.isConcluida(av.id)"
-                    [class.text-slate-600]="!storage.isConcluida(av.id)"
-                    [title]="av.descricao"
                   >
                     <span
                       class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
@@ -108,7 +105,18 @@ import { Disciplina } from '../../models/models';
                         </svg>
                       }
                     </span>
-                    <span class="truncate">{{ av.dataDisplay }} · {{ av.pontos }}pts</span>
+                    <div class="flex-1 min-w-0">
+                      <p
+                        class="text-xs font-medium leading-snug"
+                        [class.text-slate-700]="!storage.isConcluida(av.id)"
+                        [class.text-green-700]="storage.isConcluida(av.id)"
+                        [class.line-through]="storage.isConcluida(av.id)"
+                      >{{ av.descricao }}</p>
+                      <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                        <span class="badge text-white text-xs" [style.background-color]="getCorTipo(av.tipo)">{{ labelTipo(av.tipo) }}</span>
+                        <span class="text-xs text-slate-400">{{ av.dataDisplay }} · {{ av.pontos }} pts</span>
+                      </div>
+                    </div>
                   </button>
                 }
               </div>
@@ -225,7 +233,8 @@ import { Disciplina } from '../../models/models';
   `,
 })
 export class ProgressoComponent {
-  disciplinas = DISCIPLINAS;
+  private sheets = inject(SheetsService);
+  get disciplinas() { return this.sheets.disciplinas(); }
 
   mensagemFeedback = signal('');
   tipoFeedback = signal<'sucesso' | 'erro'>('sucesso');
@@ -319,6 +328,24 @@ export class ProgressoComponent {
 
   getPontosConcluidos(d: Disciplina): number {
     return d.avaliacoes.filter(a => this.storage.isConcluida(a.id)).reduce((s, a) => s + a.pontos, 0);
+  }
+
+  labelTipo(tipo: string): string {
+    const map: Record<string, string> = {
+      prova: 'Prova', trabalho: 'Trabalho', leitura: 'Leitura',
+      continuo: 'Contínuo', teste: 'Teste', projeto: 'Projeto',
+      declaracao: 'Declaração', tarefa: 'Tarefa', atividade: 'Atividade',
+    };
+    return map[tipo] ?? (tipo.charAt(0).toUpperCase() + tipo.slice(1));
+  }
+
+  getCorTipo(tipo: string): string {
+    const map: Record<string, string> = {
+      prova: '#dc2626', trabalho: '#2563eb', leitura: '#059669',
+      continuo: '#64748b', teste: '#d97706', projeto: '#7c3aed',
+      declaracao: '#0891b2', tarefa: '#2563eb', atividade: '#2563eb',
+    };
+    return map[tipo] ?? '#64748b';
   }
 
   get estatsPorTipo() {

@@ -5,7 +5,7 @@ export interface Avaliacao {
   data: string | null; // ISO date string or null for continuous
   dataDisplay: string; // Human-readable date
   pontos: number;
-  tipo: 'prova' | 'trabalho' | 'leitura' | 'continuo' | 'teste' | 'projeto' | 'declaracao';
+  tipo: string;
   concluida?: boolean;
 }
 

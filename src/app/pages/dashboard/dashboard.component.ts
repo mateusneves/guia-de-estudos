@@ -1,6 +1,7 @@
-import { Component, computed } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DISCIPLINAS, HORARIO } from '../../data/curso.data';
+import { HORARIO } from '../../data/curso.data';
+import { SheetsService } from '../../services/sheets.service';
 import { StorageService } from '../../services/storage.service';
 import { Avaliacao, AulaHorario } from '../../models/models';
 
@@ -148,7 +149,7 @@ import { Avaliacao, AulaHorario } from '../../models/models';
           <h2 class="font-semibold text-slate-800">Disciplinas do Semestre</h2>
           <a routerLink="/disciplinas" class="text-xs text-[#1e3a5f] hover:underline">Ver todas</a>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
           @for (d of disciplinas; track d.id) {
             @if (d.avaliacoes.length > 0) {
               <a
@@ -188,7 +189,8 @@ import { Avaliacao, AulaHorario } from '../../models/models';
   `,
 })
 export class DashboardComponent {
-  disciplinas = DISCIPLINAS;
+  private sheets = inject(SheetsService);
+  get disciplinas() { return this.sheets.disciplinas(); }
 
   nomesDia: Record<string, string> = {
     'Segunda': 'Segunda-feira',
@@ -211,21 +213,21 @@ export class DashboardComponent {
   }
 
   get totalDisciplinas() {
-    return DISCIPLINAS.filter(d => d.avaliacoes.length > 0).length;
+    return this.disciplinas.filter(d => d.avaliacoes.length > 0).length;
   }
 
   get totalAvaliacoes() {
-    return DISCIPLINAS.reduce((sum, d) => sum + d.avaliacoes.length, 0);
+    return this.disciplinas.reduce((sum, d) => sum + d.avaliacoes.length, 0);
   }
 
   get totalConcluidas() {
-    return DISCIPLINAS.reduce((sum, d) => sum + d.avaliacoes.filter(a => this.storage.isConcluida(a.id)).length, 0);
+    return this.disciplinas.reduce((sum, d) => sum + d.avaliacoes.filter(a => this.storage.isConcluida(a.id)).length, 0);
   }
 
   get proximasEntregas() {
     const em30dias = new Date();
     em30dias.setDate(em30dias.getDate() + 30);
-    return DISCIPLINAS.flatMap(d => d.avaliacoes).filter(a => {
+    return this.disciplinas.flatMap(d => d.avaliacoes).filter(a => {
       if (!a.data || this.storage.isConcluida(a.id)) return false;
       return new Date(a.data) <= em30dias;
     }).length;
@@ -234,7 +236,7 @@ export class DashboardComponent {
   get proximasAvaliacoes(): Avaliacao[] {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
-    return DISCIPLINAS.flatMap(d => d.avaliacoes)
+    return this.disciplinas.flatMap(d => d.avaliacoes)
       .filter(a => a.data && new Date(a.data) >= hoje)
       .sort((a, b) => new Date(a.data!).getTime() - new Date(b.data!).getTime())
       .slice(0, 8);
@@ -243,11 +245,11 @@ export class DashboardComponent {
   constructor(public storage: StorageService) {}
 
   getNomeDisciplina(id: string): string {
-    return DISCIPLINAS.find(d => d.id === id)?.nome ?? id;
+    return this.disciplinas.find(d => d.id === id)?.nome ?? id;
   }
 
   getCorDisciplina(id: string): string {
-    return DISCIPLINAS.find(d => d.id === id)?.cor ?? '#64748b';
+    return this.disciplinas.find(d => d.id === id)?.cor ?? '#64748b';
   }
 
   getNomeCurto(nome: string): string {
@@ -255,12 +257,12 @@ export class DashboardComponent {
   }
 
   getConcluidas(disciplinaId: string): number {
-    const d = DISCIPLINAS.find(d => d.id === disciplinaId);
+    const d = this.disciplinas.find(d => d.id === disciplinaId);
     return d?.avaliacoes.filter(a => this.storage.isConcluida(a.id)).length ?? 0;
   }
 
   getProgresso(disciplinaId: string): number {
-    const d = DISCIPLINAS.find(d => d.id === disciplinaId);
+    const d = this.disciplinas.find(d => d.id === disciplinaId);
     if (!d || d.avaliacoes.length === 0) return 0;
     return Math.round((this.getConcluidas(disciplinaId) / d.avaliacoes.length) * 100);
   }
@@ -274,15 +276,17 @@ export class DashboardComponent {
   labelTipo(tipo: string): string {
     const map: Record<string, string> = {
       prova: 'Prova', trabalho: 'Trabalho', leitura: 'Leitura',
-      continuo: 'Contínuo', teste: 'Teste', projeto: 'Projeto', declaracao: 'Decl.'
+      continuo: 'Contínuo', teste: 'Teste', projeto: 'Projeto',
+      declaracao: 'Decl.', tarefa: 'Tarefa', atividade: 'Atividade',
     };
-    return map[tipo] ?? tipo;
+    return map[tipo] ?? (tipo.charAt(0).toUpperCase() + tipo.slice(1));
   }
 
   getCorTipo(tipo: string): string {
     const map: Record<string, string> = {
       prova: '#dc2626', trabalho: '#2563eb', leitura: '#059669',
-      continuo: '#64748b', teste: '#d97706', projeto: '#7c3aed', declaracao: '#0891b2'
+      continuo: '#64748b', teste: '#d97706', projeto: '#7c3aed',
+      declaracao: '#0891b2', tarefa: '#2563eb', atividade: '#2563eb',
     };
     return map[tipo] ?? '#64748b';
   }

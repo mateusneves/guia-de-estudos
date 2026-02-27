@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { DISCIPLINAS } from '../../data/curso.data';
+import { SheetsService } from '../../services/sheets.service';
 import { StorageService } from '../../services/storage.service';
 import { Avaliacao, Disciplina } from '../../models/models';
 
@@ -198,11 +198,12 @@ import { Avaliacao, Disciplina } from '../../models/models';
 })
 export class DisciplinaDetalheComponent {
   private route = inject(ActivatedRoute);
+  private sheets = inject(SheetsService);
   storage = inject(StorageService);
 
   disciplina = computed<Disciplina | null>(() => {
     const id = this.route.snapshot.paramMap.get('id');
-    return DISCIPLINAS.find(d => d.id === id) ?? null;
+    return this.sheets.disciplinas().find(d => d.id === id) ?? null;
   });
 
   getConcluidas(d: Disciplina): number {
@@ -243,15 +244,17 @@ export class DisciplinaDetalheComponent {
   labelTipo(tipo: string): string {
     const map: Record<string, string> = {
       prova: 'Prova', trabalho: 'Trabalho', leitura: 'Leitura',
-      continuo: 'Contínuo', teste: 'Teste', projeto: 'Projeto', declaracao: 'Declaração'
+      continuo: 'Contínuo', teste: 'Teste', projeto: 'Projeto',
+      declaracao: 'Declaração', tarefa: 'Tarefa', atividade: 'Atividade',
     };
-    return map[tipo] ?? tipo;
+    return map[tipo] ?? (tipo.charAt(0).toUpperCase() + tipo.slice(1));
   }
 
   getCorTipo(tipo: string): string {
     const map: Record<string, string> = {
       prova: '#dc2626', trabalho: '#2563eb', leitura: '#059669',
-      continuo: '#64748b', teste: '#d97706', projeto: '#7c3aed', declaracao: '#0891b2'
+      continuo: '#64748b', teste: '#d97706', projeto: '#7c3aed',
+      declaracao: '#0891b2', tarefa: '#2563eb', atividade: '#2563eb',
     };
     return map[tipo] ?? '#64748b';
   }

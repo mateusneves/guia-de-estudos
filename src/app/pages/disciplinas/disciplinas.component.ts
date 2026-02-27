@@ -1,6 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DISCIPLINAS } from '../../data/curso.data';
+import { SheetsService } from '../../services/sheets.service';
 import { StorageService } from '../../services/storage.service';
 
 @Component({
@@ -106,7 +106,8 @@ import { StorageService } from '../../services/storage.service';
   `,
 })
 export class DisciplinasComponent {
-  disciplinas = DISCIPLINAS;
+  private sheets = inject(SheetsService);
+  get disciplinas() { return this.sheets.disciplinas(); }
   filtro = signal<'todas' | 'com-avaliacoes'>('com-avaliacoes');
 
   constructor(public storage: StorageService) {}
@@ -119,23 +120,23 @@ export class DisciplinasComponent {
   }
 
   getConcluidas(id: string): number {
-    const d = DISCIPLINAS.find(d => d.id === id);
+    const d = this.disciplinas.find(d => d.id === id);
     return d?.avaliacoes.filter(a => this.storage.isConcluida(a.id)).length ?? 0;
   }
 
   getProgresso(id: string): number {
-    const d = DISCIPLINAS.find(d => d.id === id);
+    const d = this.disciplinas.find(d => d.id === id);
     if (!d || d.avaliacoes.length === 0) return 0;
     return Math.round((this.getConcluidas(id) / d.avaliacoes.length) * 100);
   }
 
   getTotalPontos(id: string): number {
-    return DISCIPLINAS.find(d => d.id === id)?.avaliacoes.reduce((s, a) => s + a.pontos, 0) ?? 0;
+    return this.disciplinas.find(d => d.id === id)?.avaliacoes.reduce((s, a) => s + a.pontos, 0) ?? 0;
   }
 
   getProxima(id: string) {
     const hoje = new Date();
-    return DISCIPLINAS.find(d => d.id === id)?.avaliacoes
+    return this.disciplinas.find(d => d.id === id)?.avaliacoes
       .filter(a => a.data && !this.storage.isConcluida(a.id) && new Date(a.data) >= hoje)
       .sort((a, b) => new Date(a.data!).getTime() - new Date(b.data!).getTime())[0] ?? null;
   }

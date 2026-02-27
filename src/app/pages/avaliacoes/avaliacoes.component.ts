@@ -1,11 +1,11 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DISCIPLINAS } from '../../data/curso.data';
+import { SheetsService } from '../../services/sheets.service';
 import { StorageService } from '../../services/storage.service';
 import { Avaliacao } from '../../models/models';
 
 type Filtro = 'todas' | 'pendentes' | 'concluidas' | 'sem-data';
-type Tipo = 'todos' | 'prova' | 'trabalho' | 'leitura' | 'continuo' | 'teste' | 'projeto' | 'declaracao';
+type Tipo = string;
 
 interface AvaliacaoComDisciplina extends Avaliacao {
   disciplinaNome: string;
@@ -103,8 +103,9 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                         [class.line-through]="storage.isConcluida(av.id)"
                       >{{ av.descricao }}</p>
                       <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                        <span class="w-2 h-2 rounded-full shrink-0" [style.background-color]="av.disciplinaCor"></span>
-                        <a [routerLink]="['/disciplinas', av.disciplinaId]" class="text-xs text-slate-500 hover:text-[#1e3a5f]">
+                        <a [routerLink]="['/disciplinas', av.disciplinaId]"
+                           class="badge text-white text-xs hover:opacity-80 transition-opacity"
+                           [style.background-color]="av.disciplinaCor">
                           {{ av.disciplinaNome }}
                         </a>
                         <span class="badge text-white text-xs" [style.background-color]="getCorTipo(av.tipo)">{{ labelTipo(av.tipo) }}</span>
@@ -198,6 +199,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
   `,
 })
 export class AvaliacoesComponent {
+  private sheets = inject(SheetsService);
   filtroStatus = signal<Filtro>('pendentes');
   filtroTipo = signal<Tipo>('todos');
 
@@ -208,21 +210,25 @@ export class AvaliacoesComponent {
     { key: 'sem-data', label: 'Contínuas' },
   ];
 
-  filtrosTipo: { key: Tipo; label: string }[] = [
-    { key: 'todos', label: 'Todos' },
-    { key: 'prova', label: 'Prova' },
-    { key: 'trabalho', label: 'Trabalho' },
-    { key: 'projeto', label: 'Projeto' },
-    { key: 'leitura', label: 'Leitura' },
-    { key: 'declaracao', label: 'Declaração' },
-    { key: 'teste', label: 'Teste' },
-    { key: 'continuo', label: 'Contínuo' },
-  ];
+  private readonly LABELS_TIPO: Record<string, string> = {
+    prova: 'Prova', trabalho: 'Trabalho', projeto: 'Projeto',
+    leitura: 'Leitura', declaracao: 'Declaração', teste: 'Teste',
+    continuo: 'Contínuo', tarefa: 'Tarefa', atividade: 'Atividade',
+  };
+
+  get filtrosTipo(): { key: string; label: string }[] {
+    const tiposPresentes = [...new Set(this.todasAvaliacoes.map(a => a.tipo))];
+    const opcoes = tiposPresentes.map(t => ({
+      key: t,
+      label: this.LABELS_TIPO[t] ?? (t.charAt(0).toUpperCase() + t.slice(1)),
+    }));
+    return [{ key: 'todos', label: 'Todos' }, ...opcoes];
+  }
 
   constructor(public storage: StorageService) {}
 
   get todasAvaliacoes(): AvaliacaoComDisciplina[] {
-    return DISCIPLINAS.flatMap(d =>
+    return this.sheets.disciplinas().flatMap(d =>
       d.avaliacoes.map(a => ({ ...a, disciplinaNome: d.nome, disciplinaCor: d.cor }))
     );
   }
@@ -287,15 +293,17 @@ export class AvaliacoesComponent {
   labelTipo(tipo: string): string {
     const map: Record<string, string> = {
       prova: 'Prova', trabalho: 'Trabalho', leitura: 'Leitura',
-      continuo: 'Contínuo', teste: 'Teste', projeto: 'Projeto', declaracao: 'Declaração'
+      continuo: 'Contínuo', teste: 'Teste', projeto: 'Projeto',
+      declaracao: 'Declaração', tarefa: 'Tarefa', atividade: 'Atividade',
     };
-    return map[tipo] ?? tipo;
+    return map[tipo] ?? (tipo.charAt(0).toUpperCase() + tipo.slice(1));
   }
 
   getCorTipo(tipo: string): string {
     const map: Record<string, string> = {
       prova: '#dc2626', trabalho: '#2563eb', leitura: '#059669',
-      continuo: '#64748b', teste: '#d97706', projeto: '#7c3aed', declaracao: '#0891b2'
+      continuo: '#64748b', teste: '#d97706', projeto: '#7c3aed',
+      declaracao: '#0891b2', tarefa: '#2563eb', atividade: '#2563eb',
     };
     return map[tipo] ?? '#64748b';
   }
