@@ -33,7 +33,7 @@ interface NavItem {
           <!-- Logo institucional -->
           <div class="flex items-center gap-3 px-5 py-5 border-b border-white/10 shrink-0">
             <img
-              src="/logo-curso.webp"
+              src="logo-curso.webp"
               alt="Logo Seminário"
               class="h-12 w-auto object-contain rounded"
             >
@@ -97,7 +97,7 @@ interface NavItem {
           <!-- Logo + título (visível em todos os tamanhos no header) -->
           <div class="flex items-center gap-3 flex-1 min-w-0">
             <img
-              src="/logo-curso.webp"
+              src="logo-curso.webp"
               alt="Logo Seminário"
               class="h-9 w-auto object-contain rounded shrink-0"
             >
