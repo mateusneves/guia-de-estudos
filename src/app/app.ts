@@ -47,6 +47,15 @@ interface NavItem {
               </div>
             </div>
 
+            <!-- Usuário logado -->
+            <a routerLink="/perfil" (click)="onNavClick()" class="flex items-center gap-3 px-5 py-4 border-b border-white/10 shrink-0 hover:bg-white/5 transition-colors">
+              <img [src]="avatarUrlDe(avatarSeed())" alt="Seu avatar" class="w-11 h-11 rounded-full bg-white/10 shrink-0">
+              <div class="min-w-0">
+                <p class="text-white text-sm font-medium truncate">{{ auth.perfil()?.nome }}</p>
+                <p class="text-slate-400 text-xs truncate">{{ auth.isAdmin() ? 'Administrador' : 'Aluno' }}</p>
+              </div>
+            </a>
+
             <!-- Nav -->
             <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
               @for (item of navItems; track item.path) {
@@ -78,16 +87,10 @@ interface NavItem {
             </nav>
 
             <!-- Footer -->
-            <div class="px-5 py-4 border-t border-white/10 shrink-0 flex items-center justify-between gap-2">
-              <a routerLink="/perfil" (click)="onNavClick()" class="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity">
-                <img [src]="avatarUrlDe(avatarSeed())" alt="Seu avatar" class="w-8 h-8 rounded-full bg-white/10 shrink-0">
-                <div class="min-w-0">
-                  <p class="text-white text-xs font-medium truncate">{{ auth.perfil()?.nome }}</p>
-                  <p class="text-slate-500 text-xs truncate">{{ auth.isAdmin() ? 'Administrador' : 'Aluno' }}</p>
-                </div>
-              </a>
-              <button (click)="sair()" title="Sair" class="text-white/50 hover:text-white transition-colors shrink-0">
+            <div class="px-5 py-4 border-t border-white/10 shrink-0">
+              <button (click)="sair()" class="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm">
                 <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                <span>Sair</span>
               </button>
             </div>
 

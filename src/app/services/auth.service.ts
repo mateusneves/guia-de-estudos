@@ -3,6 +3,7 @@ import {
   EmailAuthProvider,
   User,
   createUserWithEmailAndPassword,
+  deleteUser,
   onAuthStateChanged,
   reauthenticateWithCredential,
   signInWithEmailAndPassword,
@@ -10,7 +11,7 @@ import {
   updatePassword,
   updateProfile,
 } from 'firebase/auth';
-import { doc, onSnapshot, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { FirestoreError, doc, onSnapshot, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { Usuario } from '../models/models';
 
@@ -56,9 +57,15 @@ export class AuthService {
     });
   }
 
-  async cadastrar(nome: string, email: string, senha: string, turmaId: string): Promise<void> {
+  /**
+   * O código de autorização nunca é lido do Firestore antes deste ponto — ele só é validado
+   * pela própria regra de segurança do `create`, comparando com o valor real da turma sem
+   * nunca expor esse valor a quem ainda não está autenticado. Se o código estiver errado,
+   * a regra rejeita a escrita e a conta de autenticação recém-criada é apagada (rollback),
+   * para não deixar o e-mail "presa" numa conta órfã sem perfil.
+   */
+  async cadastrar(nome: string, email: string, senha: string, turmaId: string, codigoConvite: string): Promise<void> {
     const credencial = await createUserWithEmailAndPassword(auth, email, senha);
-    await updateProfile(credencial.user, { displayName: nome });
 
     const perfil: Usuario = {
       uid: credencial.user.uid,
@@ -68,8 +75,19 @@ export class AuthService {
       turmaId,
       ativo: true,
       criadoEm: new Date().toISOString(),
+      codigoConvite,
     };
-    await setDoc(doc(db, 'usuarios', credencial.user.uid), { ...perfil, criadoEm: serverTimestamp() });
+
+    try {
+      await setDoc(doc(db, 'usuarios', credencial.user.uid), { ...perfil, criadoEm: serverTimestamp() });
+    } catch (e) {
+      // Qualquer falha aqui deixaria uma conta de autenticação órfã (sem perfil) — desfaz sempre.
+      await deleteUser(credencial.user).catch(() => {});
+      const negado = e instanceof FirestoreError && e.code === 'permission-denied';
+      throw negado ? new Error('CODIGO_INVALIDO') : e;
+    }
+
+    await updateProfile(credencial.user, { displayName: nome });
   }
 
   async login(email: string, senha: string): Promise<void> {

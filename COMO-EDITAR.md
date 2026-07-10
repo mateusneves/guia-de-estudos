@@ -30,8 +30,23 @@ Esses são dois conceitos diferentes:
 - **Período** é o semestre letivo de uma turma (ex: "3º Ano · 1º Semestre 2026").
   É o período que muda a cada ~6 meses, não a turma.
 
-Em **Administração → Turmas**: crie/edite as turmas. Só turmas marcadas como "Ativa"
-aparecem no dropdown de cadastro.
+Em **Administração → Turmas**: crie/edite as turmas.
+
+### Convite de cadastro
+
+Desde que o cadastro passou a ser só por convite, cada turma tem um **link** e um
+**código de autorização** próprios, mostrados ali mesmo na lista de turmas:
+
+- Ao criar uma turma nova, o convite já é gerado automaticamente.
+- **Copie o link** e envie para quem vai se cadastrar (WhatsApp, e-mail, etc.).
+- **Informe o código por um canal separado** do link (ex: fale em sala de aula, ou
+  mande numa mensagem diferente) — a ideia é que, se o link vazar sozinho para
+  alguém de fora, essa pessoa ainda não tenha o código.
+- Se suspeitar que o link ou o código vazaram, clique em **"Gerar novo convite"**:
+  o link e o código antigos deixam de funcionar imediatamente, e você recebe um
+  novo par para redistribuir.
+
+Sem um convite válido, `/cadastro` não mostra formulário nenhum — só um aviso.
 
 Em **Administração → Períodos**: selecione uma turma e crie/edite os períodos dela.
 Só um período por turma pode estar **"Em curso"** — é esse que define quais

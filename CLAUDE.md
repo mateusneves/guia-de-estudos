@@ -8,8 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 services) app that helps a seminary class track disciplinas (courses), avaliações
 (assignments/tests) and personal progress through a semester. It is deployed as a
 static site on GitHub Pages, with **Firebase (Auth + Firestore)** as the backend.
-The app supports multiple turmas (class cohorts), student self-signup, and an admin
-panel for managing turmas/disciplinas/atividades/usuários.
+The app supports multiple turmas (class cohorts), invite-gated student self-signup,
+and an admin panel for managing turmas/disciplinas/atividades/usuários.
 
 ## Commands
 
@@ -45,8 +45,12 @@ Firestore collections (see `src/app/models/models.ts` for the matching TS types)
 
 - `turmas/{turmaId}` — a **persistent student cohort** (`nome`, `ativa`) — e.g. the
   group of students who entered the program together. Does not change every
-  semester. Publicly readable (needed for the signup dropdown before login);
-  writes admin-only.
+  semester. Read requires auth (**not** public — see "Invite-gated signup"
+  below for why); writes admin-only. Also carries `conviteToken` and
+  `codigoConvite` for the current signup invite (see below).
+- `convites/{token}` — public-readable-by-`get` (never `list`) invite lookup:
+  `{turmaId, turmaNome, ativo}`, doc id **is** the token from the invite URL.
+  Deliberately excludes the code — see "Invite-gated signup".
 - `periodos/{periodoId}` — a semester cycle *within* a turma (`turmaId`, `nome`,
   `anoSemestre`, `ativo`). Exactly one período per turma should have `ativo: true`
   at a time — that's the one whose disciplinas/avaliações students see. This is
@@ -55,7 +59,8 @@ Firestore collections (see `src/app/models/models.ts` for the matching TS types)
   `turmaId` (the persistent cohort — chosen once at signup, doesn't change when
   the semester rolls over), `ativo`. New signups always self-create this doc with
   `role: 'aluno'` — `firestore.rules` enforces that a user can never set their own
-  `role`/`turmaId`/`ativo`.
+  `role`/`turmaId`/`ativo`, and (as of 2026-07-10) that the signup includes the
+  turma's correct `codigoConvite` — see "Invite-gated signup".
 - `modulos_horario/{moduloId}` — a schedule block registered per-turma (`turmaId`,
   `codigo` e.g. `"M1"`, `horario` free-text e.g. `"07:00 às 08:40"`). This is the
   **only** place schedule times are typed freely — admin-only read/write. Exists
@@ -146,8 +151,29 @@ Firestore collections (see `src/app/models/models.ts` for the matching TS types)
   `periodoSelecionado = computed(() => this.periodoOverride() ?? this.periodoPadrao())`.
   This is fully reactive with no timing trick — it resolves itself the instant
   the underlying data arrives, and a manual pick simply shadows it.
-- `TurmasService` and `UsuariosService` are not scoped — they list everything
-  (rules restrict writes, not reads, to admins where relevant).
+- `TurmasService`, `PeriodosService`, and `UsuariosService` are not scoped — they
+  list everything (rules restrict writes, not reads, to admins where relevant).
+
+  **Second pitfall already hit — this one specific to `TurmasService`/`PeriodosService`:**
+  both are injected eagerly by the root `App` component, so they're constructed
+  the moment the app loads — including on `/login`/`/cadastro`, *before* anyone
+  is authenticated. Their `onSnapshot` used to subscribe unconditionally in the
+  constructor; since `turmas`/`periodos` reads require `logado()`, that first
+  subscription attempt (made pre-auth) got a `permission-denied` error — and a
+  Firestore listener that errors out **does not auto-resubscribe** later just
+  because the user subsequently logs in. Symptom: sign up or log in, land on
+  `/dashboard`, and it renders completely empty (no disciplinas, `totalDisciplinas`
+  0, etc.) until a hard refresh — because `DisciplinasService.periodoId` (properly
+  reactive on its own) was waiting on `PeriodosService.periodos()`, which had
+  gone permanently silent. Fixed by wrapping both services' subscription setup
+  in an `effect()` keyed on `authService.logado()`, tearing down and re-subscribing
+  whenever that flips — see either service for the pattern. **Any new
+  root-provided service with its own `onSnapshot` must either (a) only ever be
+  constructed after a guard confirms auth (like `DisciplinasService`,
+  `UsuariosService`, `ModulosHorarioService` — all safe today because nothing
+  injects them before their page's `authGuard`/`adminGuard` runs), or (b) use
+  this same `logado()`-gated `effect()` if there's any chance it's constructed
+  earlier (like anything injected directly by `App`).**
 - `ProgressoService` replaces the old `localStorage`-backed `StorageService`.
   Same public API (`isConcluida`, `toggleConcluida`, `getNota`, `setNota`,
   `exportar`/`importar` JSON backup). On first login it seeds the new
@@ -261,6 +287,51 @@ that uid. Rules are not deployed via CI — publish changes manually through the
 Firebase Console (Firestore → Rules) or `firebase deploy --only firestore:rules`
 (project id lives in `.firebaserc`).
 
+### Invite-gated signup (added 2026-07-10)
+
+Signup used to be fully open: anyone reaching `/cadastro` picked any active turma
+from a dropdown. As of 2026-07-10, `/cadastro` **requires** a `?convite=<token>`
+query param resolving to an active invite — no token, no dropdown, no signup;
+`CadastroComponent` shows a "convite necessário" blocked state instead of a form.
+Each turma has its own invite (`conviteToken` + `codigoConvite` on the `turmas`
+doc), managed from `/admin/turmas` (`ConvitesService.gerar(...)`) — generated
+automatically when a turma is created, and re-generatable at any time (rotating
+both the link and the code invalidates the previous ones; the old `convites/{token}`
+doc is deleted).
+
+The **code is a second factor specifically against the link leaking** (someone
+forwards the invite URL to someone outside the class). It's deliberately *not*
+retrievable by reading anything the unauthenticated signup page has access to —
+`convites/{token}` (the only pre-auth-readable doc) holds `turmaId`/`turmaNome`/`ativo`
+only, never the code. The code lives on `turmas/{turmaId}.codigoConvite`, and
+`turmas` now requires `logado()` to read at all. So how does an *unauthenticated*
+signup ever get verified against a code it structurally cannot read? — the
+`usuarios/{uid}` `create` rule does the check itself, via a `get()` inside the
+rule (`request.resource.data.codigoConvite == get(.../turmas/$(turmaId)).data.codigoConvite`).
+Rule-internal `get()`/`exists()` calls run with full trusted access regardless of
+the caller's own read permissions — this is the standard Firestore pattern for
+"verify a secret without ever exposing it to reads," and it's why no Cloud
+Function was needed for this.
+
+One real wrinkle this creates: `createUserWithEmailAndPassword` and the
+`usuarios/{uid}` `setDoc` are two separate steps, and the Auth account is created
+*first*. If the code is wrong, the Firestore write is rejected by the rule
+*after* the Auth account already exists — which would otherwise strand that
+email on a permanently-orphaned account (no profile, can't be re-registered by
+anyone). `AuthService.cadastrar()` handles this: on a `permission-denied` from
+that `setDoc`, it calls `deleteUser(credencial.user)` to roll back the just-created
+Auth account before surfacing `'CODIGO_INVALIDO'` to the caller. If you ever touch
+this method, preserve that rollback — it's not optional cleanup, it's what keeps
+a wrong code from permanently consuming someone's email address.
+
+`ConvitesService` and `CadastroComponent`/`turmas-admin.component.ts` are the
+places to look if this flow needs changes. The invite link itself is built with
+`new URL('cadastro?convite=' + token, document.baseURI)` — **not**
+`location.origin + location.pathname`, because the app is deployed to GitHub
+Pages under a subpath (`--base-href /guia-de-estudos/`, see
+`.github/workflows/deploy.yml`) that differs from local dev's `/`; `document.baseURI`
+resolves correctly in both.
+
 ### Seeding / bootstrapping a Firestore project
 
 `scripts/seed-firestore.ts` uses `firebase-admin` (bypasses security rules).
@@ -273,9 +344,16 @@ source data predates the `nome` field). It deliberately does not touch
 non-empty (real signups exist), to avoid orphaning their `turmaId`/`periodoId`
 references; pass `--force` (`npm run seed -- --force`) to override that guard.
 Needs a service account key saved at `scripts/service-account.json` (gitignored,
-never commit it). There's no automated way to create the first administrator: sign
-up normally through `/cadastro` (creates a `role: 'aluno'` doc), then manually flip
-that user's `role` to `administrador` in the Firebase Console.
+never commit it).
+
+Since signup is invite-gated (see "Invite-gated signup" above), a from-scratch
+seed **also generates and prints an invite token + code** for the seeded turma —
+without that, a fresh project would have no possible way to create its first
+account at all (no admin exists yet to generate one from the UI). The script
+prints `<URL do app>/cadastro?convite=<token>` and the code at the end; use that
+to sign up as yourself, then manually flip your own `role` to `administrador` in
+the Firebase Console — there's still no automated way to create the first
+administrator beyond that one manual step.
 
 ## Environment / config
 

@@ -1,12 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FirebaseError } from 'firebase/app';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   template: `
     <div class="min-h-screen flex items-center justify-center p-4" style="background: linear-gradient(180deg, #1a2e4a 0%, #0f1e31 100%);">
       <div class="w-full max-w-sm">
@@ -51,7 +51,7 @@ import { AuthService } from '../../services/auth.service';
           </form>
 
           <p class="text-center text-sm text-slate-500 mt-5">
-            Não tem conta? <a routerLink="/cadastro" class="text-[#1e3a5f] font-medium hover:underline">Cadastre-se</a>
+            Não tem conta? Pergunte ao administrador da sua turma pelo link de convite de cadastro.
           </p>
         </div>
       </div>

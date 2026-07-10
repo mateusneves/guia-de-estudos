@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TurmasService } from '../../../services/turmas.service';
+import { ConvitesService } from '../../../services/convites.service';
 import { Turma } from '../../../models/models';
 
 @Component({
@@ -45,18 +46,49 @@ import { Turma } from '../../../models/models';
 
       <!-- Lista -->
       <div class="card">
-        <div class="space-y-2">
+        <div class="space-y-4">
           @for (t of turmas.turmas(); track t.id) {
-            <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
-              <div>
-                <p class="text-sm font-medium text-slate-800">{{ t.nome }}</p>
-                <p class="text-xs text-slate-400">{{ t.ativa ? 'Ativa' : 'Inativa' }}</p>
+            <div class="py-3 border-b border-slate-50 last:border-0">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-slate-800">{{ t.nome }}</p>
+                  <p class="text-xs text-slate-400">{{ t.ativa ? 'Ativa' : 'Inativa' }}</p>
+                </div>
+                <div class="flex gap-3 text-sm">
+                  <a [routerLink]="['/admin/periodos']" [queryParams]="{ turma: t.id }" class="text-[#1e3a5f] hover:underline">Períodos</a>
+                  <a [routerLink]="['/admin/modulos-horario']" [queryParams]="{ turma: t.id }" class="text-[#1e3a5f] hover:underline">Módulos</a>
+                  <button (click)="editar(t)" class="text-[#1e3a5f] hover:underline">Editar</button>
+                  <button (click)="excluir(t)" class="text-red-500 hover:underline">Excluir</button>
+                </div>
               </div>
-              <div class="flex gap-3 text-sm">
-                <a [routerLink]="['/admin/periodos']" [queryParams]="{ turma: t.id }" class="text-[#1e3a5f] hover:underline">Períodos</a>
-                <a [routerLink]="['/admin/modulos-horario']" [queryParams]="{ turma: t.id }" class="text-[#1e3a5f] hover:underline">Módulos</a>
-                <button (click)="editar(t)" class="text-[#1e3a5f] hover:underline">Editar</button>
-                <button (click)="excluir(t)" class="text-red-500 hover:underline">Excluir</button>
+
+              <!-- Convite de cadastro -->
+              <div class="mt-3 bg-slate-50 rounded-lg p-3">
+                @if (t.conviteToken) {
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-medium text-slate-500 shrink-0">Link de convite:</span>
+                    <input readonly [value]="linkConvite(t)" class="flex-1 min-w-48 text-xs bg-white border border-slate-200 rounded px-2 py-1 font-mono">
+                    <button (click)="copiar(t.id, 'link', linkConvite(t))" class="text-xs text-[#1e3a5f] hover:underline shrink-0">
+                      {{ copiado() === t.id + 'link' ? 'Copiado!' : 'Copiar' }}
+                    </button>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <span class="text-xs font-medium text-slate-500 shrink-0">Código de autorização:</span>
+                    <span class="text-sm font-mono font-semibold text-slate-800">{{ t.codigoConvite }}</span>
+                    <button (click)="copiar(t.id, 'codigo', t.codigoConvite!)" class="text-xs text-[#1e3a5f] hover:underline">
+                      {{ copiado() === t.id + 'codigo' ? 'Copiado!' : 'Copiar' }}
+                    </button>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-2">
+                    Envie o link para quem vai se cadastrar e informe o código por um canal separado (ex: fale em sala).
+                  </p>
+                  <button (click)="gerarConvite(t)" class="text-xs text-amber-600 hover:underline font-medium mt-2">
+                    Gerar novo convite (invalida o link/código atuais)
+                  </button>
+                } @else {
+                  <p class="text-xs text-slate-500 mb-2">Esta turma ainda não tem um convite de cadastro.</p>
+                  <button (click)="gerarConvite(t)" class="text-xs text-[#1e3a5f] hover:underline font-medium">Gerar convite</button>
+                }
               </div>
             </div>
           } @empty {
@@ -70,14 +102,27 @@ import { Turma } from '../../../models/models';
 export class TurmasAdminComponent {
   private fb = inject(FormBuilder);
   turmas = inject(TurmasService);
+  private convites = inject(ConvitesService);
 
   editandoId = signal<string | null>(null);
   erro = signal<string | null>(null);
+  copiado = signal<string | null>(null);
 
   form = this.fb.nonNullable.group({
     nome: ['', Validators.required],
     ativa: [true],
   });
+
+  linkConvite(t: Turma): string {
+    // Resolve relativo ao <base href> real da build (em dev é "/", no GitHub Pages é "/guia-de-estudos/").
+    return new URL(`cadastro?convite=${t.conviteToken}`, document.baseURI).toString();
+  }
+
+  async copiar(turmaId: string, tipo: 'link' | 'codigo', valor: string): Promise<void> {
+    await navigator.clipboard.writeText(valor);
+    this.copiado.set(turmaId + tipo);
+    setTimeout(() => this.copiado.set(null), 2000);
+  }
 
   editar(t: Turma): void {
     this.editandoId.set(t.id);
@@ -99,11 +144,21 @@ export class TurmasAdminComponent {
       if (id) {
         await this.turmas.atualizar(id, dados);
       } else {
-        await this.turmas.criar(dados);
+        const novoId = await this.turmas.criar(dados);
+        await this.convites.gerar(novoId, dados.nome);
       }
       this.cancelarEdicao();
     } catch (e) {
       this.erro.set(e instanceof Error ? `Não foi possível salvar: ${e.message}` : 'Não foi possível salvar a turma.');
+    }
+  }
+
+  async gerarConvite(t: Turma): Promise<void> {
+    if (t.conviteToken && !confirm('O link e o código atuais deixarão de funcionar. Continuar?')) return;
+    try {
+      await this.convites.gerar(t.id, t.nome, t.conviteToken);
+    } catch (e) {
+      this.erro.set(e instanceof Error ? `Não foi possível gerar o convite: ${e.message}` : 'Não foi possível gerar o convite.');
     }
   }
 

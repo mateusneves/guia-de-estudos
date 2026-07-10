@@ -1,4 +1,4 @@
-import { Injectable, NgZone, computed, signal } from '@angular/core';
+import { Injectable, NgZone, computed, effect, inject, signal } from '@angular/core';
 import {
   addDoc,
   collection,
@@ -11,9 +11,13 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Periodo } from '../models/models';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class PeriodosService {
+  private authService = inject(AuthService);
+  private ngZone = inject(NgZone);
+
   readonly carregando = signal(true);
   readonly erro = signal<string | null>(null);
   private readonly _periodos = signal<Periodo[]>([]);
@@ -22,18 +26,37 @@ export class PeriodosService {
     [...this._periodos()].sort((a, b) => b.anoSemestre.localeCompare(a.anoSemestre))
   );
 
-  constructor(private ngZone: NgZone) {
-    onSnapshot(
-      collection(db, 'periodos'),
-      snap => this.ngZone.run(() => {
-        this._periodos.set(snap.docs.map(d => ({ id: d.id, ...d.data() } as Periodo)));
+  private unsub: (() => void) | null = null;
+
+  constructor() {
+    // Mesma razão do TurmasService: este serviço existe desde antes do login
+    // (injetado pelo App root), então a assinatura precisa reagir a logado()
+    // e se refazer quando ele mudar — senão fica morta (erro de permissão) se
+    // o primeiro attempt aconteceu antes do usuário estar autenticado.
+    effect(() => {
+      const logado = this.authService.logado();
+      this.unsub?.();
+      this.unsub = null;
+      this._periodos.set([]);
+
+      if (!logado) {
         this.carregando.set(false);
-      }),
-      err => this.ngZone.run(() => {
-        this.erro.set(err.message);
-        this.carregando.set(false);
-      })
-    );
+        return;
+      }
+
+      this.carregando.set(true);
+      this.unsub = onSnapshot(
+        collection(db, 'periodos'),
+        snap => this.ngZone.run(() => {
+          this._periodos.set(snap.docs.map(d => ({ id: d.id, ...d.data() } as Periodo)));
+          this.carregando.set(false);
+        }),
+        err => this.ngZone.run(() => {
+          this.erro.set(err.message);
+          this.carregando.set(false);
+        })
+      );
+    });
   }
 
   porTurma(turmaId: string): Periodo[] {

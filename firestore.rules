@@ -24,11 +24,20 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/periodos/$(periodoId)).data.turmaId;
     }
 
-    // Turmas: leitura pública (necessária para o dropdown de cadastro, antes do login).
+    // Turmas: leitura só para autenticados (o cadastro não usa mais dropdown de turmas —
+    // usa o convite). O código de convite mora aqui, então não pode ser lido sem estar logado.
     // Escrita apenas por administradores.
     match /turmas/{turmaId} {
-      allow read: if true;
+      allow read: if logado();
       allow write: if souAdmin();
+    }
+
+    // Convites de cadastro: dados públicos (turma/nome), sem o código — é a única coisa que
+    // a tela de cadastro pode ler antes do login. "get" (por token conhecido) é público;
+    // "list" (enumerar todos os convites) só admin, pra ninguém conseguir descobrir tokens.
+    match /convites/{token} {
+      allow get: if true;
+      allow list, write: if souAdmin();
     }
 
     // Períodos (semestres de uma turma): leitura para qualquer autenticado
@@ -43,11 +52,14 @@ service cloud.firestore {
       allow read: if logado() && (request.auth.uid == uid || souAdmin());
 
       // Cadastro (autocadastro): só o próprio usuário criando o próprio doc,
-      // sempre como 'aluno' e vinculado a uma turma existente.
+      // sempre como 'aluno', vinculado a uma turma existente, e só se o código de
+      // autorização enviado bater com o código real da turma (nunca lido antes daqui —
+      // o get() abaixo roda com acesso total, independente da regra de leitura de "turmas").
       allow create: if logado() && request.auth.uid == uid
         && request.resource.data.role == 'aluno'
         && request.resource.data.ativo == true
-        && exists(/databases/$(database)/documents/turmas/$(request.resource.data.turmaId));
+        && exists(/databases/$(database)/documents/turmas/$(request.resource.data.turmaId))
+        && request.resource.data.codigoConvite == get(/databases/$(database)/documents/turmas/$(request.resource.data.turmaId)).data.codigoConvite;
 
       // O próprio usuário pode alterar nome/avatar (perfil) — nunca papel, turma ou status.
       allow update: if logado() && request.auth.uid == uid

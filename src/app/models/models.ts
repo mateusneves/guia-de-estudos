@@ -53,6 +53,18 @@ export interface Turma {
   nome: string;
   ativa: boolean;
   criadoEm: string;
+  /** Token do link de convite de cadastro atual da turma (usado em /cadastro?convite=...). */
+  conviteToken?: string;
+  /** Código de autorização exigido no cadastro, verificado via regra do Firestore — nunca lido antes do login. */
+  codigoConvite?: string;
+}
+
+/** Dados públicos de um convite, resolvidos a partir do token na URL — a única coisa legível antes do login. */
+export interface ConvitePublico {
+  id: string;
+  turmaId: string;
+  turmaNome: string;
+  ativo: boolean;
 }
 
 /** Um ciclo letivo (semestre) dentro de uma turma — é aqui que disciplinas/atividades vivem. */
@@ -75,6 +87,8 @@ export interface Usuario {
   criadoEm: string;
   /** Seed usada para gerar o avatar (DiceBear, estilo Open Peeps) — opcional, usuários antigos podem não ter. */
   avatarSeed?: string;
+  /** Código de autorização usado no cadastro (registro/auditoria) — não tem função depois de criada a conta. */
+  codigoConvite?: string;
 }
 
 export interface Progresso {
