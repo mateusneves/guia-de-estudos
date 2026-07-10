@@ -68,14 +68,25 @@ Firestore collections (see `src/app/models/models.ts` for the matching TS types)
   reference to `modulos_horario` here, it's a **denormalized snapshot** taken at
   save time (see below).
 - `avaliacoes/{avaliacaoId}` — scoped by `periodoId` and `disciplinaId`. Called
-  "atividades" in the admin UI/copy, but the model/collection name is `Avaliacao`/`avaliacoes`.
-  Has both `nome` (short title) and `descricao` (optional longer detail) — `nome`
-  was added after `descricao` already existed, so **older docs may lack it**;
-  every page that renders it does `av.nome || av.descricao` rather than assuming
-  `nome` is present. `atividades-admin` is a standalone page (not nested under a
-  disciplina) with a disciplina `<select>` in the form — reachable directly at
-  `/admin/atividades`, or via the "Atividades" link on a disciplina in
-  `disciplinas-admin`, which passes `?disciplina=<id>` to pre-select/filter.
+  "atividades" in the admin UI/copy (and, as of 2026-07-10, in the student nav
+  too — the route is still `/avaliacoes` and the component/service are still
+  named `Avaliacoes*`, only the user-facing label changed to "Atividades"),
+  but the model/collection name is `Avaliacao`/`avaliacoes`. Has both `nome`
+  (short title) and `descricao` (optional longer detail) — `nome` was added
+  after `descricao` already existed, so **older docs may lack it**; every
+  student-facing page that renders an avaliação's title does
+  `av.nome || av.descricao`, and — consistently across all of them
+  (`dashboard`, `avaliacoes`, `disciplina-detalhe`, `progresso`) — additionally
+  renders `av.descricao` as a secondary line whenever *both* `nome` and
+  `descricao` are present (so the fallback and the "show both" case never
+  double up the same text). Keep this pair together if you touch any of these
+  templates. `atividades-admin` (the admin list, not student-facing) still
+  only shows the title — no secondary line there, since the admin already
+  edits `descricao` directly in the form. `atividades-admin` is a standalone page (not
+  nested under a disciplina) with a disciplina `<select>` in the form —
+  reachable directly at `/admin/atividades`, or via the "Atividades" link on a
+  disciplina in `disciplinas-admin`, which passes `?disciplina=<id>` to
+  pre-select/filter.
 - `progresso/{uid}` — one doc per student: `concluidas: string[]` (avaliação ids)
   and `notas: Record<disciplinaId, string>`. Doc id is the uid, not auto-generated.
   Deliberately **not** scoped by período — a student's completed-activity history
@@ -101,16 +112,21 @@ Firestore collections (see `src/app/models/models.ts` for the matching TS types)
 - `DisciplinasService` and `AvaliacoesService` each expose a `periodoId` computed
   signal that defaults to *the active período of the logged-in user's turma*
   (`authService.perfil()?.turmaId` → `periodosService.ativoDaTurma(...)`), but can
-  be overridden per-service via `setPeriodo(id)` — this is how `disciplinas-admin`
-  and `atividades-admin` let an admin browse/edit a período other than their own
-  default (a past semester, or a different turma's período entirely). Both admin
-  pages expose **only a flat "Período" `<select>`** (labeled `"<turma> — <período>"`),
-  not a two-level turma→período cascade — a disciplina belongs to a período, and a
-  período already carries its `turmaId`, so there's no reason to make the admin
-  pick a turma first just to narrow the period list. Any turma-scoped lookup those
-  pages still need (e.g. `ModulosHorarioService.porTurma(...)`) derives the turma
-  id *from* the selected período via a `turmaIdAtual` computed, never the other
-  way around.
+  be overridden per-service via `setPeriodo(id)`.
+  - `disciplinas-admin` is the only page that actually uses the override — it
+    exposes a flat "Período" `<select>` (labeled `"<turma> — <período>"`, not a
+    two-level turma→período cascade, since a período already carries its own
+    `turmaId`) so an admin can browse/edit a período other than their own current
+    one (a past semester, or a different turma's período). Any turma-scoped
+    lookup it still needs (e.g. `ModulosHorarioService.porTurma(...)`) derives the
+    turma id *from* the selected período via a `turmaIdAtual` computed, never the
+    other way around.
+  - `atividades-admin` **never overrides** — per an explicit product rule ("uma
+    atividade só pode ser registrada para o período em curso"), it has no período
+    selector at all and always reads `disciplinasService.periodoId()` as-is
+    (whatever that resolves to for the admin's own turma). It only shows a
+    read-only `periodoAtual` label for context, and an amber prompt toward
+    `/admin/periodos` if the turma has no período ativo yet.
   `DisciplinasService.disciplinas()` is the merged view (each disciplina with its
   `avaliacoes[]` joined in from `AvaliacoesService`) that page components consume —
   this mirrors the exact shape the old `SheetsService.disciplinas()` computed used

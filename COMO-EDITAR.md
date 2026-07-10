@@ -62,10 +62,15 @@ pontos, escolhendo a disciplina em um select. O link **"Atividades"** de cada
 disciplina em Administração → Disciplinas leva pra essa mesma área, só que já com
 a disciplina pré-selecionada e a lista filtrada.
 
-Isso é o que aparece nas telas de Avaliações, Progresso e Dashboard para os alunos.
-As atividades do 1º semestre (cadastradas pelo seed antes do campo "Nome" existir)
-mostram o texto da descrição no lugar do nome — funciona normal, só não tem um
-título curto até você editá-las e preencher o campo Nome.
+Uma atividade só pode ser cadastrada no **período em curso** da sua turma — não
+tem seletor de período nessa tela. Se sua turma não tem período em curso ainda,
+um aviso leva direto para Períodos.
+
+Isso é o que aparece na tela **Atividades** do aluno (antes chamada de
+"Avaliações" — só o rótulo do menu mudou, a página é a mesma), no Progresso e no
+Dashboard. As atividades do 1º semestre (cadastradas pelo seed antes do campo
+"Nome" existir) mostram o texto da descrição no lugar do nome — funciona normal,
+só não tem um título curto até você editá-las e preencher o campo Nome.
 
 ## Usuários
 

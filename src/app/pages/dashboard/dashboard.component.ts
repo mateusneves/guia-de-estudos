@@ -117,6 +117,9 @@ interface AulaDoDia {
                       [class.line-through]="progresso.isConcluida(av.id)"
                       [class.text-slate-400]="progresso.isConcluida(av.id)"
                     >{{ av.nome || av.descricao }}</p>
+                    @if (av.nome && av.descricao) {
+                      <p class="text-xs text-slate-500 mt-0.5 leading-snug">{{ av.descricao }}</p>
+                    }
                     <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                       <span
                         class="inline-block w-2 h-2 rounded-full shrink-0"

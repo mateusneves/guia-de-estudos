@@ -98,6 +98,9 @@ import { Avaliacao, Disciplina } from '../../models/models';
                           [class.text-slate-400]="storage.isConcluida(av.id)"
                           [class.line-through]="storage.isConcluida(av.id)"
                         >{{ av.nome || av.descricao }}</p>
+                        @if (av.nome && av.descricao) {
+                          <p class="text-xs text-slate-500 mt-0.5 leading-snug">{{ av.descricao }}</p>
+                        }
                         <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                           <span
                             class="badge text-white text-xs"

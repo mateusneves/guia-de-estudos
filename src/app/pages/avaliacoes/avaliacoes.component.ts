@@ -18,8 +18,8 @@ interface AvaliacaoComDisciplina extends Avaliacao {
   template: `
     <div class="p-6 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Avaliações</h1>
-        <p class="text-slate-500 text-sm mt-1">{{ todasAvaliacoes.length }} avaliações no semestre</p>
+        <h1 class="text-2xl font-bold text-slate-800">Atividades</h1>
+        <p class="text-slate-500 text-sm mt-1">{{ todasAvaliacoes.length }} atividades no semestre</p>
       </div>
 
       <!-- Filtros -->
@@ -58,7 +58,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
 
       <!-- Resultados count -->
       <p class="text-sm text-slate-500">
-        Exibindo <strong class="text-slate-800">{{ avaliacoesFiltradas().length }}</strong> avaliações
+        Exibindo <strong class="text-slate-800">{{ avaliacoesFiltradas().length }}</strong> atividades
       </p>
 
       <!-- Avaliações com data (agrupadas por mês) -->
@@ -102,6 +102,9 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                         [class.text-slate-400]="storage.isConcluida(av.id)"
                         [class.line-through]="storage.isConcluida(av.id)"
                       >{{ av.nome || av.descricao }}</p>
+                      @if (av.nome && av.descricao) {
+                        <p class="text-xs text-slate-500 mt-0.5 leading-snug">{{ av.descricao }}</p>
+                      }
                       <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                         <a [routerLink]="['/disciplinas', av.disciplinaId]"
                            class="badge text-white text-xs hover:opacity-80 transition-opacity"
@@ -170,6 +173,9 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                     [class.text-slate-400]="storage.isConcluida(av.id)"
                     [class.line-through]="storage.isConcluida(av.id)"
                   >{{ av.nome || av.descricao }}</p>
+                  @if (av.nome && av.descricao) {
+                    <p class="text-xs text-slate-500 mt-0.5 leading-snug">{{ av.descricao }}</p>
+                  }
                   <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                     <span class="w-2 h-2 rounded-full shrink-0" [style.background-color]="av.disciplinaCor"></span>
                     <a [routerLink]="['/disciplinas', av.disciplinaId]" class="text-xs text-slate-500 hover:text-[#1e3a5f]">{{ av.disciplinaNome }}</a>
@@ -191,7 +197,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
           <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
           </svg>
-          <p class="text-slate-400">Nenhuma avaliação encontrada com estes filtros.</p>
+          <p class="text-slate-400">Nenhuma atividade encontrada com estes filtros.</p>
         </div>
       }
 
