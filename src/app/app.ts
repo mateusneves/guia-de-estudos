@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { TurmasService } from './services/turmas.service';
+import { PeriodosService } from './services/periodos.service';
 
 interface NavItem {
   path: string;
@@ -137,6 +138,7 @@ interface NavItem {
 export class App {
   auth = inject(AuthService);
   private turmas = inject(TurmasService);
+  private periodos = inject(PeriodosService);
   private router = inject(Router);
 
   sidebarOpen = signal(typeof window !== 'undefined' && window.innerWidth >= 768);
@@ -148,7 +150,9 @@ export class App {
   nomeTurma(): string {
     const turmaId = this.auth.perfil()?.turmaId;
     if (!turmaId) return '';
-    return this.turmas.getNome(turmaId) || 'Turma';
+    const turma = this.turmas.getNome(turmaId) || 'Turma';
+    const periodo = this.periodos.ativoDaTurma(turmaId)?.nome;
+    return periodo ? `${turma} · ${periodo}` : turma;
   }
 
   toggleSidebar(): void {
@@ -175,8 +179,11 @@ export class App {
   ];
 
   adminNavItems: NavItem[] = [
-    { path: '/admin/turmas',      label: 'Turmas',      icon: 'fa-solid fa-people-group' },
-    { path: '/admin/usuarios',    label: 'Usuários',     icon: 'fa-solid fa-users' },
-    { path: '/admin/disciplinas', label: 'Disciplinas', icon: 'fa-solid fa-book' },
+    { path: '/admin/turmas',          label: 'Turmas',            icon: 'fa-solid fa-people-group' },
+    { path: '/admin/periodos',        label: 'Períodos',          icon: 'fa-solid fa-calendar-days' },
+    { path: '/admin/modulos-horario', label: 'Módulos de Horário', icon: 'fa-solid fa-clock' },
+    { path: '/admin/usuarios',        label: 'Usuários',           icon: 'fa-solid fa-users' },
+    { path: '/admin/disciplinas',     label: 'Disciplinas',        icon: 'fa-solid fa-book' },
+    { path: '/admin/atividades',      label: 'Atividades',        icon: 'fa-solid fa-list-check' },
   ];
 }

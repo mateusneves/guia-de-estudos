@@ -14,9 +14,11 @@ export const routes: Routes = [
   { path: 'progresso', canActivate: [authGuard], loadComponent: () => import('./pages/progresso/progresso.component').then(m => m.ProgressoComponent) },
 
   { path: 'admin/turmas', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/turmas/turmas-admin.component').then(m => m.TurmasAdminComponent) },
+  { path: 'admin/periodos', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/periodos/periodos-admin.component').then(m => m.PeriodosAdminComponent) },
+  { path: 'admin/modulos-horario', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/modulos/modulos-horario-admin.component').then(m => m.ModulosHorarioAdminComponent) },
   { path: 'admin/usuarios', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/usuarios/usuarios-admin.component').then(m => m.UsuariosAdminComponent) },
   { path: 'admin/disciplinas', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/disciplinas/disciplinas-admin.component').then(m => m.DisciplinasAdminComponent) },
-  { path: 'admin/disciplinas/:id/atividades', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/atividades/atividades-admin.component').then(m => m.AtividadesAdminComponent) },
+  { path: 'admin/atividades', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/atividades/atividades-admin.component').then(m => m.AtividadesAdminComponent) },
 
   { path: '**', redirectTo: 'dashboard' },
 ];

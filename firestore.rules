@@ -19,10 +19,22 @@ service cloud.firestore {
       return meuPerfil().turmaId;
     }
 
+    // Turma dona de um período — usado para checar disciplinas/avaliações contra a turma do usuário.
+    function turmaDoPeriodo(periodoId) {
+      return get(/databases/$(database)/documents/periodos/$(periodoId)).data.turmaId;
+    }
+
     // Turmas: leitura pública (necessária para o dropdown de cadastro, antes do login).
     // Escrita apenas por administradores.
     match /turmas/{turmaId} {
       allow read: if true;
+      allow write: if souAdmin();
+    }
+
+    // Períodos (semestres de uma turma): leitura para qualquer autenticado
+    // (precisa resolver o período em curso da própria turma); escrita só admin.
+    match /periodos/{periodoId} {
+      allow read: if logado();
       allow write: if souAdmin();
     }
 
@@ -46,16 +58,23 @@ service cloud.firestore {
       allow update, delete: if souAdmin();
     }
 
-    // Disciplinas: alunos/admin leem só as da própria turma; escrita só por admin.
+    // Módulos de horário (blocos de horário de uma turma, ex: M1 = 07:00 às 08:40):
+    // só o admin precisa ler/escrever — os alunos só veem o horário já resolvido
+    // dentro do próprio documento da disciplina.
+    match /modulos_horario/{moduloId} {
+      allow read, write: if souAdmin();
+    }
+
+    // Disciplinas: alunos/admin leem só as do período cuja turma é a própria; escrita só por admin.
     match /disciplinas/{disciplinaId} {
-      allow read: if logado() && (resource.data.turmaId == minhaTurma() || souAdmin());
+      allow read: if logado() && (turmaDoPeriodo(resource.data.periodoId) == minhaTurma() || souAdmin());
       allow create: if souAdmin();
       allow update, delete: if souAdmin();
     }
 
-    // Avaliações: mesma regra de disciplinas, escopadas por turma.
+    // Avaliações: mesma regra de disciplinas, escopadas por período.
     match /avaliacoes/{avaliacaoId} {
-      allow read: if logado() && (resource.data.turmaId == minhaTurma() || souAdmin());
+      allow read: if logado() && (turmaDoPeriodo(resource.data.periodoId) == minhaTurma() || souAdmin());
       allow create: if souAdmin();
       allow update, delete: if souAdmin();
     }

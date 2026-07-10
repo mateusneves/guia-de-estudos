@@ -7,32 +7,65 @@ gerenciado pelo próprio app, pelo painel de administração.
 ## Acessando o painel admin
 
 1. Faça login com uma conta que tenha o papel **Administrador**.
-2. No menu lateral, uma seção "Administração" aparece com: **Turmas**, **Usuários** e **Disciplinas**.
+2. No menu lateral, uma seção "Administração" aparece com: **Turmas**, **Períodos**,
+   **Módulos de Horário**, **Usuários** e **Disciplinas**.
 
-## Turmas
+## Turmas e Períodos
 
-Em **Administração → Turmas**: crie uma turma por curso/período (ex: "3º Ano · 1º Semestre 2026").
-Alunos escolhem a turma na tela de cadastro — só turmas marcadas como "Ativa" aparecem lá.
+Esses são dois conceitos diferentes:
+
+- **Turma** é o grupo de alunos (ex: "Turma Seminário") — o aluno escolhe a turma
+  **uma vez**, no cadastro, e isso nunca muda.
+- **Período** é o semestre letivo de uma turma (ex: "3º Ano · 1º Semestre 2026").
+  É o período que muda a cada ~6 meses, não a turma.
+
+Em **Administração → Turmas**: crie/edite as turmas. Só turmas marcadas como "Ativa"
+aparecem no dropdown de cadastro.
+
+Em **Administração → Períodos**: selecione uma turma e crie/edite os períodos dela.
+Só um período por turma pode estar **"Em curso"** — é esse que define quais
+disciplinas/atividades os alunos daquela turma enxergam. Para passar de semestre,
+crie o novo período e clique em **"Tornar em curso"**: todos os alunos da turma
+passam a ver as novas disciplinas automaticamente, sem precisar se recadastrar.
+
+## Módulos de Horário
+
+Em **Administração → Módulos de Horário**: selecione a turma e cadastre os blocos
+de horário dela (ex: código `M1`, horário `07:00 às 08:40`). Isso é o **único**
+lugar onde você digita um horário livremente — cadastre uma vez por turma
+(normalmente não muda de semestre a semestre) e reaproveite em todas as disciplinas.
 
 ## Disciplinas
 
-Em **Administração → Disciplinas**: selecione a turma no topo da página, depois crie ou edite
-uma disciplina. Campos de lista (horários, conteúdo programático, bibliografia) usam
-um campo de texto com **um item por linha**, separando as partes com `|`:
+Em **Administração → Disciplinas**: selecione o período no topo da página (a lista já
+mostra "Turma — Período", não precisa escolher a turma separadamente — uma disciplina
+pertence a um período, e o período já sabe de qual turma é), depois crie ou edite
+uma disciplina.
 
-```
-Quinta | M2 | 08:50 às 10:30
-```
+Os horários da disciplina são escolhidos, não digitados: clique em **"+ Adicionar
+horário"**, escolha o **dia da semana** e o **módulo** (da lista cadastrada em
+Módulos de Horário) — repita para cada dia/horário que a disciplina ocorre. Se
+não houver módulo cadastrado ainda para a turma, um aviso aparece com o link direto
+para cadastrar.
 
-```
-Unidade 1 | O ministério da palavra: pregação, ensino e aconselhamento.
-```
+**Conteúdo programático** é um campo de texto livre — escreva do jeito que preferir,
+sem formatação nenhuma exigida.
+
+**Bibliografia** continua em um campo de texto com **uma referência por linha**
+(sem `|`, cada linha é uma referência).
 
 ## Atividades (avaliações)
 
-Dentro de cada disciplina no painel admin, clique em **"Atividades"** para cadastrar,
-editar ou excluir as avaliações daquela disciplina (descrição, data, tipo e pontos).
+Em **Administração → Atividades**: área geral para cadastrar, editar ou excluir
+atividades avaliativas — nome, descrição (opcional), data de entrega, categoria e
+pontos, escolhendo a disciplina em um select. O link **"Atividades"** de cada
+disciplina em Administração → Disciplinas leva pra essa mesma área, só que já com
+a disciplina pré-selecionada e a lista filtrada.
+
 Isso é o que aparece nas telas de Avaliações, Progresso e Dashboard para os alunos.
+As atividades do 1º semestre (cadastradas pelo seed antes do campo "Nome" existir)
+mostram o texto da descrição no lugar do nome — funciona normal, só não tem um
+título curto até você editá-las e preencher o campo Nome.
 
 ## Usuários
 

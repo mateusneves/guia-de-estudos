@@ -12,14 +12,23 @@ import {
 import { db } from './firebase';
 import { Avaliacao } from '../models/models';
 import { AuthService } from './auth.service';
+import { PeriodosService } from './periodos.service';
 
 @Injectable({ providedIn: 'root' })
 export class AvaliacoesService {
   private authService = inject(AuthService);
+  private periodosService = inject(PeriodosService);
   private ngZone = inject(NgZone);
 
-  private readonly turmaOverride = signal<string | null>(null);
-  readonly turmaId = computed(() => this.turmaOverride() ?? this.authService.perfil()?.turmaId ?? null);
+  private readonly periodoOverride = signal<string | null>(null);
+
+  /** Por padrão, o período em curso da turma do usuário logado — pode ser trocado pelo admin com setPeriodo(). */
+  readonly periodoId = computed(() => {
+    if (this.periodoOverride()) return this.periodoOverride();
+    const turmaId = this.authService.perfil()?.turmaId;
+    if (!turmaId) return null;
+    return this.periodosService.ativoDaTurma(turmaId)?.id ?? null;
+  });
 
   readonly carregando = signal(true);
   readonly erro = signal<string | null>(null);
@@ -30,18 +39,18 @@ export class AvaliacoesService {
 
   constructor() {
     effect(() => {
-      const turmaId = this.turmaId();
+      const periodoId = this.periodoId();
       this.unsub?.();
       this.unsub = null;
       this._avaliacoes.set([]);
 
-      if (!turmaId) {
+      if (!periodoId) {
         this.carregando.set(false);
         return;
       }
 
       this.carregando.set(true);
-      const q = query(collection(db, 'avaliacoes'), where('turmaId', '==', turmaId));
+      const q = query(collection(db, 'avaliacoes'), where('periodoId', '==', periodoId));
       this.unsub = onSnapshot(
         q,
         snap => this.ngZone.run(() => {
@@ -56,9 +65,9 @@ export class AvaliacoesService {
     });
   }
 
-  /** Permite ao admin visualizar/gerenciar avaliações de uma turma diferente da sua própria. */
-  setTurma(turmaId: string | null): void {
-    this.turmaOverride.set(turmaId);
+  /** Permite ao admin visualizar/gerenciar avaliações de um período diferente do período ativo da sua turma. */
+  setPeriodo(periodoId: string | null): void {
+    this.periodoOverride.set(periodoId);
   }
 
   porDisciplina(disciplinaId: string): Avaliacao[] {

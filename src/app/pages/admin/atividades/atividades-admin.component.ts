@@ -3,116 +3,217 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AvaliacoesService } from '../../../services/avaliacoes.service';
 import { DisciplinasService } from '../../../services/disciplinas.service';
+import { TurmasService } from '../../../services/turmas.service';
+import { PeriodosService } from '../../../services/periodos.service';
+import { AuthService } from '../../../services/auth.service';
 import { Avaliacao } from '../../../models/models';
 
 @Component({
   selector: 'app-atividades-admin',
   imports: [ReactiveFormsModule, RouterLink],
   template: `
-    <div class="p-6 max-w-4xl mx-auto space-y-6">
-      <div class="flex items-center gap-2 text-sm">
-        <a routerLink="/admin/disciplinas" class="text-slate-400 hover:text-[#1e3a5f]">Disciplinas</a>
-        <span class="text-slate-300">›</span>
-        <span class="text-slate-700 font-medium">{{ disciplina()?.nome ?? disciplinaId }}</span>
-      </div>
-
+    <div class="p-6 max-w-5xl mx-auto space-y-6">
       <div>
         <h1 class="text-2xl font-bold text-slate-800">Atividades</h1>
-        <p class="text-slate-500 text-sm mt-1">{{ atividades().length }} atividades cadastradas.</p>
+        <p class="text-slate-500 text-sm mt-1">Cadastre atividades avaliativas e escolha a qual disciplina cada uma pertence.</p>
       </div>
 
-      <!-- Formulário -->
-      <div class="card">
-        <h2 class="font-semibold text-slate-800 mb-4">{{ editandoId() ? 'Editar atividade' : 'Nova atividade' }}</h2>
-        <form [formGroup]="form" (ngSubmit)="salvar()" class="space-y-3">
-          <div>
-            <label class="text-xs font-medium text-slate-600">Descrição</label>
-            <textarea formControlName="descricao" rows="2" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"></textarea>
-          </div>
-          <div class="grid md:grid-cols-3 gap-3">
-            <div>
-              <label class="text-xs font-medium text-slate-600">Data (deixe vazio se contínua)</label>
-              <input type="date" formControlName="data" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
-            </div>
-            <div>
-              <label class="text-xs font-medium text-slate-600">Se sem data, exibir como</label>
-              <input formControlName="dataDisplayManual" placeholder="Ex: Contínuo, Semana de provas" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
-            </div>
-            <div>
-              <label class="text-xs font-medium text-slate-600">Pontos</label>
-              <input type="number" formControlName="pontos" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
-            </div>
-          </div>
-          <div>
-            <label class="text-xs font-medium text-slate-600">Tipo</label>
-            <select formControlName="tipo" class="mt-1 w-full md:w-56 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
-              <option value="prova">Prova</option>
-              <option value="teste">Teste</option>
-              <option value="trabalho">Trabalho</option>
-              <option value="projeto">Projeto</option>
-              <option value="leitura">Leitura</option>
-              <option value="declaracao">Declaração</option>
-              <option value="continuo">Contínuo</option>
-            </select>
+      <!-- Seletor de período (a disciplina/atividade pertence a um período, não à turma diretamente) -->
+      <div>
+        <label class="text-xs font-medium text-slate-600">Período</label>
+        <select
+          class="mt-1 w-full md:w-80 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
+          [value]="periodoSelecionado()"
+          (change)="mudarPeriodo($any($event.target).value)"
+        >
+          <option value="" disabled>Selecione um período</option>
+          @for (p of periodos.periodos(); track p.id) {
+            <option [value]="p.id">{{ turmas.getNome(p.turmaId) }} — {{ p.nome }}{{ p.ativo ? ' (em curso)' : '' }}</option>
+          }
+        </select>
+        @if (periodos.periodos().length === 0) {
+          <p class="text-xs text-amber-600 mt-1">
+            Nenhum período cadastrado ainda. Crie um em <a routerLink="/admin/periodos" class="underline">Períodos</a>.
+          </p>
+        }
+      </div>
+
+      @if (erro()) {
+        <p class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{{ erro() }}</p>
+      }
+
+      @if (periodoSelecionado()) {
+        @if (disciplinas.disciplinas().length === 0) {
+          <p class="text-sm text-amber-600">
+            Este período ainda não tem disciplinas cadastradas. Cadastre em Administração → Disciplinas primeiro.
+          </p>
+        } @else {
+          <!-- Formulário -->
+          <div class="card">
+            <h2 class="font-semibold text-slate-800 mb-4">{{ editandoId() ? 'Editar atividade' : 'Nova atividade' }}</h2>
+            <form [formGroup]="form" (ngSubmit)="salvar()" class="space-y-3">
+              <div>
+                <label class="text-xs font-medium text-slate-600">Disciplina</label>
+                <select formControlName="disciplinaId" class="mt-1 w-full md:w-72 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+                  <option value="" disabled>Selecione a disciplina</option>
+                  @for (d of disciplinas.disciplinas(); track d.id) {
+                    <option [value]="d.id">{{ d.nome }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-medium text-slate-600">Nome da atividade</label>
+                <input formControlName="nome" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Ex: Prova Final">
+              </div>
+              <div>
+                <label class="text-xs font-medium text-slate-600">Descrição (opcional)</label>
+                <textarea formControlName="descricao" rows="2" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"></textarea>
+              </div>
+              <div class="grid md:grid-cols-3 gap-3">
+                <div>
+                  <label class="text-xs font-medium text-slate-600">Data de entrega (deixe vazio se contínua)</label>
+                  <input type="date" formControlName="data" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-slate-600">Se sem data, exibir como</label>
+                  <input formControlName="dataDisplayManual" placeholder="Ex: Contínuo, Semana de provas" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-slate-600">Valor (pontos)</label>
+                  <input type="number" formControlName="pontos" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-medium text-slate-600">Categoria</label>
+                <select formControlName="tipo" class="mt-1 w-full md:w-56 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+                  <option value="prova">Prova</option>
+                  <option value="teste">Teste</option>
+                  <option value="trabalho">Trabalho</option>
+                  <option value="projeto">Projeto</option>
+                  <option value="leitura">Leitura</option>
+                  <option value="declaracao">Declaração</option>
+                  <option value="continuo">Contínuo</option>
+                </select>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <button type="submit" [disabled]="form.invalid" class="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#2d5a8e] disabled:opacity-50">
+                  {{ editandoId() ? 'Salvar' : 'Criar' }}
+                </button>
+                @if (editandoId()) {
+                  <button type="button" (click)="cancelarEdicao()" class="text-sm text-slate-500 hover:text-slate-700">Cancelar</button>
+                }
+              </div>
+            </form>
           </div>
 
-          <div class="flex items-center gap-3">
-            <button type="submit" [disabled]="form.invalid" class="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#2d5a8e] disabled:opacity-50">
-              {{ editandoId() ? 'Salvar' : 'Criar' }}
-            </button>
-            @if (editandoId()) {
-              <button type="button" (click)="cancelarEdicao()" class="text-sm text-slate-500 hover:text-slate-700">Cancelar</button>
+          <!-- Filtro por disciplina -->
+          <div class="flex flex-wrap gap-2">
+            <button
+              (click)="filtroDisciplina.set('')"
+              class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+              [class.bg-[#1e3a5f]]="filtroDisciplina() === ''"
+              [class.text-white]="filtroDisciplina() === ''"
+              [class.bg-slate-100]="filtroDisciplina() !== ''"
+            >Todas as disciplinas</button>
+            @for (d of disciplinas.disciplinas(); track d.id) {
+              <button
+                (click)="filtroDisciplina.set(d.id)"
+                class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+                [class.bg-[#1e3a5f]]="filtroDisciplina() === d.id"
+                [class.text-white]="filtroDisciplina() === d.id"
+                [class.bg-slate-100]="filtroDisciplina() !== d.id"
+              >{{ d.nome }}</button>
             }
           </div>
-        </form>
-      </div>
 
-      <!-- Lista -->
-      <div class="card">
-        <div class="space-y-2">
-          @for (a of atividades(); track a.id) {
-            <div class="flex items-start justify-between py-2 border-b border-slate-50 last:border-0 gap-3">
-              <div class="min-w-0">
-                <p class="text-sm font-medium text-slate-800">{{ a.descricao }}</p>
-                <p class="text-xs text-slate-400">{{ a.dataDisplay }} · {{ a.pontos }} pts · {{ a.tipo }}</p>
-              </div>
-              <div class="flex gap-3 text-sm shrink-0">
-                <button (click)="editar(a)" class="text-[#1e3a5f] hover:underline">Editar</button>
-                <button (click)="excluir(a)" class="text-red-500 hover:underline">Excluir</button>
-              </div>
+          <!-- Lista -->
+          <div class="card">
+            <div class="space-y-2">
+              @for (a of atividadesFiltradas(); track a.id) {
+                <div class="flex items-start justify-between py-2 border-b border-slate-50 last:border-0 gap-3">
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-slate-800">{{ a.nome || a.descricao }}</p>
+                    <p class="text-xs text-slate-400">{{ nomeDisciplina(a.disciplinaId) }} · {{ a.dataDisplay }} · {{ a.pontos }} pts · {{ a.tipo }}</p>
+                  </div>
+                  <div class="flex gap-3 text-sm shrink-0">
+                    <button (click)="editar(a)" class="text-[#1e3a5f] hover:underline">Editar</button>
+                    <button (click)="excluir(a)" class="text-red-500 hover:underline">Excluir</button>
+                  </div>
+                </div>
+              } @empty {
+                <p class="text-sm text-slate-400">Nenhuma atividade cadastrada.</p>
+              }
             </div>
-          } @empty {
-            <p class="text-sm text-slate-400">Nenhuma atividade cadastrada para esta disciplina.</p>
-          }
-        </div>
-      </div>
+          </div>
+        }
+      }
     </div>
   `,
 })
 export class AtividadesAdminComponent {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
-  private avaliacoesService = inject(AvaliacoesService);
-  private disciplinasService = inject(DisciplinasService);
+  avaliacoesService = inject(AvaliacoesService);
+  disciplinas = inject(DisciplinasService);
+  turmas = inject(TurmasService);
+  periodos = inject(PeriodosService);
+  private auth = inject(AuthService);
 
-  disciplinaId = this.route.snapshot.paramMap.get('id')!;
-  disciplina = computed(() => this.disciplinasService.disciplinas().find(d => d.id === this.disciplinaId));
-  atividades = computed(() => this.avaliacoesService.porDisciplina(this.disciplinaId));
+  private periodoOverride = signal<string | null>(null);
+  /** Sem escolha manual, cai no período em curso da própria turma do admin — reativo, sem truque de temporização. */
+  private periodoPadrao = computed(() => {
+    const turmaId = this.auth.perfil()?.turmaId;
+    return turmaId ? this.periodos.ativoDaTurma(turmaId)?.id ?? '' : '';
+  });
+  periodoSelecionado = computed(() => this.periodoOverride() ?? this.periodoPadrao());
 
+  filtroDisciplina = signal<string>('');
   editandoId = signal<string | null>(null);
+  erro = signal<string | null>(null);
 
   form = this.fb.nonNullable.group({
-    descricao: ['', Validators.required],
+    disciplinaId: ['', Validators.required],
+    nome: ['', Validators.required],
+    descricao: [''],
     data: [''],
     dataDisplayManual: [''],
     pontos: [10, [Validators.required, Validators.min(0)]],
     tipo: ['trabalho', Validators.required],
   });
 
+  constructor() {
+    const disciplinaQuery = this.route.snapshot.queryParamMap.get('disciplina');
+    if (disciplinaQuery) {
+      this.filtroDisciplina.set(disciplinaQuery);
+      this.form.patchValue({ disciplinaId: disciplinaQuery });
+    }
+  }
+
+  nomeDisciplina(id: string): string {
+    return this.disciplinas.disciplinas().find(d => d.id === id)?.nome ?? id;
+  }
+
+  atividadesFiltradas(): Avaliacao[] {
+    const disciplinaId = this.filtroDisciplina();
+    const todas = this.avaliacoesService.avaliacoes();
+    return disciplinaId ? todas.filter(a => a.disciplinaId === disciplinaId) : todas;
+  }
+
+  mudarPeriodo(periodoId: string): void {
+    this.periodoOverride.set(periodoId);
+    this.disciplinas.setPeriodo(periodoId || null);
+    this.filtroDisciplina.set('');
+    this.cancelarEdicao();
+  }
+
   editar(a: Avaliacao): void {
     this.editandoId.set(a.id);
+    this.erro.set(null);
     this.form.setValue({
-      descricao: a.descricao,
+      disciplinaId: a.disciplinaId,
+      nome: a.nome || a.descricao,
+      descricao: a.nome ? a.descricao : '',
       data: a.data ?? '',
       dataDisplayManual: a.data ? '' : a.dataDisplay,
       pontos: a.pontos,
@@ -122,18 +223,22 @@ export class AtividadesAdminComponent {
 
   cancelarEdicao(): void {
     this.editandoId.set(null);
-    this.form.reset({ descricao: '', data: '', dataDisplayManual: '', pontos: 10, tipo: 'trabalho' });
+    this.form.reset({ disciplinaId: '', nome: '', descricao: '', data: '', dataDisplayManual: '', pontos: 10, tipo: 'trabalho' });
   }
 
   async salvar(): Promise<void> {
     if (this.form.invalid) return;
+    const periodoId = this.periodoSelecionado();
+    if (!periodoId) return;
+    this.erro.set(null);
     const v = this.form.getRawValue();
     const data = v.data || null;
     const dataDisplay = data ? this.formatarData(data) : (v.dataDisplayManual || 'Contínuo');
 
     const dados = {
-      turmaId: this.disciplina()?.turmaId ?? '',
-      disciplinaId: this.disciplinaId,
+      periodoId,
+      disciplinaId: v.disciplinaId,
+      nome: v.nome,
       descricao: v.descricao,
       data,
       dataDisplay,
@@ -141,18 +246,26 @@ export class AtividadesAdminComponent {
       tipo: v.tipo,
     };
 
-    const id = this.editandoId();
-    if (id) {
-      await this.avaliacoesService.atualizar(id, dados);
-    } else {
-      await this.avaliacoesService.criar(dados);
+    try {
+      const id = this.editandoId();
+      if (id) {
+        await this.avaliacoesService.atualizar(id, dados);
+      } else {
+        await this.avaliacoesService.criar(dados);
+      }
+      this.cancelarEdicao();
+    } catch (e) {
+      this.erro.set(e instanceof Error ? `Não foi possível salvar: ${e.message}` : 'Não foi possível salvar a atividade.');
     }
-    this.cancelarEdicao();
   }
 
   async excluir(a: Avaliacao): Promise<void> {
-    if (!confirm(`Excluir a atividade "${a.descricao}"?`)) return;
-    await this.avaliacoesService.excluir(a.id);
+    if (!confirm(`Excluir a atividade "${a.nome || a.descricao}"?`)) return;
+    try {
+      await this.avaliacoesService.excluir(a.id);
+    } catch (e) {
+      this.erro.set(e instanceof Error ? `Não foi possível excluir: ${e.message}` : 'Não foi possível excluir a atividade.');
+    }
   }
 
   private formatarData(iso: string): string {

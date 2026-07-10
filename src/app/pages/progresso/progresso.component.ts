@@ -111,7 +111,7 @@ import { Disciplina } from '../../models/models';
                         [class.text-slate-700]="!storage.isConcluida(av.id)"
                         [class.text-green-700]="storage.isConcluida(av.id)"
                         [class.line-through]="storage.isConcluida(av.id)"
-                      >{{ av.descricao }}</p>
+                      >{{ av.nome || av.descricao }}</p>
                       <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                         <span class="badge text-white text-xs" [style.background-color]="getCorTipo(av.tipo)">{{ labelTipo(av.tipo) }}</span>
                         <span class="text-xs text-slate-400">{{ av.dataDisplay }} · {{ av.pontos }} pts</span>

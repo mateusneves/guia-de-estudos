@@ -97,7 +97,7 @@ import { Avaliacao, Disciplina } from '../../models/models';
                           [class.text-slate-800]="!storage.isConcluida(av.id)"
                           [class.text-slate-400]="storage.isConcluida(av.id)"
                           [class.line-through]="storage.isConcluida(av.id)"
-                        >{{ av.descricao }}</p>
+                        >{{ av.nome || av.descricao }}</p>
                         <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                           <span
                             class="badge text-white text-xs"
@@ -126,25 +126,17 @@ import { Avaliacao, Disciplina } from '../../models/models';
             }
 
             <!-- Conteúdo Programático -->
-            <div class="card">
-              <h2 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-                </svg>
-                Conteúdo Programático
-              </h2>
-              <div class="space-y-2">
-                @for (item of d.conteudoProgramatico; track item.unidade) {
-                  <div class="flex gap-3 py-2 border-b border-slate-50 last:border-0">
-                    <span
-                      class="shrink-0 text-xs font-semibold mt-0.5 px-2 py-0.5 rounded text-white"
-                      [style.background-color]="d.cor"
-                    >{{ item.unidade }}</span>
-                    <p class="text-sm text-slate-700 leading-relaxed">{{ item.descricao }}</p>
-                  </div>
-                }
+            @if (d.conteudoProgramatico) {
+              <div class="card">
+                <h2 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                  </svg>
+                  Conteúdo Programático
+                </h2>
+                <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{{ d.conteudoProgramatico }}</p>
               </div>
-            </div>
+            }
           </div>
 
           <!-- Sidebar direita -->

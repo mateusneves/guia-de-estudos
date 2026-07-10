@@ -34,6 +34,10 @@ import { Role, Usuario } from '../../../models/models';
         }
       </div>
 
+      @if (erro()) {
+        <p class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{{ erro() }}</p>
+      }
+
       <div class="card overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
@@ -108,6 +112,7 @@ export class UsuariosAdminComponent {
   auth = inject(AuthService);
 
   filtroTurma = signal<string | null>(null);
+  erro = signal<string | null>(null);
 
   usuariosFiltrados(): Usuario[] {
     const turmaId = this.filtroTurma();
@@ -116,14 +121,26 @@ export class UsuariosAdminComponent {
   }
 
   async mudarTurma(u: Usuario, turmaId: string): Promise<void> {
-    await this.usuarios.atualizar(u.uid, { turmaId });
+    try {
+      await this.usuarios.atualizar(u.uid, { turmaId });
+    } catch (e) {
+      this.erro.set(e instanceof Error ? `Não foi possível salvar: ${e.message}` : 'Não foi possível mudar a turma.');
+    }
   }
 
   async mudarRole(u: Usuario, role: Role): Promise<void> {
-    await this.usuarios.atualizar(u.uid, { role });
+    try {
+      await this.usuarios.atualizar(u.uid, { role });
+    } catch (e) {
+      this.erro.set(e instanceof Error ? `Não foi possível salvar: ${e.message}` : 'Não foi possível mudar o papel.');
+    }
   }
 
   async toggleAtivo(u: Usuario): Promise<void> {
-    await this.usuarios.atualizar(u.uid, { ativo: !u.ativo });
+    try {
+      await this.usuarios.atualizar(u.uid, { ativo: !u.ativo });
+    } catch (e) {
+      this.erro.set(e instanceof Error ? `Não foi possível salvar: ${e.message}` : 'Não foi possível mudar o status.');
+    }
   }
 }

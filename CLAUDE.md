@@ -43,20 +43,46 @@ Firestore callbacks fire outside Angular's zone).
 
 Firestore collections (see `src/app/models/models.ts` for the matching TS types):
 
-- `turmas/{turmaId}` — a class cohort (`nome`, `anoSemestre`, `ativa`). Publicly
-  readable (needed for the signup dropdown before login); writes admin-only.
+- `turmas/{turmaId}` — a **persistent student cohort** (`nome`, `ativa`) — e.g. the
+  group of students who entered the program together. Does not change every
+  semester. Publicly readable (needed for the signup dropdown before login);
+  writes admin-only.
+- `periodos/{periodoId}` — a semester cycle *within* a turma (`turmaId`, `nome`,
+  `anoSemestre`, `ativo`). Exactly one período per turma should have `ativo: true`
+  at a time — that's the one whose disciplinas/avaliações students see. This is
+  the level that changes every ~6 months, not `turmas`.
 - `usuarios/{uid}` — doc id **is** the Firebase Auth uid. `role: 'aluno' | 'administrador'`,
-  `turmaId`, `ativo`. New signups always self-create this doc with `role: 'aluno'` —
-  `firestore.rules` enforces that a user can never set their own `role`/`turmaId`/`ativo`.
-- `disciplinas/{disciplinaId}` — scoped by `turmaId`. Carries `conteudoProgramatico[]`,
-  `bibliografia[]`, and `horarios[]` (weekly schedule slots) embedded directly on
-  the document — there's no separate horário collection.
-- `avaliacoes/{avaliacaoId}` — scoped by `turmaId` and `disciplinaId`. Called
+  `turmaId` (the persistent cohort — chosen once at signup, doesn't change when
+  the semester rolls over), `ativo`. New signups always self-create this doc with
+  `role: 'aluno'` — `firestore.rules` enforces that a user can never set their own
+  `role`/`turmaId`/`ativo`.
+- `modulos_horario/{moduloId}` — a schedule block registered per-turma (`turmaId`,
+  `codigo` e.g. `"M1"`, `horario` free-text e.g. `"07:00 às 08:40"`). This is the
+  **only** place schedule times are typed freely — admin-only read/write. Exists
+  so `disciplinas-admin`'s horário editor can be select-only (no typo-prone free
+  text per disciplina) while still letting each turma/institution define its own
+  arbitrary block structure (not hardcoded M1/M2/M3 in code).
+- `disciplinas/{disciplinaId}` — scoped by `periodoId` (not `turmaId` directly).
+  Carries `conteudoProgramatico[]`, `bibliografia[]`, and `horarios: AulaHorario[]`
+  (`{dia, modulo, horario}`) embedded directly on the document — there's no live
+  reference to `modulos_horario` here, it's a **denormalized snapshot** taken at
+  save time (see below).
+- `avaliacoes/{avaliacaoId}` — scoped by `periodoId` and `disciplinaId`. Called
   "atividades" in the admin UI/copy, but the model/collection name is `Avaliacao`/`avaliacoes`.
+  Has both `nome` (short title) and `descricao` (optional longer detail) — `nome`
+  was added after `descricao` already existed, so **older docs may lack it**;
+  every page that renders it does `av.nome || av.descricao` rather than assuming
+  `nome` is present. `atividades-admin` is a standalone page (not nested under a
+  disciplina) with a disciplina `<select>` in the form — reachable directly at
+  `/admin/atividades`, or via the "Atividades" link on a disciplina in
+  `disciplinas-admin`, which passes `?disciplina=<id>` to pre-select/filter.
 - `progresso/{uid}` — one doc per student: `concluidas: string[]` (avaliação ids)
   and `notas: Record<disciplinaId, string>`. Doc id is the uid, not auto-generated.
+  Deliberately **not** scoped by período — a student's completed-activity history
+  persists across semesters even as `periodoId` scoping moves them into new
+  disciplinas/avaliações each term.
 
-### Service layer and how turma-scoping propagates
+### Service layer and how turma/período-scoping propagates
 
 - `services/firebase.ts` — the only place that calls `initializeApp`; exports
   singleton `auth`/`db`. Everything else imports these two, never re-inits Firebase.
@@ -65,22 +91,62 @@ Firestore collections (see `src/app/models/models.ts` for the matching TS types)
   `await auth.pronto` before checking `logado()`/`isAdmin()`, because on page load
   the Firebase Auth state and the profile doc both arrive asynchronously and
   `logado()`/`isAdmin()` would otherwise read stale `false` values.
-- `DisciplinasService` and `AvaliacoesService` each expose a `turmaId` computed
-  signal that defaults to `authService.perfil()?.turmaId`, but can be overridden
-  per-service via `setTurma(id)` — this is how the admin disciplinas page lets an
-  admin browse a turma other than their own. `DisciplinasService.disciplinas()`
-  is the merged view (each disciplina with its `avaliacoes[]` joined in from
-  `AvaliacoesService`) that page components consume — this mirrors the exact
-  shape the old `SheetsService.disciplinas()` computed used to return, so most
-  page components only needed their injected service swapped, not rewritten.
-- `TurmasService` and `UsuariosService` are not turma-scoped — they list
-  everything (rules restrict writes, not reads, to admins where relevant).
+- `PeriodosService` loads *all* períodos (small collection) and exposes
+  `porTurma(turmaId)` and `ativoDaTurma(turmaId)` as plain lookups over the local
+  signal — no per-turma Firestore queries needed. `ativar(turmaId, periodoId)`
+  does a batched write that flips the previously-active período of that turma to
+  `ativo: false` at the same time it activates the new one, so the "exactly one
+  active período per turma" invariant never has a window where it's violated or
+  briefly doubled-up.
+- `DisciplinasService` and `AvaliacoesService` each expose a `periodoId` computed
+  signal that defaults to *the active período of the logged-in user's turma*
+  (`authService.perfil()?.turmaId` → `periodosService.ativoDaTurma(...)`), but can
+  be overridden per-service via `setPeriodo(id)` — this is how `disciplinas-admin`
+  and `atividades-admin` let an admin browse/edit a período other than their own
+  default (a past semester, or a different turma's período entirely). Both admin
+  pages expose **only a flat "Período" `<select>`** (labeled `"<turma> — <período>"`),
+  not a two-level turma→período cascade — a disciplina belongs to a período, and a
+  período already carries its `turmaId`, so there's no reason to make the admin
+  pick a turma first just to narrow the period list. Any turma-scoped lookup those
+  pages still need (e.g. `ModulosHorarioService.porTurma(...)`) derives the turma
+  id *from* the selected período via a `turmaIdAtual` computed, never the other
+  way around.
+  `DisciplinasService.disciplinas()` is the merged view (each disciplina with its
+  `avaliacoes[]` joined in from `AvaliacoesService`) that page components consume —
+  this mirrors the exact shape the old `SheetsService.disciplinas()` computed used
+  to return, so most page components only needed their injected service swapped,
+  not rewritten.
+
+  **Pitfall already hit once — avoid reintroducing it:** don't compute a
+  component's "default selection" signal *once*, synchronously, by reading
+  another Firestore-backed service's signal (e.g. `periodosService.periodos()`)
+  inside a plain `signal.set(...)` call in the constructor. Those collections
+  load via `onSnapshot`, which is always asynchronous, so a value computed at
+  construction time sees the pre-load empty state and never updates — the button
+  that depends on it looks fine but silently no-ops forever. The fix used
+  throughout `pages/admin/**` now: make the default itself a `computed()`
+  (`periodoPadrao`), and combine it with a nullable override signal
+  (`periodoOverride`) the user's manual selection writes to:
+  `periodoSelecionado = computed(() => this.periodoOverride() ?? this.periodoPadrao())`.
+  This is fully reactive with no timing trick — it resolves itself the instant
+  the underlying data arrives, and a manual pick simply shadows it.
+- `TurmasService` and `UsuariosService` are not scoped — they list everything
+  (rules restrict writes, not reads, to admins where relevant).
 - `ProgressoService` replaces the old `localStorage`-backed `StorageService`.
   Same public API (`isConcluida`, `toggleConcluida`, `getNota`, `setNota`,
   `exportar`/`importar` JSON backup). On first login it seeds the new
   `progresso/{uid}` doc from any legacy `localStorage` data found in that browser
   (best-effort carry-over from the pre-auth version of the app), then Firestore
   is the sole source of truth from then on.
+
+### Rolling over to a new semester
+
+Advancing a turma to a new semester is an **admin action, not a data migration**:
+create a new período for that turma in `/admin/periodos` and click "Tornar em
+curso" (`PeriodosService.ativar`). Every student in that turma automatically sees
+the new período's disciplinas/avaliações on next load — nobody's `usuarios.turmaId`
+changes, nobody re-signs-up, and past períodos (and the disciplinas/avaliações tied
+to them) stay in Firestore untouched for history.
 
 ### Routing and guards
 
@@ -96,14 +162,47 @@ full-screen without the shell.
 
 Admin pages under `pages/admin/**` follow the same shape: inject the relevant
 service, a reactive form, `editandoId` signal to toggle create vs. edit mode.
-For `disciplinas-admin`, list-shaped fields (`horarios`, `conteudoProgramatico`,
-`bibliografia`) are edited as one-item-per-line textareas with `|`-separated
-parts (e.g. `Quinta | M2 | 08:50 às 10:30`) rather than dynamic `FormArray` UI —
-keep new list-type fields consistent with this pattern unless there's a strong
-reason not to. "Excluir" a usuário means setting `ativo: false` (blocks login),
-never actually deleting the Firebase Auth account — that would require Admin SDK
-/ a Cloud Function, which is intentionally out of scope (this runs on Firebase's
-free Spark plan, no Cloud Functions).
+`bibliografia` is edited as a one-reference-per-line textarea (plain lines, no
+`|` — it's a `string[]`). `conteudoProgramatico` used to be a `|`-separated
+`{unidade, descricao}[]` (one item per line, parsed like `bibliografia` but with
+2 segments) — a `|`-less line left `descricao` as `undefined`, which Firestore's
+client SDK rejects outright on write (see the `erro` signal convention below: this
+is exactly the failure it was added to surface, instead of the save silently
+no-op'ing). Rather than hardening that parser, the user asked to drop the
+structure entirely — it's now a single free-text `string` field, no parsing.
+**Don't reintroduce `|`-parsing for `conteudoProgramatico`.**
+
+Because `conteudoProgramatico` changed shape, `DisciplinasService` has a
+`normalizar()` step on every Firestore read that converts the legacy
+`{unidade, descricao}[]` shape (still present on documents written before this
+change, e.g. the 1º Semestre 2026 seed) into a joined string — so components
+never have to special-case old vs. new documents. If you ever add another
+breaking field-shape change, prefer this same pattern (normalize on read in the
+service) over a one-off data migration script.
+
+`horarios` is the one exception, and deliberately **not** a textarea: it's a
+signal-backed array of `{dia, moduloId}` rows (not an Angular `FormArray` — plain
+`signal<LinhaHorario[]>` with `adicionarHorario`/`removerHorario`/`atualizarLinha`
+in `disciplinas-admin.component.ts`) where `moduloId` is picked from a `<select>`
+sourced from `ModulosHorarioService.porTurma(turmaId)`. On save, each row resolves
+`moduloId` → the módulo's `codigo`/`horario` and that's what gets written to
+`Disciplina.horarios` — free-text time entry only happens once, when registering
+a módulo in `/admin/modulos-horario`, never per-disciplina. Editing a disciplina
+whose stored `{modulo, horario}` doesn't match any currently-registered módulo
+(e.g. edited before módulos existed) shows it as a "(não cadastrado)" legacy
+option so the value isn't silently dropped — see the `legado` field on `LinhaHorario`.
+
+"Excluir" a usuário means setting `ativo: false` (blocks login), never actually
+deleting the Firebase Auth account — that would require Admin SDK / a Cloud
+Function, which is intentionally out of scope (this runs on Firebase's free Spark
+plan, no Cloud Functions).
+
+Every admin page wraps its Firestore-writing calls (`criar`/`atualizar`/`excluir`/
+`ativar`) in `try/catch`, setting an `erro = signal<string | null>(null)` and
+rendering it above the form (`@if (erro()) { ... }`). This was added after a bug
+where `criar()` rejected (e.g. a rules permission error) and the `await` just
+threw into the void — the button visibly did nothing and there was no way for the
+user to tell why. Keep this pattern on any new admin write path.
 
 ### Security rules
 
@@ -111,20 +210,28 @@ free Spark plan, no Cloud Functions).
 service-layer code does not re-check permissions client-side beyond scoping
 queries. Key invariants encoded there: a user can create their own `usuarios/{uid}`
 doc but only with `role: 'aluno'`; only an existing admin can change `role`,
-`turmaId`, or `ativo` on any user; disciplinas/avaliacoes reads require
-`resource.data.turmaId` to match the caller's own `turmaId` (or the caller is
-admin); `progresso/{uid}` is writable only by that uid. Rules are not deployed
-via CI — publish changes manually through the Firebase Console (Firestore →
-Rules) or `firebase deploy --only firestore:rules` (project id lives in
-`.firebaserc`).
+`turmaId`, or `ativo` on any user; disciplinas/avaliacoes reads require the
+caller's `turmaId` to match the `turmaId` of the período the document belongs to
+(checked via a `get()` on `periodos/{periodoId}` inside the rule — see
+`turmaDoPeriodo()`), or the caller is admin; `progresso/{uid}` is writable only by
+that uid. Rules are not deployed via CI — publish changes manually through the
+Firebase Console (Firestore → Rules) or `firebase deploy --only firestore:rules`
+(project id lives in `.firebaserc`).
 
 ### Seeding / bootstrapping a Firestore project
 
-`scripts/seed-firestore.ts` uses `firebase-admin` (bypasses security rules) to
-create one turma plus all disciplinas/avaliações from `curso.data.ts`. It needs
-a service account key saved at `scripts/service-account.json` (gitignored, never
-commit it). There's no automated way to create the first administrator: sign up
-normally through `/cadastro` (creates a `role: 'aluno'` doc), then manually flip
+`scripts/seed-firestore.ts` uses `firebase-admin` (bypasses security rules).
+It's idempotent/destructive by design: every run **wipes** the `turmas`,
+`periodos`, `disciplinas`, and `avaliacoes` collections first, then recreates one
+turma + one (active) período + all disciplinas/avaliações from `curso.data.ts`
+(deriving a short `nome` from each `descricao` via `derivarNome()`, since the
+source data predates the `nome` field). It deliberately does not touch
+`usuarios`/`progresso` — and **refuses to run** if the `usuarios` collection is
+non-empty (real signups exist), to avoid orphaning their `turmaId`/`periodoId`
+references; pass `--force` (`npm run seed -- --force`) to override that guard.
+Needs a service account key saved at `scripts/service-account.json` (gitignored,
+never commit it). There's no automated way to create the first administrator: sign
+up normally through `/cadastro` (creates a `role: 'aluno'` doc), then manually flip
 that user's `role` to `administrador` in the Firebase Console.
 
 ## Environment / config

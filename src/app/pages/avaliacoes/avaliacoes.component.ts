@@ -101,7 +101,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                         [class.text-slate-800]="!storage.isConcluida(av.id)"
                         [class.text-slate-400]="storage.isConcluida(av.id)"
                         [class.line-through]="storage.isConcluida(av.id)"
-                      >{{ av.descricao }}</p>
+                      >{{ av.nome || av.descricao }}</p>
                       <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                         <a [routerLink]="['/disciplinas', av.disciplinaId]"
                            class="badge text-white text-xs hover:opacity-80 transition-opacity"
@@ -169,7 +169,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                     [class.text-slate-800]="!storage.isConcluida(av.id)"
                     [class.text-slate-400]="storage.isConcluida(av.id)"
                     [class.line-through]="storage.isConcluida(av.id)"
-                  >{{ av.descricao }}</p>
+                  >{{ av.nome || av.descricao }}</p>
                   <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                     <span class="w-2 h-2 rounded-full shrink-0" [style.background-color]="av.disciplinaCor"></span>
                     <a [routerLink]="['/disciplinas', av.disciplinaId]" class="text-xs text-slate-500 hover:text-[#1e3a5f]">{{ av.disciplinaNome }}</a>
