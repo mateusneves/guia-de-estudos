@@ -49,7 +49,7 @@ service cloud.firestore {
         && request.resource.data.ativo == true
         && exists(/databases/$(database)/documents/turmas/$(request.resource.data.turmaId));
 
-      // O próprio usuário só pode alterar o nome — nunca papel, turma ou status.
+      // O próprio usuário pode alterar nome/avatar (perfil) — nunca papel, turma ou status.
       allow update: if logado() && request.auth.uid == uid
         && request.resource.data.role == resource.data.role
         && request.resource.data.turmaId == resource.data.turmaId

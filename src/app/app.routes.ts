@@ -12,6 +12,7 @@ export const routes: Routes = [
   { path: 'disciplinas/:id', canActivate: [authGuard], loadComponent: () => import('./pages/disciplinas/disciplina-detalhe.component').then(m => m.DisciplinaDetalheComponent) },
   { path: 'avaliacoes', canActivate: [authGuard], loadComponent: () => import('./pages/avaliacoes/avaliacoes.component').then(m => m.AvaliacoesComponent) },
   { path: 'progresso', canActivate: [authGuard], loadComponent: () => import('./pages/progresso/progresso.component').then(m => m.ProgressoComponent) },
+  { path: 'perfil', canActivate: [authGuard], loadComponent: () => import('./pages/perfil/perfil.component').then(m => m.PerfilComponent) },
 
   { path: 'admin/turmas', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/turmas/turmas-admin.component').then(m => m.TurmasAdminComponent) },
   { path: 'admin/periodos', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/periodos/periodos-admin.component').then(m => m.PeriodosAdminComponent) },

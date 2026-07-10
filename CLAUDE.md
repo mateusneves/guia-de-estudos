@@ -164,6 +164,33 @@ the new período's disciplinas/avaliações on next load — nobody's `usuarios.
 changes, nobody re-signs-up, and past períodos (and the disciplinas/avaliações tied
 to them) stay in Firestore untouched for history.
 
+### User profile & avatars
+
+`/perfil` (`pages/perfil/perfil.component.ts`) is available to **every** logged-in
+user (student or admin) — `authGuard` only, no `adminGuard`. It's where a user
+changes their own `nome`, password, or avatar; there's no separate "account
+settings" area anywhere else. Two `AuthService` methods back it:
+- `atualizarPerfil({nome?, avatarSeed?})` — writes to `usuarios/{uid}` (allowed by
+  the existing self-update rule, which only pins `role`/`turmaId`/`ativo`, so no
+  rules change was needed for this field) and, when `nome` changes, also calls
+  Firebase Auth's `updateProfile` so `auth.currentUser.displayName` stays in sync.
+- `alterarSenha(senhaAtual, novaSenha)` — Firebase Auth requires a recent login
+  for sensitive operations like a password change, so this always
+  `reauthenticateWithCredential`s with the current password first, then calls
+  `updatePassword`. There is no "forgot password" flow — only this in-app change
+  while logged in.
+
+Avatars are **not stored files** — `src/app/shared/avatar.ts` has two pure
+functions: `avatarUrl(seed)` builds a DiceBear URL
+(`https://api.dicebear.com/9.x/open-peeps/svg?seed=...`) and `seedAleatoria()`
+generates a random seed string. Only the `seed` is persisted (`Usuario.avatarSeed`,
+optional — older accounts won't have one); every place that renders an avatar
+falls back to the user's `uid` as the seed when `avatarSeed` is unset, so
+everyone has *some* deterministic avatar even before ever visiting `/perfil`.
+The sidebar footer (`app.ts`) renders the logged-in user's avatar this way and
+links to `/perfil`. If you add another avatar-rendering spot, reuse
+`avatarUrl(...)` rather than re-deriving the DiceBear URL format.
+
 ### Routing and guards
 
 `app.routes.ts` lazy-loads every page. `authGuard`/`adminGuard`/`guestGuard`

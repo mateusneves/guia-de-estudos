@@ -1,13 +1,16 @@
 import { Injectable, NgZone, computed, signal } from '@angular/core';
 import {
+  EmailAuthProvider,
   User,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  reauthenticateWithCredential,
   signInWithEmailAndPassword,
   signOut,
+  updatePassword,
   updateProfile,
 } from 'firebase/auth';
-import { doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { Usuario } from '../models/models';
 
@@ -75,5 +78,26 @@ export class AuthService {
 
   async logout(): Promise<void> {
     await signOut(auth);
+  }
+
+  /** Atualiza nome de exibição e/ou avatar do próprio usuário logado. */
+  async atualizarPerfil(dados: Partial<Pick<Usuario, 'nome' | 'avatarSeed'>>): Promise<void> {
+    const user = this.usuario();
+    if (!user) throw new Error('Você precisa estar logado.');
+
+    await updateDoc(doc(db, 'usuarios', user.uid), dados);
+    if (dados.nome) {
+      await updateProfile(user, { displayName: dados.nome });
+    }
+  }
+
+  /** Troca a senha do usuário logado — exige a senha atual para reautenticar antes (exigência do Firebase Auth). */
+  async alterarSenha(senhaAtual: string, novaSenha: string): Promise<void> {
+    const user = this.usuario();
+    if (!user?.email) throw new Error('Você precisa estar logado.');
+
+    const credencial = EmailAuthProvider.credential(user.email, senhaAtual);
+    await reauthenticateWithCredential(user, credencial);
+    await updatePassword(user, novaSenha);
   }
 }

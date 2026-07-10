@@ -73,6 +73,8 @@ export interface Usuario {
   turmaId: string;
   ativo: boolean;
   criadoEm: string;
+  /** Seed usada para gerar o avatar (DiceBear, estilo Open Peeps) — opcional, usuários antigos podem não ter. */
+  avatarSeed?: string;
 }
 
 export interface Progresso {

@@ -4,6 +4,17 @@ Desde a migração para Firebase, as disciplinas, atividades, turmas e usuários
 **não ficam mais em código** (`curso.data.ts`) nem em planilha do Google — tudo é
 gerenciado pelo próprio app, pelo painel de administração.
 
+## Meu Perfil (qualquer usuário)
+
+Clicando no seu nome/avatar no canto inferior da barra lateral (ou acessando
+`/perfil`), qualquer usuário — aluno ou administrador — pode:
+
+- Mudar o **nome de exibição**.
+- **Alterar a senha** (precisa digitar a senha atual).
+- Escolher um **avatar**: as opções são geradas automaticamente pela API gratuita
+  do [DiceBear](https://www.dicebear.com) (estilo *Open Peeps*). Clique em "Gerar
+  outras opções" para ver mais alternativas, escolha uma e clique em "Salvar avatar".
+
 ## Acessando o painel admin
 
 1. Faça login com uma conta que tenha o papel **Administrador**.

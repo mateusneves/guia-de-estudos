@@ -3,6 +3,7 @@ import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/rou
 import { AuthService } from './services/auth.service';
 import { TurmasService } from './services/turmas.service';
 import { PeriodosService } from './services/periodos.service';
+import { avatarUrl } from './shared/avatar';
 
 interface NavItem {
   path: string;
@@ -78,10 +79,13 @@ interface NavItem {
 
             <!-- Footer -->
             <div class="px-5 py-4 border-t border-white/10 shrink-0 flex items-center justify-between gap-2">
-              <div class="min-w-0">
-                <p class="text-white text-xs font-medium truncate">{{ auth.perfil()?.nome }}</p>
-                <p class="text-slate-500 text-xs truncate">{{ auth.isAdmin() ? 'Administrador' : 'Aluno' }}</p>
-              </div>
+              <a routerLink="/perfil" (click)="onNavClick()" class="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity">
+                <img [src]="avatarUrlDe(avatarSeed())" alt="Seu avatar" class="w-8 h-8 rounded-full bg-white/10 shrink-0">
+                <div class="min-w-0">
+                  <p class="text-white text-xs font-medium truncate">{{ auth.perfil()?.nome }}</p>
+                  <p class="text-slate-500 text-xs truncate">{{ auth.isAdmin() ? 'Administrador' : 'Aluno' }}</p>
+                </div>
+              </a>
               <button (click)="sair()" title="Sair" class="text-white/50 hover:text-white transition-colors shrink-0">
                 <i class="fa-solid fa-right-from-bracket text-sm"></i>
               </button>
@@ -141,10 +145,16 @@ export class App {
   private periodos = inject(PeriodosService);
   private router = inject(Router);
 
+  avatarUrlDe = avatarUrl;
+
   sidebarOpen = signal(typeof window !== 'undefined' && window.innerWidth >= 768);
 
   isMobile(): boolean {
     return typeof window !== 'undefined' && window.innerWidth < 768;
+  }
+
+  avatarSeed(): string {
+    return this.auth.perfil()?.avatarSeed || this.auth.usuario()?.uid || '';
   }
 
   nomeTurma(): string {
