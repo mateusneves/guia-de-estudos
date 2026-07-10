@@ -158,36 +158,34 @@ interface AulaDoDia {
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
           @for (d of disciplinas; track d.id) {
-            @if (d.avaliacoes.length > 0) {
-              <a
-                [routerLink]="['/disciplinas', d.id]"
-                class="card hover:shadow-md transition-shadow cursor-pointer group"
-              >
-                <div class="flex items-start gap-3">
-                  <span
-                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-xs font-bold shrink-0"
+            <a
+              [routerLink]="['/disciplinas', d.id]"
+              class="card hover:shadow-md transition-shadow cursor-pointer group"
+            >
+              <div class="flex items-start gap-3">
+                <span
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-xs font-bold shrink-0"
+                  [style.background-color]="d.cor"
+                >{{ d.codigo.substring(0, 2) }}</span>
+                <div class="min-w-0">
+                  <p class="text-xs text-slate-500 font-mono">{{ d.codigo }}</p>
+                  <p class="text-sm font-semibold text-slate-800 leading-snug group-hover:text-[#1e3a5f] transition-colors">{{ d.nome }}</p>
+                </div>
+              </div>
+              <div class="mt-3">
+                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                  <span>{{ getConcluidas(d.id) }}/{{ d.avaliacoes.length }} tarefas</span>
+                  <span>{{ getProgresso(d.id) }}%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-1.5">
+                  <div
+                    class="h-1.5 rounded-full transition-all"
+                    [style.width.%]="getProgresso(d.id)"
                     [style.background-color]="d.cor"
-                  >{{ d.codigo.substring(0, 2) }}</span>
-                  <div class="min-w-0">
-                    <p class="text-xs text-slate-500 font-mono">{{ d.codigo }}</p>
-                    <p class="text-sm font-semibold text-slate-800 leading-snug group-hover:text-[#1e3a5f] transition-colors">{{ d.nome }}</p>
-                  </div>
+                  ></div>
                 </div>
-                <div class="mt-3">
-                  <div class="flex justify-between text-xs text-slate-400 mb-1">
-                    <span>{{ getConcluidas(d.id) }}/{{ d.avaliacoes.length }} tarefas</span>
-                    <span>{{ getProgresso(d.id) }}%</span>
-                  </div>
-                  <div class="w-full bg-slate-100 rounded-full h-1.5">
-                    <div
-                      class="h-1.5 rounded-full transition-all"
-                      [style.width.%]="getProgresso(d.id)"
-                      [style.background-color]="d.cor"
-                    ></div>
-                  </div>
-                </div>
-              </a>
-            }
+              </div>
+            </a>
           }
         </div>
       </div>
@@ -222,7 +220,7 @@ export class DashboardComponent {
   }
 
   get totalDisciplinas() {
-    return this.disciplinas.filter(d => d.avaliacoes.length > 0).length;
+    return this.disciplinas.length;
   }
 
   get totalAvaliacoes() {

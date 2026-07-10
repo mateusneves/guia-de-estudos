@@ -281,7 +281,7 @@ export class ProgressoComponent {
   }
 
   get disciplinasComAvaliacoes(): Disciplina[] {
-    return this.disciplinas.filter(d => d.avaliacoes.length > 0);
+    return this.disciplinas;
   }
 
   get totalAvaliacoes(): number {
