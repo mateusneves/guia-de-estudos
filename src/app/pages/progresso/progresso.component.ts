@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SheetsService } from '../../services/sheets.service';
-import { StorageService } from '../../services/storage.service';
+import { DisciplinasService } from '../../services/disciplinas.service';
+import { ProgressoService } from '../../services/progresso.service';
 import { Disciplina } from '../../models/models';
 
 @Component({
@@ -233,15 +233,15 @@ import { Disciplina } from '../../models/models';
   `,
 })
 export class ProgressoComponent {
-  private sheets = inject(SheetsService);
-  get disciplinas() { return this.sheets.disciplinas(); }
+  private disciplinasService = inject(DisciplinasService);
+  get disciplinas() { return this.disciplinasService.disciplinas(); }
 
   mensagemFeedback = signal('');
   tipoFeedback = signal<'sucesso' | 'erro'>('sucesso');
   confirmarImportacao = signal(false);
   private arquivoPendente: File | null = null;
 
-  constructor(public storage: StorageService) {}
+  constructor(public storage: ProgressoService) {}
 
   exportar(): void {
     this.storage.exportar();

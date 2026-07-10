@@ -1,5 +1,6 @@
 export interface Avaliacao {
   id: string;
+  turmaId: string;
   disciplinaId: string;
   descricao: string;
   data: string | null; // ISO date string or null for continuous
@@ -9,8 +10,15 @@ export interface Avaliacao {
   concluida?: boolean;
 }
 
+export interface AulaHorario {
+  dia: string;
+  modulo: string;
+  horario: string;
+}
+
 export interface Disciplina {
   id: string;
+  turmaId: string;
   codigo: string;
   nome: string;
   nomeCompleto: string;
@@ -19,14 +27,32 @@ export interface Disciplina {
   conteudoProgramatico: { unidade: string; descricao: string }[];
   avaliacoes: Avaliacao[];
   bibliografia: string[];
+  horarios: AulaHorario[];
 }
 
-export interface AulaHorario {
-  dia: string;
-  modulo: string;
-  horario: string;
-  disciplinaId: string;
-  disciplina: string;
+export type Role = 'aluno' | 'administrador';
+
+export interface Turma {
+  id: string;
+  nome: string;
+  anoSemestre: string;
+  ativa: boolean;
+  criadoEm: string;
+}
+
+export interface Usuario {
+  uid: string;
+  nome: string;
+  email: string;
+  role: Role;
+  turmaId: string;
+  ativo: boolean;
+  criadoEm: string;
+}
+
+export interface Progresso {
+  concluidas: string[];
+  notas: Record<string, string>;
 }
 
 export interface EstatisticasDisciplina {

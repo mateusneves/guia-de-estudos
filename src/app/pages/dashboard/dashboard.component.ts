@@ -1,9 +1,16 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { HORARIO } from '../../data/curso.data';
-import { SheetsService } from '../../services/sheets.service';
-import { StorageService } from '../../services/storage.service';
-import { Avaliacao, AulaHorario } from '../../models/models';
+import { DisciplinasService } from '../../services/disciplinas.service';
+import { ProgressoService } from '../../services/progresso.service';
+import { Avaliacao } from '../../models/models';
+
+interface AulaDoDia {
+  dia: string;
+  modulo: string;
+  horario: string;
+  disciplinaId: string;
+  disciplina: string;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -82,20 +89,20 @@ import { Avaliacao, AulaHorario } from '../../models/models';
               @for (av of proximasAvaliacoes; track av.id) {
                 <div
                   class="flex items-start gap-3 p-3 rounded-lg border transition-colors"
-                  [class.border-slate-100]="!storage.isConcluida(av.id)"
-                  [class.bg-slate-50]="!storage.isConcluida(av.id)"
-                  [class.border-green-100]="storage.isConcluida(av.id)"
-                  [class.bg-green-50]="storage.isConcluida(av.id)"
+                  [class.border-slate-100]="!progresso.isConcluida(av.id)"
+                  [class.bg-slate-50]="!progresso.isConcluida(av.id)"
+                  [class.border-green-100]="progresso.isConcluida(av.id)"
+                  [class.bg-green-50]="progresso.isConcluida(av.id)"
                 >
                   <!-- Checkbox -->
                   <button
-                    (click)="storage.toggleConcluida(av.id)"
+                    (click)="progresso.toggleConcluida(av.id)"
                     class="mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
-                    [class.border-slate-300]="!storage.isConcluida(av.id)"
-                    [class.border-green-500]="storage.isConcluida(av.id)"
-                    [class.bg-green-500]="storage.isConcluida(av.id)"
+                    [class.border-slate-300]="!progresso.isConcluida(av.id)"
+                    [class.border-green-500]="progresso.isConcluida(av.id)"
+                    [class.bg-green-500]="progresso.isConcluida(av.id)"
                   >
-                    @if (storage.isConcluida(av.id)) {
+                    @if (progresso.isConcluida(av.id)) {
                       <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                       </svg>
@@ -106,9 +113,9 @@ import { Avaliacao, AulaHorario } from '../../models/models';
                   <div class="flex-1 min-w-0">
                     <p
                       class="text-sm font-medium leading-snug"
-                      [class.text-slate-800]="!storage.isConcluida(av.id)"
-                      [class.line-through]="storage.isConcluida(av.id)"
-                      [class.text-slate-400]="storage.isConcluida(av.id)"
+                      [class.text-slate-800]="!progresso.isConcluida(av.id)"
+                      [class.line-through]="progresso.isConcluida(av.id)"
+                      [class.text-slate-400]="progresso.isConcluida(av.id)"
                     >{{ av.descricao }}</p>
                     <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                       <span
@@ -189,8 +196,8 @@ import { Avaliacao, AulaHorario } from '../../models/models';
   `,
 })
 export class DashboardComponent {
-  private sheets = inject(SheetsService);
-  get disciplinas() { return this.sheets.disciplinas(); }
+  private disciplinasService = inject(DisciplinasService);
+  get disciplinas() { return this.disciplinasService.disciplinas(); }
 
   nomesDia: Record<string, string> = {
     'Segunda': 'Segunda-feira',
@@ -208,8 +215,10 @@ export class DashboardComponent {
     return this.diasSemana[new Date().getDay()];
   }
 
-  get aulasHoje(): AulaHorario[] {
-    return HORARIO.filter(a => a.dia === this.diaSemanaAtual);
+  get aulasHoje(): AulaDoDia[] {
+    return this.disciplinas
+      .flatMap(d => d.horarios.map(h => ({ ...h, disciplinaId: d.id, disciplina: d.nomeCompleto })))
+      .filter(a => a.dia === this.diaSemanaAtual);
   }
 
   get totalDisciplinas() {
@@ -221,14 +230,14 @@ export class DashboardComponent {
   }
 
   get totalConcluidas() {
-    return this.disciplinas.reduce((sum, d) => sum + d.avaliacoes.filter(a => this.storage.isConcluida(a.id)).length, 0);
+    return this.disciplinas.reduce((sum, d) => sum + d.avaliacoes.filter(a => this.progresso.isConcluida(a.id)).length, 0);
   }
 
   get proximasEntregas() {
     const em30dias = new Date();
     em30dias.setDate(em30dias.getDate() + 30);
     return this.disciplinas.flatMap(d => d.avaliacoes).filter(a => {
-      if (!a.data || this.storage.isConcluida(a.id)) return false;
+      if (!a.data || this.progresso.isConcluida(a.id)) return false;
       return new Date(a.data) <= em30dias;
     }).length;
   }
@@ -242,7 +251,7 @@ export class DashboardComponent {
       .slice(0, 8);
   }
 
-  constructor(public storage: StorageService) {}
+  constructor(public progresso: ProgressoService) {}
 
   getNomeDisciplina(id: string): string {
     return this.disciplinas.find(d => d.id === id)?.nome ?? id;
@@ -258,7 +267,7 @@ export class DashboardComponent {
 
   getConcluidas(disciplinaId: string): number {
     const d = this.disciplinas.find(d => d.id === disciplinaId);
-    return d?.avaliacoes.filter(a => this.storage.isConcluida(a.id)).length ?? 0;
+    return d?.avaliacoes.filter(a => this.progresso.isConcluida(a.id)).length ?? 0;
   }
 
   getProgresso(disciplinaId: string): number {

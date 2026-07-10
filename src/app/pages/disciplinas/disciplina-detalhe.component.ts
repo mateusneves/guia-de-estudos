@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { SheetsService } from '../../services/sheets.service';
-import { StorageService } from '../../services/storage.service';
+import { DisciplinasService } from '../../services/disciplinas.service';
+import { ProgressoService } from '../../services/progresso.service';
 import { Avaliacao, Disciplina } from '../../models/models';
 
 @Component({
@@ -198,12 +198,12 @@ import { Avaliacao, Disciplina } from '../../models/models';
 })
 export class DisciplinaDetalheComponent {
   private route = inject(ActivatedRoute);
-  private sheets = inject(SheetsService);
-  storage = inject(StorageService);
+  private disciplinasService = inject(DisciplinasService);
+  storage = inject(ProgressoService);
 
   disciplina = computed<Disciplina | null>(() => {
     const id = this.route.snapshot.paramMap.get('id');
-    return this.sheets.disciplinas().find(d => d.id === id) ?? null;
+    return this.disciplinasService.disciplinas().find(d => d.id === id) ?? null;
   });
 
   getConcluidas(d: Disciplina): number {

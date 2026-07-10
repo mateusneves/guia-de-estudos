@@ -1,22 +1,37 @@
-import { Disciplina, AulaHorario } from '../models/models';
+// Fonte histórica dos dados do semestre "3º Ano · 1º Semestre 2026".
+// Não é mais importado pelo app em runtime (os dados vivem no Firestore) —
+// serve apenas de entrada para o script de seed (scripts/seed-firestore.ts).
 
-export const HORARIO: AulaHorario[] = [
-  { dia: 'Segunda', modulo: 'M2', horario: '08:50 às 10:30', disciplinaId: 'ts12', disciplina: 'TS12 - Cosmovisão Calvinista' },
-  { dia: 'Segunda', modulo: 'M3', horario: '10:40 às 12:20', disciplinaId: 'cg64', disciplina: 'CG64 - Psicopatologia' },
-  { dia: 'Terça',   modulo: 'M1', horario: '07:00 às 08:40', disciplinaId: 'te17', disciplina: 'TE17 - Exegese do Antigo Testamento 1' },
-  { dia: 'Terça',   modulo: 'M2', horario: '08:50 às 10:30', disciplinaId: 'tp17', disciplina: 'TP17 - Prática de Pregação 3' },
-  { dia: 'Terça',   modulo: 'M3', horario: '10:40 às 12:20', disciplinaId: 'th07', disciplina: 'TH07 - História do Pensamento Cristão 1' },
-  { dia: 'Quarta',  modulo: 'M1', horario: '07:00 às 08:40', disciplinaId: 'te20', disciplina: 'TE20 - Exegese do Novo Testamento 1' },
-  { dia: 'Quarta',  modulo: 'M2', horario: '08:50 às 10:30', disciplinaId: 'pct05', disciplina: 'PCT05 - Participação em Culto' },
-  { dia: 'Quarta',  modulo: 'M3', horario: '10:40 às 12:20', disciplinaId: 'th04', disciplina: 'TH04 - História da Igreja 4' },
-  { dia: 'Quinta',  modulo: 'M1', horario: '07:00 às 08:40', disciplinaId: 'cg10', disciplina: 'CG10 - Sociologia Geral' },
-  { dia: 'Quinta',  modulo: 'M2', horario: '08:50 às 10:30', disciplinaId: 'tp03', disciplina: 'TP03 - Aconselhamento 1' },
-  { dia: 'Quinta',  modulo: 'M3', horario: '10:40 às 12:20', disciplinaId: 'tp07', disciplina: 'TP07 - Teologia de Missões 1' },
-  { dia: 'Sexta',   modulo: 'M2', horario: '08:50 às 10:30', disciplinaId: 'cg12', disciplina: 'CG12 - Monografia 1' },
-  { dia: 'Sexta',   modulo: 'M3', horario: '10:40 às 12:20', disciplinaId: 'th04', disciplina: 'TH04 - História da Igreja 4' },
-];
+interface SeedAulaHorario {
+  dia: string;
+  modulo: string;
+  horario: string;
+}
 
-export const DISCIPLINAS: Disciplina[] = [
+interface SeedAvaliacao {
+  id: string;
+  disciplinaId: string;
+  descricao: string;
+  data: string | null;
+  dataDisplay: string;
+  pontos: number;
+  tipo: string;
+}
+
+interface SeedDisciplina {
+  id: string;
+  codigo: string;
+  nome: string;
+  nomeCompleto: string;
+  cor: string;
+  corTexto: string;
+  conteudoProgramatico: { unidade: string; descricao: string }[];
+  avaliacoes: SeedAvaliacao[];
+  bibliografia: string[];
+  horarios: SeedAulaHorario[];
+}
+
+export const DISCIPLINAS: SeedDisciplina[] = [
   {
     id: 'tp03',
     codigo: 'TP03',
@@ -24,6 +39,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'TP03 - Aconselhamento 1',
     cor: '#1e40af',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Quinta', modulo: 'M2', horario: '08:50 às 10:30' },
+    ],
     conteudoProgramatico: [
       { unidade: 'Unidade 1', descricao: 'O ministério da palavra: pregação, ensino e aconselhamento e História do Aconselhamento Bíblico.' },
       { unidade: 'Unidade 2', descricao: 'O que faz o aconselhamento ser Bíblico? Características da igreja conselheira.' },
@@ -54,6 +72,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'TS12 - Cosmovisão Calvinista',
     cor: '#7c3aed',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Segunda', modulo: 'M2', horario: '08:50 às 10:30' },
+    ],
     conteudoProgramatico: [
       { unidade: 'Unidade 1', descricao: 'O que é cosmovisão.' },
       { unidade: 'Unidade 2', descricao: 'Funções de uma cosmovisão.' },
@@ -91,6 +112,7 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'TH52 - Desafios Missionários Contemporâneos',
     cor: '#059669',
     corTexto: '#ffffff',
+    horarios: [],
     conteudoProgramatico: [
       { unidade: 'Unidade 1 (09/02)', descricao: 'Apresentações gerais e Introdução ao Curso.' },
       { unidade: 'Unidade 2 (09/02)', descricao: 'A dimensão Teórica: O Desafio conceitual da Missão.' },
@@ -125,6 +147,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'TE17 - Exegese do Antigo Testamento 1',
     cor: '#b45309',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Terça', modulo: 'M1', horario: '07:00 às 08:40' },
+    ],
     conteudoProgramatico: [
       { unidade: 'Unidade 1', descricao: 'Introdução ao Pentateuco (Conceito, Ferramentas, Trabalho escrito).' },
       { unidade: 'Unidades 2-3', descricao: 'Análise contextual: contexto histórico (Cultural, político, econômico, religioso).' },
@@ -151,6 +176,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'TE20 - Exegese do Novo Testamento 1',
     cor: '#0891b2',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Quarta', modulo: 'M1', horario: '07:00 às 08:40' },
+    ],
     conteudoProgramatico: [
       { unidade: 'Unidade 1', descricao: 'Introdução ao curso.' },
       { unidade: 'Unidades 2-3', descricao: 'Análise de João 1.1-18 e João 1.19-51.' },
@@ -179,6 +207,10 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'TH04 - História da Igreja 4',
     cor: '#be185d',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Quarta', modulo: 'M3', horario: '10:40 às 12:20' },
+      { dia: 'Sexta', modulo: 'M3', horario: '10:40 às 12:20' },
+    ],
     conteudoProgramatico: [
       { unidade: 'Semana 1', descricao: 'Correntes Intelectuais do Séc. 18 (Racionalismo, Iluminismo, Deísmo).' },
       { unidade: 'Semana 2', descricao: 'Espiritualismo (Boehme, Fox) e o Pietismo (Spener, Francke, Missão Halle).' },
@@ -211,6 +243,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'TH07 - História do Pensamento Cristão 1',
     cor: '#64748b',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Terça', modulo: 'M3', horario: '10:40 às 12:20' },
+    ],
     conteudoProgramatico: [
       { unidade: 'Unidade 1', descricao: 'Os pais da Igreja (Resposta aos gregos, formação teológica, legados).' },
       { unidade: 'Unidade 2', descricao: 'Movimentos heréticos.' },
@@ -243,6 +278,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'CG12 - Monografia 1',
     cor: '#0f766e',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Sexta', modulo: 'M2', horario: '08:50 às 10:30' },
+    ],
     conteudoProgramatico: [
       { unidade: 'Unidade 1', descricao: 'Projeto de Pesquisa: pesquisa prévia, determinação do tema e enquadramento na CFW.' },
       { unidade: 'Unidade 2', descricao: 'Pesquisa bibliográfica: técnicas de pesquisa, anotações, fichamentos e atividades práticas na biblioteca.' },
@@ -271,6 +309,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'CG64 - Psicopatologia',
     cor: '#dc2626',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Segunda', modulo: 'M3', horario: '10:40 às 12:20' },
+    ],
     conteudoProgramatico: [
       { unidade: 'Unidade 1', descricao: 'História dos estudos psicopatológicos (Modelos sobrenatural, biológico e psicológico).' },
       { unidade: 'Unidade 2', descricao: 'Classificação estrutural do sujeito psíquico (Psicanálise, Behaviorismo, Humanismo, Crítica do Aconselhamento Bíblico).' },
@@ -299,6 +340,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'CG10 - Sociologia Geral',
     cor: '#d97706',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Quinta', modulo: 'M1', horario: '07:00 às 08:40' },
+    ],
     conteudoProgramatico: [
       { unidade: 'Unidade 1', descricao: 'Significado e história da sociologia (Comparação com outras ciências sociais).' },
       { unidade: 'Unidade 2', descricao: 'Sociedade e cultura. As instituições sociais.' },
@@ -329,6 +373,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'TP07 - Teologia de Missões 1',
     cor: '#0369a1',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Quinta', modulo: 'M3', horario: '10:40 às 12:20' },
+    ],
     conteudoProgramatico: [
       { unidade: 'Unidade 1', descricao: 'Fundamentos Conceituais da Teologia de Missões (Reino de Deus, missio Dei, cosmovisão reformada, trinômio criação-queda-redenção).' },
       { unidade: 'Unidade 2', descricao: 'Visão Panorâmica das Missões no Antigo Testamento (Gênesis, Êxodo, Profetas e Escritos).' },
@@ -354,6 +401,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'TP17 - Prática de Pregação 3',
     cor: '#9333ea',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Terça', modulo: 'M2', horario: '08:50 às 10:30' },
+    ],
     conteudoProgramatico: [
       { unidade: '—', descricao: 'Conteúdo programático não disponível no plano de curso.' },
     ],
@@ -367,6 +417,9 @@ export const DISCIPLINAS: Disciplina[] = [
     nomeCompleto: 'PCT05 - Participação em Culto',
     cor: '#475569',
     corTexto: '#ffffff',
+    horarios: [
+      { dia: 'Quarta', modulo: 'M2', horario: '08:50 às 10:30' },
+    ],
     conteudoProgramatico: [
       { unidade: '—', descricao: 'Participação nas atividades de culto conforme cronograma institucional.' },
     ],

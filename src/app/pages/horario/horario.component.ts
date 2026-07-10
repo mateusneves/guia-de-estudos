@@ -1,7 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { HORARIO, DISCIPLINAS } from '../../data/curso.data';
-import { AulaHorario } from '../../models/models';
+import { DisciplinasService } from '../../services/disciplinas.service';
+
+interface AulaDoDia {
+  dia: string;
+  modulo: string;
+  horario: string;
+  disciplinaId: string;
+  disciplina: string;
+}
 
 @Component({
   selector: 'app-horario',
@@ -147,6 +154,9 @@ import { AulaHorario } from '../../models/models';
   `,
 })
 export class HorarioComponent {
+  private disciplinasService = inject(DisciplinasService);
+  get disciplinas() { return this.disciplinasService.disciplinas(); }
+
   dias = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
 
   modulos = [
@@ -157,28 +167,34 @@ export class HorarioComponent {
 
   diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
+  private get todasAulas(): AulaDoDia[] {
+    return this.disciplinas.flatMap(d =>
+      d.horarios.map(h => ({ ...h, disciplinaId: d.id, disciplina: d.nomeCompleto }))
+    );
+  }
+
   isHoje(dia: string): boolean {
     return this.diasSemana[new Date().getDay()] === dia;
   }
 
-  getAula(dia: string, modulo: string): AulaHorario | undefined {
-    return HORARIO.find(a => a.dia === dia && a.modulo === modulo);
+  getAula(dia: string, modulo: string): AulaDoDia | undefined {
+    return this.todasAulas.find(a => a.dia === dia && a.modulo === modulo);
   }
 
-  getAulasDia(dia: string): AulaHorario[] {
-    return HORARIO.filter(a => a.dia === dia);
+  getAulasDia(dia: string): AulaDoDia[] {
+    return this.todasAulas.filter(a => a.dia === dia);
   }
 
-  get listaHorario(): AulaHorario[] {
-    return HORARIO;
+  get listaHorario(): AulaDoDia[] {
+    return this.todasAulas;
   }
 
   getCorDisciplina(id: string): string {
-    return DISCIPLINAS.find(d => d.id === id)?.cor ?? '#64748b';
+    return this.disciplinas.find(d => d.id === id)?.cor ?? '#64748b';
   }
 
   getCodigo(id: string): string {
-    return DISCIPLINAS.find(d => d.id === id)?.codigo ?? id.toUpperCase();
+    return this.disciplinas.find(d => d.id === id)?.codigo ?? id.toUpperCase();
   }
 
   getNomeCurto(nome: string): string {

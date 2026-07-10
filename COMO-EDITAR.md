@@ -1,116 +1,57 @@
 # Como Editar o Guia de Estudos
 
-Todas as avaliações e datas ficam no arquivo:
+Desde a migração para Firebase, as disciplinas, atividades, turmas e usuários
+**não ficam mais em código** (`curso.data.ts`) nem em planilha do Google — tudo é
+gerenciado pelo próprio app, pelo painel de administração.
+
+## Acessando o painel admin
+
+1. Faça login com uma conta que tenha o papel **Administrador**.
+2. No menu lateral, uma seção "Administração" aparece com: **Turmas**, **Usuários** e **Disciplinas**.
+
+## Turmas
+
+Em **Administração → Turmas**: crie uma turma por curso/período (ex: "3º Ano · 1º Semestre 2026").
+Alunos escolhem a turma na tela de cadastro — só turmas marcadas como "Ativa" aparecem lá.
+
+## Disciplinas
+
+Em **Administração → Disciplinas**: selecione a turma no topo da página, depois crie ou edite
+uma disciplina. Campos de lista (horários, conteúdo programático, bibliografia) usam
+um campo de texto com **um item por linha**, separando as partes com `|`:
 
 ```
-src/app/data/curso.data.ts
+Quinta | M2 | 08:50 às 10:30
 ```
 
----
-
-## Alterar a data de uma entrega
-
-Cada avaliação tem este formato:
-
-```typescript
-{
-  id: 'tp03-1',
-  disciplinaId: 'tp03',
-  descricao: 'Leituras e Declaração — "A Utilidade das Escrituras..."',
-  data: '2026-03-05',        // data no formato AAAA-MM-DD
-  dataDisplay: '05/03/2026', // como aparece na tela (DD/MM/AAAA)
-  pontos: 10,
-  tipo: 'declaracao'
-},
+```
+Unidade 1 | O ministério da palavra: pregação, ensino e aconselhamento.
 ```
 
-Altere **os dois campos**: `data` e `dataDisplay`.
+## Atividades (avaliações)
 
-**Exemplo:** mover a entrega para 10 de março:
-```typescript
-data: '2026-03-10',
-dataDisplay: '10/03/2026',
-```
+Dentro de cada disciplina no painel admin, clique em **"Atividades"** para cadastrar,
+editar ou excluir as avaliações daquela disciplina (descrição, data, tipo e pontos).
+Isso é o que aparece nas telas de Avaliações, Progresso e Dashboard para os alunos.
 
----
+## Usuários
 
-## Adicionar uma nova avaliação
+Em **Administração → Usuários**: veja todos os alunos cadastrados, mude a turma ou
+o papel (aluno/administrador) de qualquer um, ou desative o acesso de alguém sem
+apagar o histórico de progresso.
 
-Encontre a disciplina desejada no arquivo (procure pelo nome ou pelo id) e adicione
-um novo objeto dentro do array `avaliacoes:`, no final da lista:
+## Papéis
 
-```typescript
-avaliacoes: [
-  // ... avaliações existentes ...
+- **Aluno**: acesso normal ao app, progresso salvo na própria conta.
+- **Administrador**: tudo que o aluno vê, mais o painel de administração.
 
-  // adicione aqui no final
-  {
-    id: 'tp03-7',            // ID único: código da disciplina + número sequencial
-    disciplinaId: 'tp03',   // mesmo código da disciplina
-    descricao: 'Trabalho sobre aconselhamento matrimonial',
-    data: '2026-05-15',     // null se não tiver data fixa
-    dataDisplay: '15/05/2026',
-    pontos: 15,
-    tipo: 'trabalho'
-  },
-],
-```
+O primeiro administrador do sistema precisa ser promovido manualmente no Firebase
+Console (Firestore → coleção `usuarios` → documento do seu usuário → mudar o campo
+`role` para `administrador`), já que todo cadastro novo entra como aluno por padrão.
 
-### Tipos disponíveis para o campo `tipo`
-
-| Valor         | Cor    | Quando usar                        |
-|---------------|--------|------------------------------------|
-| `'prova'`     | Vermelho | Provas finais                    |
-| `'teste'`     | Âmbar    | Testes / questionários           |
-| `'trabalho'`  | Azul     | Trabalhos escritos               |
-| `'projeto'`   | Roxo     | Projetos (ex: monografia)        |
-| `'leitura'`   | Verde    | Avaliação de leitura de livro    |
-| `'declaracao'`| Ciano    | Declaração de leitura            |
-| `'continuo'`  | Cinza    | Atividades sem data fixa         |
-
-### Se não tiver data fixa (atividade contínua)
-
-```typescript
-data: null,
-dataDisplay: 'Contínuo',  // ou 'Semana de provas', 'Última aula', etc.
-```
-
----
-
-## IDs das disciplinas
-
-| ID      | Disciplina                            |
-|---------|---------------------------------------|
-| `tp03`  | Aconselhamento 1                      |
-| `ts12`  | Cosmovisão Calvinista                 |
-| `th52`  | Desafios Missionários Contemporâneos  |
-| `te17`  | Exegese do Antigo Testamento 1        |
-| `te20`  | Exegese do Novo Testamento 1          |
-| `th04`  | História da Igreja 4                  |
-| `th07`  | História do Pensamento Cristão 1      |
-| `cg12`  | Monografia 1                          |
-| `cg64`  | Psicopatologia                        |
-| `cg10`  | Sociologia Geral                      |
-| `tp07`  | Teologia de Missões 1                 |
-
----
-
-## Regra do campo `id`
-
-O `id` precisa ser único em todo o arquivo. Use o padrão `[código]-[número]`:
-
-- `tp03-7` → 7ª avaliação de Aconselhamento 1
-- `th04-6` → 6ª avaliação de História da Igreja 4
-
----
-
-## Como rodar o app
+## Rodando o app localmente
 
 ```bash
-cd guia-estudos
-ng serve
+npm start
 # Acesse http://localhost:4200
 ```
-
-Após salvar qualquer alteração no `curso.data.ts`, o servidor recarrega
-automaticamente e as mudanças aparecem na tela em segundos.

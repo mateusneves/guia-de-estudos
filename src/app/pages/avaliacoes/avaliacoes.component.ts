@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SheetsService } from '../../services/sheets.service';
-import { StorageService } from '../../services/storage.service';
+import { DisciplinasService } from '../../services/disciplinas.service';
+import { ProgressoService } from '../../services/progresso.service';
 import { Avaliacao } from '../../models/models';
 
 type Filtro = 'todas' | 'pendentes' | 'concluidas' | 'sem-data';
@@ -199,7 +199,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
   `,
 })
 export class AvaliacoesComponent {
-  private sheets = inject(SheetsService);
+  private disciplinasService = inject(DisciplinasService);
   filtroStatus = signal<Filtro>('pendentes');
   filtroTipo = signal<Tipo>('todos');
 
@@ -225,10 +225,10 @@ export class AvaliacoesComponent {
     return [{ key: 'todos', label: 'Todos' }, ...opcoes];
   }
 
-  constructor(public storage: StorageService) {}
+  constructor(public storage: ProgressoService) {}
 
   get todasAvaliacoes(): AvaliacaoComDisciplina[] {
-    return this.sheets.disciplinas().flatMap(d =>
+    return this.disciplinasService.disciplinas().flatMap(d =>
       d.avaliacoes.map(a => ({ ...a, disciplinaNome: d.nome, disciplinaCor: d.cor }))
     );
   }

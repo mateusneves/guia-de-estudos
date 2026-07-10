@@ -40,3 +40,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Credenciais do Firebase Admin (nunca commitar)
+scripts/service-account.json

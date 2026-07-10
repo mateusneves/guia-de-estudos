@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SheetsService } from '../../services/sheets.service';
-import { StorageService } from '../../services/storage.service';
+import { DisciplinasService } from '../../services/disciplinas.service';
+import { ProgressoService } from '../../services/progresso.service';
 
 @Component({
   selector: 'app-disciplinas',
@@ -106,11 +106,11 @@ import { StorageService } from '../../services/storage.service';
   `,
 })
 export class DisciplinasComponent {
-  private sheets = inject(SheetsService);
-  get disciplinas() { return this.sheets.disciplinas(); }
+  private disciplinasService = inject(DisciplinasService);
+  get disciplinas() { return this.disciplinasService.disciplinas(); }
   filtro = signal<'todas' | 'com-avaliacoes'>('com-avaliacoes');
 
-  constructor(public storage: StorageService) {}
+  constructor(public storage: ProgressoService) {}
 
   disciplinasFiltradas() {
     if (this.filtro() === 'com-avaliacoes') {
