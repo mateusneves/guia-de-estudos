@@ -21,15 +21,15 @@ interface LinhaHorario {
   template: `
     <div class="p-6 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Disciplinas</h1>
-        <p class="text-slate-500 text-sm mt-1">Gerencie as disciplinas de um período letivo.</p>
+        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Disciplinas</h1>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">Gerencie as disciplinas de um período letivo.</p>
       </div>
 
       <!-- Seletor de período (já traz a turma no rótulo — uma disciplina pertence a um período, não à turma diretamente) -->
       <div>
-        <label class="text-xs font-medium text-slate-600">Período</label>
+        <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Período</label>
         <select
-          class="mt-1 w-full md:w-80 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
+          class="mt-1 w-full md:w-80 border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm bg-[var(--cor-fundo-sutil)]"
           [value]="periodoSelecionado()"
           (change)="mudarPeriodo($any($event.target).value)"
         >
@@ -46,36 +46,36 @@ interface LinhaHorario {
       </div>
 
       @if (erro()) {
-        <p class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{{ erro() }}</p>
+        <p class="text-sm text-[var(--cor-erro-texto)] bg-[var(--cor-erro-fundo)] rounded-lg px-3 py-2">{{ erro() }}</p>
       }
 
       @if (periodoSelecionado()) {
         <!-- Formulário -->
         <div class="card">
-          <h2 class="font-semibold text-slate-800 mb-4">{{ editandoId() ? 'Editar disciplina' : 'Nova disciplina' }}</h2>
+          <h2 class="font-semibold text-[var(--cor-texto-principal)] mb-4">{{ editandoId() ? 'Editar disciplina' : 'Nova disciplina' }}</h2>
           <form [formGroup]="form" (ngSubmit)="salvar()" class="space-y-4">
             <div class="grid md:grid-cols-4 gap-3">
               <div>
-                <label class="text-xs font-medium text-slate-600">Código</label>
-                <input formControlName="codigo" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="TP03">
+                <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Código</label>
+                <input formControlName="codigo" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm" placeholder="TP03">
               </div>
               <div class="md:col-span-2">
-                <label class="text-xs font-medium text-slate-600">Nome</label>
-                <input formControlName="nome" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Aconselhamento 1">
+                <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Nome</label>
+                <input formControlName="nome" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm" placeholder="Aconselhamento 1">
               </div>
               <div>
-                <label class="text-xs font-medium text-slate-600">Cor</label>
-                <input type="color" formControlName="cor" class="mt-1 w-full border border-slate-200 rounded-lg h-9">
+                <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Cor</label>
+                <input type="color" formControlName="cor" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg h-9">
               </div>
             </div>
 
             <div>
-              <label class="text-xs font-medium text-slate-600">Horários</label>
+              <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Horários</label>
               <div class="space-y-2 mt-1">
                 @for (linha of horariosLinhas(); track $index) {
                   <div class="flex flex-wrap gap-2 items-center">
                     <select
-                      class="border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white"
+                      class="border border-[var(--cor-borda-media)] rounded-lg px-2 py-1.5 text-sm bg-[var(--cor-fundo-sutil)]"
                       [value]="linha.dia"
                       (change)="atualizarLinha($index, 'dia', $any($event.target).value)"
                     >
@@ -84,7 +84,7 @@ interface LinhaHorario {
                       }
                     </select>
                     <select
-                      class="flex-1 min-w-40 border border-slate-200 rounded-lg px-2 py-1.5 text-sm bg-white"
+                      class="flex-1 min-w-40 border border-[var(--cor-borda-media)] rounded-lg px-2 py-1.5 text-sm bg-[var(--cor-fundo-sutil)]"
                       [value]="linha.moduloId"
                       (change)="atualizarLinha($index, 'moduloId', $any($event.target).value)"
                     >
@@ -96,7 +96,7 @@ interface LinhaHorario {
                     <button type="button" (click)="removerHorario($index)" class="text-red-500 hover:text-red-600 text-sm px-2">Remover</button>
                   </div>
                 } @empty {
-                  <p class="text-xs text-slate-400">Nenhum horário definido para esta disciplina.</p>
+                  <p class="text-xs text-[var(--cor-texto-terciario)]">Nenhum horário definido para esta disciplina.</p>
                 }
                 <button type="button" (click)="adicionarHorario()" class="text-xs text-[var(--cor-primaria)] hover:underline font-medium">+ Adicionar horário</button>
               </div>
@@ -109,13 +109,13 @@ interface LinhaHorario {
             </div>
 
             <div>
-              <label class="text-xs font-medium text-slate-600">Conteúdo programático</label>
-              <textarea formControlName="conteudoProgramatico" rows="5" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Descreva o conteúdo programático da disciplina..."></textarea>
+              <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Conteúdo programático</label>
+              <textarea formControlName="conteudoProgramatico" rows="5" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm" placeholder="Descreva o conteúdo programático da disciplina..."></textarea>
             </div>
 
             <div>
-              <label class="text-xs font-medium text-slate-600">Bibliografia (uma referência por linha)</label>
-              <textarea formControlName="bibliografiaTexto" rows="3" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"></textarea>
+              <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Bibliografia (uma referência por linha)</label>
+              <textarea formControlName="bibliografiaTexto" rows="3" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm"></textarea>
             </div>
 
             <div class="flex items-center gap-3">
@@ -123,7 +123,7 @@ interface LinhaHorario {
                 {{ editandoId() ? 'Salvar' : 'Criar' }}
               </button>
               @if (editandoId()) {
-                <button type="button" (click)="cancelarEdicao()" class="text-sm text-slate-500 hover:text-slate-700">Cancelar</button>
+                <button type="button" (click)="cancelarEdicao()" class="text-sm text-[var(--cor-texto-secundario)] hover:text-[var(--cor-texto-principal)]">Cancelar</button>
               }
             </div>
           </form>
@@ -133,12 +133,12 @@ interface LinhaHorario {
         <div class="card">
           <div class="space-y-2">
             @for (d of disciplinas.disciplinas(); track d.id) {
-              <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+              <div class="flex items-center justify-between py-2 border-b border-[var(--cor-borda-sutil)] last:border-0">
                 <div class="flex items-center gap-3">
                   <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-xs font-bold" [style.background-color]="d.cor">{{ d.codigo.substring(0,2) }}</span>
                   <div>
-                    <p class="text-sm font-medium text-slate-800">{{ d.nome }}</p>
-                    <p class="text-xs text-slate-400">{{ d.avaliacoes.length }} atividades</p>
+                    <p class="text-sm font-medium text-[var(--cor-texto-principal)]">{{ d.nome }}</p>
+                    <p class="text-xs text-[var(--cor-texto-terciario)]">{{ d.avaliacoes.length }} atividades</p>
                   </div>
                 </div>
                 <div class="flex gap-3 text-sm">
@@ -148,7 +148,7 @@ interface LinhaHorario {
                 </div>
               </div>
             } @empty {
-              <p class="text-sm text-slate-400">Nenhuma disciplina cadastrada para este período.</p>
+              <p class="text-sm text-[var(--cor-texto-terciario)]">Nenhuma disciplina cadastrada para este período.</p>
             }
           </div>
         </div>

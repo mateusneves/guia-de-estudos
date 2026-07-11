@@ -8,6 +8,12 @@
  * ativo troca via o atributo [data-tema] em <html>, escrito por TemaService a partir do
  * temaId da turma do usuário logado — nenhum componente precisa saber qual tema está
  * ativo, todos consomem só as variáveis abaixo. Ver CLAUDE.md "Temas visuais".
+ *
+ * --cor-texto-*, --cor-fundo-sutil* e --cor-borda-* existem porque texto/fundos sutis/bordas
+ * dentro de cards eram cor cinza-slate FIXA em todo o app (assumindo card sempre claro) —
+ * o tema medieval de paleta escura (cards escuros) exigiu tornar isso adaptável também,
+ * não só as cores de marca. Qualquer nova página deve usar estas variáveis em vez de
+ * `text-slate-*`/`bg-slate-*`/`border-slate-*` fixos.
  */
 :root {
   --cor-primaria: #1e3a5f;
@@ -25,24 +31,43 @@
   --cor-sidebar-ativo: rgba(255, 255, 255, 0.15);
   --cor-sidebar-ativo-borda: transparent;
   --cor-sidebar-divisor: rgba(255, 255, 255, 0.1);
+  --cor-texto-principal: #1e293b;
+  --cor-texto-secundario: #64748b;
+  --cor-texto-terciario: #94a3b8;
+  --cor-fundo-sutil: #f8fafc;
+  --cor-fundo-sutil-forte: #e2e8f0;
+  --cor-borda-sutil: #f1f5f9;
+  --cor-borda-media: #e2e8f0;
+  --cor-erro-fundo: #fef2f2;
+  --cor-erro-texto: #dc2626;
 }
 
 [data-tema="medieval"] {
-  --cor-primaria: #6b4423;
-  --cor-primaria-hover: #7d5330;
-  --cor-primaria-30: rgba(107, 68, 35, 0.3);
-  --cor-secundaria: #b8952f;
-  --cor-sidebar-inicio: #1b1710;
-  --cor-sidebar-fim: #0c0a06;
-  --cor-fundo: #e8dfc4;
-  --cor-card-fundo: #f6efdb;
-  --cor-card-borda: #c2a15c;
-  --sombra-card: 0 2px 8px rgba(70, 48, 15, 0.18);
+  /* Paleta baseada na referência "Allespresso" (dark UI + dourado/indigo/cinza quente). */
+  --cor-primaria: #c9873e;
+  --cor-primaria-hover: #db9d57;
+  --cor-primaria-30: rgba(201, 135, 62, 0.3);
+  --cor-secundaria: #d8cfc4;
+  --cor-sidebar-inicio: #16211f;
+  --cor-sidebar-fim: #0a0f0e;
+  --cor-fundo: #100e0b;
+  --cor-card-fundo: #1c1912;
+  --cor-card-borda: rgba(201, 135, 62, 0.35);
+  --sombra-card: 0 4px 14px rgba(0, 0, 0, 0.55);
   --fonte-titulo: 'Cinzel', serif;
-  --cor-sidebar-hover: rgba(184, 149, 47, 0.16);
-  --cor-sidebar-ativo: rgba(184, 149, 47, 0.24);
-  --cor-sidebar-ativo-borda: var(--cor-secundaria);
-  --cor-sidebar-divisor: rgba(184, 149, 47, 0.35);
+  --cor-sidebar-hover: rgba(201, 135, 62, 0.16);
+  --cor-sidebar-ativo: rgba(201, 135, 62, 0.24);
+  --cor-sidebar-ativo-borda: var(--cor-primaria);
+  --cor-sidebar-divisor: rgba(201, 135, 62, 0.3);
+  --cor-texto-principal: #f0e6d2;
+  --cor-texto-secundario: #b3a58a;
+  --cor-texto-terciario: #7d7260;
+  --cor-fundo-sutil: #241f16;
+  --cor-fundo-sutil-forte: #2e2818;
+  --cor-borda-sutil: rgba(201, 135, 62, 0.15);
+  --cor-borda-media: rgba(201, 135, 62, 0.3);
+  --cor-erro-fundo: rgba(220, 38, 38, 0.15);
+  --cor-erro-texto: #f28b82;
 }
 
 @layer base {
@@ -58,6 +83,12 @@
 }
 
 @layer components {
+  /* Card flutuante — sombra de base para o sidebar "descolar" da página em qualquer
+     tema; o tema medieval soma um friso dourado por cima (ver regra específica abaixo). */
+  .sidebar-frame {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
   .sidebar-link {
     @apply flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-slate-300;
     text-decoration: none;
@@ -84,10 +115,11 @@
   }
 
   .card {
-    @apply rounded-xl p-5;
+    @apply rounded-2xl p-5;
     background-color: var(--cor-card-fundo);
     border: 1px solid var(--cor-card-borda);
     box-shadow: var(--sombra-card);
+    color: var(--cor-texto-principal);
   }
 
   .badge {
@@ -101,18 +133,20 @@
   }
 }
 
-/* Textura sutil de pergaminho no tema medieval — só um leve gradiente, sem imagens. */
+/* Textura sutil de pergaminho/couro no tema medieval — só um leve gradiente, sem imagens. */
 [data-tema="medieval"] .card {
-  background-image: radial-gradient(circle at 15% 10%, rgba(194, 161, 92, 0.12), transparent 55%);
+  background-image: radial-gradient(circle at 15% 10%, rgba(201, 135, 62, 0.08), transparent 55%);
 }
 
-/* Friso dourado na borda da sidebar — o toque de moldura ornamentada do tema medieval. */
+/* Friso dourado ao redor da sidebar — agora que ela é um card flutuante (com margem em
+   todos os lados, não colada nas bordas), a moldura precisa envolver o card todo, não só
+   um lado. */
 [data-tema="medieval"] .sidebar-frame {
-  border-right: 2px solid var(--cor-secundaria);
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
+  border: 2px solid var(--cor-primaria);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* Borda dourada em toda barra de progresso/status/XP (ver .barra-progresso acima). */
 [data-tema="medieval"] .barra-progresso {
-  border: 1px solid var(--cor-secundaria);
+  border: 1px solid var(--cor-primaria);
 }

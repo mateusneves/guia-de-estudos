@@ -19,60 +19,60 @@ import { ConvitePublico } from '../../models/models';
 
         <div class="bg-white rounded-2xl shadow-xl p-6">
           @if (resolvendo()) {
-            <p class="text-sm text-slate-500 text-center py-6">Verificando convite...</p>
+            <p class="text-sm text-[var(--cor-texto-secundario)] text-center py-6">Verificando convite...</p>
           } @else if (!convite()) {
-            <h2 class="text-lg font-bold text-slate-800 mb-1">Convite necessário</h2>
-            <p class="text-sm text-slate-500">
+            <h2 class="text-lg font-bold text-[var(--cor-texto-principal)] mb-1">Convite necessário</h2>
+            <p class="text-sm text-[var(--cor-texto-secundario)]">
               O cadastro só pode ser feito através de um link de convite válido, enviado pelo
               administrador da sua turma. Se você recebeu um link e chegou aqui mesmo assim, ele pode
               ter expirado — peça um novo.
             </p>
           } @else {
-            <h2 class="text-lg font-bold text-slate-800 mb-1">Criar conta</h2>
-            <p class="text-sm text-slate-500 mb-5">
+            <h2 class="text-lg font-bold text-[var(--cor-texto-principal)] mb-1">Criar conta</h2>
+            <p class="text-sm text-[var(--cor-texto-secundario)] mb-5">
               Você foi convidado para a turma <strong>{{ convite()!.turmaNome }}</strong>.
             </p>
 
             <form [formGroup]="form" (ngSubmit)="cadastrar()" class="space-y-4">
               <div>
-                <label class="text-xs font-medium text-slate-600">Nome completo</label>
+                <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Nome completo</label>
                 <input
                   type="text"
                   formControlName="nome"
-                  class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
+                  class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
                   placeholder="Seu nome"
                 >
               </div>
               <div>
-                <label class="text-xs font-medium text-slate-600">E-mail</label>
+                <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">E-mail</label>
                 <input
                   type="email"
                   formControlName="email"
-                  class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
+                  class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
                   placeholder="voce@exemplo.com"
                 >
               </div>
               <div>
-                <label class="text-xs font-medium text-slate-600">Senha</label>
+                <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Senha</label>
                 <input
                   type="password"
                   formControlName="senha"
-                  class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
+                  class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
                   placeholder="Mínimo 6 caracteres"
                 >
               </div>
               <div>
-                <label class="text-xs font-medium text-slate-600">Código de autorização</label>
+                <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Código de autorização</label>
                 <input
                   type="text"
                   formControlName="codigo"
-                  class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)] uppercase"
+                  class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)] uppercase"
                   placeholder="Informado pelo administrador"
                 >
               </div>
 
               @if (erro()) {
-                <p class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{{ erro() }}</p>
+                <p class="text-xs text-[var(--cor-erro-texto)] bg-[var(--cor-erro-fundo)] rounded-lg px-3 py-2">{{ erro() }}</p>
               }
 
               <button
@@ -83,7 +83,7 @@ import { ConvitePublico } from '../../models/models';
             </form>
           }
 
-          <p class="text-center text-sm text-slate-500 mt-5">
+          <p class="text-center text-sm text-[var(--cor-texto-secundario)] mt-5">
             Já tem conta? <a routerLink="/login" class="text-[var(--cor-primaria)] font-medium hover:underline">Entrar</a>
           </p>
         </div>

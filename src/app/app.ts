@@ -19,7 +19,7 @@ interface NavItem {
   imports: [RouterOutlet, RouterLink, RouterLinkActive, XpToastComponent],
   template: `
     @if (auth.logado()) {
-      <div class="flex h-screen overflow-hidden bg-[var(--cor-fundo)]">
+      <div class="flex h-screen overflow-hidden bg-[var(--cor-fundo)] p-3 gap-3">
 
         <!-- Backdrop mobile -->
         @if (sidebarOpen() && isMobile()) {
@@ -29,9 +29,9 @@ interface NavItem {
           ></div>
         }
 
-        <!-- Sidebar -->
+        <!-- Sidebar (card flutuante, com margem — não colada nas bordas) -->
         <aside
-          class="sidebar-frame fixed md:relative inset-y-0 left-0 z-50 flex flex-col shrink-0 overflow-hidden transition-all duration-300"
+          class="sidebar-frame fixed md:relative inset-y-3 left-3 md:inset-y-0 md:left-0 z-50 flex flex-col shrink-0 overflow-hidden rounded-2xl transition-all duration-300"
           [style.width]="sidebarOpen() ? '16rem' : '0'"
           style="background: linear-gradient(180deg, var(--cor-sidebar-inicio) 0%, var(--cor-sidebar-fim) 100%);"
         >
@@ -46,7 +46,7 @@ interface NavItem {
               >
               <div class="min-w-0">
                 <p class="sidebar-titulo text-white font-semibold text-sm leading-tight whitespace-nowrap">Guia de Estudos</p>
-                <p class="text-slate-400 text-xs whitespace-nowrap truncate">{{ nomeTurma() }}</p>
+                <p class="text-[var(--cor-texto-terciario)] text-xs whitespace-nowrap truncate">{{ nomeTurma() }}</p>
               </div>
             </div>
 
@@ -55,7 +55,7 @@ interface NavItem {
               <img [src]="avatarUrlDe(avatarSeed())" alt="Seu avatar" class="w-11 h-11 rounded-full bg-white/10 shrink-0">
               <div class="min-w-0 flex-1">
                 <p class="text-white text-sm font-medium truncate">{{ auth.perfil()?.nome }}</p>
-                <p class="text-slate-400 text-xs truncate">{{ auth.isAdmin() ? 'Administrador' : 'Aluno' }}</p>
+                <p class="text-[var(--cor-texto-terciario)] text-xs truncate">{{ auth.isAdmin() ? 'Administrador' : 'Aluno' }}</p>
                 <p class="text-[var(--cor-secundaria)] text-xs truncate mt-1 font-medium">{{ gamificacao.nivel().titulo }}</p>
                 <div class="barra-progresso w-full bg-white/10 rounded-full h-1.5 mt-1">
                   <div class="h-1.5 rounded-full bg-[var(--cor-secundaria)] transition-all" [style.width.%]="gamificacao.progressoNivel()"></div>
@@ -128,7 +128,7 @@ interface NavItem {
               >
               <div class="min-w-0">
                 <p class="sidebar-titulo text-white font-semibold text-sm leading-tight">Guia de Estudos</p>
-                <p class="text-slate-400 text-xs hidden sm:block truncate">{{ nomeTurma() }}</p>
+                <p class="text-[var(--cor-texto-terciario)] text-xs hidden sm:block truncate">{{ nomeTurma() }}</p>
               </div>
             </div>
 

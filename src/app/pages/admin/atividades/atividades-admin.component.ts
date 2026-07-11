@@ -13,19 +13,19 @@ import { Avaliacao } from '../../../models/models';
   template: `
     <div class="p-6 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Atividades</h1>
-        <p class="text-slate-500 text-sm mt-1">
+        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Atividades</h1>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">
           Cadastre atividades avaliativas do período em curso e escolha a qual disciplina cada uma pertence.
         </p>
         @if (periodoAtual()) {
-          <p class="text-xs text-slate-400 mt-1">
+          <p class="text-xs text-[var(--cor-texto-terciario)] mt-1">
             Período em curso: <strong>{{ turmas.getNome(periodoAtual()!.turmaId) }} — {{ periodoAtual()!.nome }}</strong>
           </p>
         }
       </div>
 
       @if (erro()) {
-        <p class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{{ erro() }}</p>
+        <p class="text-sm text-[var(--cor-erro-texto)] bg-[var(--cor-erro-fundo)] rounded-lg px-3 py-2">{{ erro() }}</p>
       }
 
       @if (!periodoAtual()) {
@@ -39,11 +39,11 @@ import { Avaliacao } from '../../../models/models';
       } @else {
         <!-- Formulário -->
         <div class="card">
-          <h2 class="font-semibold text-slate-800 mb-4">{{ editandoId() ? 'Editar atividade' : 'Nova atividade' }}</h2>
+          <h2 class="font-semibold text-[var(--cor-texto-principal)] mb-4">{{ editandoId() ? 'Editar atividade' : 'Nova atividade' }}</h2>
           <form [formGroup]="form" (ngSubmit)="salvar()" class="space-y-3">
             <div>
-              <label class="text-xs font-medium text-slate-600">Disciplina</label>
-              <select formControlName="disciplinaId" class="mt-1 w-full md:w-72 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+              <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Disciplina</label>
+              <select formControlName="disciplinaId" class="mt-1 w-full md:w-72 border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm bg-[var(--cor-fundo-sutil)]">
                 <option value="" disabled>Selecione a disciplina</option>
                 @for (d of disciplinas.disciplinas(); track d.id) {
                   <option [value]="d.id">{{ d.nome }}</option>
@@ -51,30 +51,30 @@ import { Avaliacao } from '../../../models/models';
               </select>
             </div>
             <div>
-              <label class="text-xs font-medium text-slate-600">Nome da atividade</label>
-              <input formControlName="nome" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Ex: Prova Final">
+              <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Nome da atividade</label>
+              <input formControlName="nome" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm" placeholder="Ex: Prova Final">
             </div>
             <div>
-              <label class="text-xs font-medium text-slate-600">Descrição (opcional)</label>
-              <textarea formControlName="descricao" rows="2" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"></textarea>
+              <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Descrição (opcional)</label>
+              <textarea formControlName="descricao" rows="2" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm"></textarea>
             </div>
             <div class="grid md:grid-cols-3 gap-3">
               <div>
-                <label class="text-xs font-medium text-slate-600">Data de entrega (deixe vazio se contínua)</label>
-                <input type="date" formControlName="data" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Data de entrega (deixe vazio se contínua)</label>
+                <input type="date" formControlName="data" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm">
               </div>
               <div>
-                <label class="text-xs font-medium text-slate-600">Se sem data, exibir como</label>
-                <input formControlName="dataDisplayManual" placeholder="Ex: Contínuo, Semana de provas" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Se sem data, exibir como</label>
+                <input formControlName="dataDisplayManual" placeholder="Ex: Contínuo, Semana de provas" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm">
               </div>
               <div>
-                <label class="text-xs font-medium text-slate-600">Valor (pontos)</label>
-                <input type="number" formControlName="pontos" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Valor (pontos)</label>
+                <input type="number" formControlName="pontos" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm">
               </div>
             </div>
             <div>
-              <label class="text-xs font-medium text-slate-600">Categoria</label>
-              <select formControlName="tipo" class="mt-1 w-full md:w-56 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+              <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Categoria</label>
+              <select formControlName="tipo" class="mt-1 w-full md:w-56 border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm bg-[var(--cor-fundo-sutil)]">
                 <option value="prova">Prova</option>
                 <option value="teste">Teste</option>
                 <option value="trabalho">Trabalho</option>
@@ -90,7 +90,7 @@ import { Avaliacao } from '../../../models/models';
                 {{ editandoId() ? 'Salvar' : 'Criar' }}
               </button>
               @if (editandoId()) {
-                <button type="button" (click)="cancelarEdicao()" class="text-sm text-slate-500 hover:text-slate-700">Cancelar</button>
+                <button type="button" (click)="cancelarEdicao()" class="text-sm text-[var(--cor-texto-secundario)] hover:text-[var(--cor-texto-principal)]">Cancelar</button>
               }
             </div>
           </form>
@@ -101,17 +101,15 @@ import { Avaliacao } from '../../../models/models';
           <button
             (click)="filtroDisciplina.set('')"
             class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-            [class.bg-[var(--cor-primaria)]]="filtroDisciplina() === ''"
-            [class.text-white]="filtroDisciplina() === ''"
-            [class.bg-slate-100]="filtroDisciplina() !== ''"
+            [style.background-color]="filtroDisciplina() === '' ? 'var(--cor-primaria)' : 'var(--cor-fundo-sutil)'"
+            [style.color]="filtroDisciplina() === '' ? '#fff' : 'var(--cor-texto-secundario)'"
           >Todas as disciplinas</button>
           @for (d of disciplinas.disciplinas(); track d.id) {
             <button
               (click)="filtroDisciplina.set(d.id)"
               class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-              [class.bg-[var(--cor-primaria)]]="filtroDisciplina() === d.id"
-              [class.text-white]="filtroDisciplina() === d.id"
-              [class.bg-slate-100]="filtroDisciplina() !== d.id"
+              [style.background-color]="filtroDisciplina() === d.id ? 'var(--cor-primaria)' : 'var(--cor-fundo-sutil)'"
+              [style.color]="filtroDisciplina() === d.id ? '#fff' : 'var(--cor-texto-secundario)'"
             >{{ d.nome }}</button>
           }
         </div>
@@ -120,10 +118,10 @@ import { Avaliacao } from '../../../models/models';
         <div class="card">
           <div class="space-y-2">
             @for (a of atividadesFiltradas(); track a.id) {
-              <div class="flex items-start justify-between py-2 border-b border-slate-50 last:border-0 gap-3">
+              <div class="flex items-start justify-between py-2 border-b border-[var(--cor-borda-sutil)] last:border-0 gap-3">
                 <div class="min-w-0">
-                  <p class="text-sm font-medium text-slate-800">{{ a.nome || a.descricao }}</p>
-                  <p class="text-xs text-slate-400">{{ nomeDisciplina(a.disciplinaId) }} · {{ a.dataDisplay }} · {{ a.pontos }} pts · {{ a.tipo }}</p>
+                  <p class="text-sm font-medium text-[var(--cor-texto-principal)]">{{ a.nome || a.descricao }}</p>
+                  <p class="text-xs text-[var(--cor-texto-terciario)]">{{ nomeDisciplina(a.disciplinaId) }} · {{ a.dataDisplay }} · {{ a.pontos }} pts · {{ a.tipo }}</p>
                 </div>
                 <div class="flex gap-3 text-sm shrink-0">
                   <button (click)="editar(a)" class="text-[var(--cor-primaria)] hover:underline">Editar</button>
@@ -131,7 +129,7 @@ import { Avaliacao } from '../../../models/models';
                 </div>
               </div>
             } @empty {
-              <p class="text-sm text-slate-400">Nenhuma atividade cadastrada.</p>
+              <p class="text-sm text-[var(--cor-texto-terciario)]">Nenhuma atividade cadastrada.</p>
             }
           </div>
         </div>

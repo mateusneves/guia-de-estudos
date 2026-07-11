@@ -10,8 +10,8 @@ import { Role, Usuario } from '../../../models/models';
   template: `
     <div class="p-6 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Usuários</h1>
-        <p class="text-slate-500 text-sm mt-1">{{ usuarios.usuarios().length }} usuários cadastrados.</p>
+        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Usuários</h1>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">{{ usuarios.usuarios().length }} usuários cadastrados.</p>
       </div>
 
       <!-- Filtro por turma -->
@@ -19,29 +19,27 @@ import { Role, Usuario } from '../../../models/models';
         <button
           (click)="filtroTurma.set(null)"
           class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-          [class.bg-[var(--cor-primaria)]]="filtroTurma() === null"
-          [class.text-white]="filtroTurma() === null"
-          [class.bg-slate-100]="filtroTurma() !== null"
+          [style.background-color]="filtroTurma() === null ? 'var(--cor-primaria)' : 'var(--cor-fundo-sutil)'"
+          [style.color]="filtroTurma() === null ? '#fff' : 'var(--cor-texto-secundario)'"
         >Todas as turmas</button>
         @for (t of turmas.turmas(); track t.id) {
           <button
             (click)="filtroTurma.set(t.id)"
             class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-            [class.bg-[var(--cor-primaria)]]="filtroTurma() === t.id"
-            [class.text-white]="filtroTurma() === t.id"
-            [class.bg-slate-100]="filtroTurma() !== t.id"
+            [style.background-color]="filtroTurma() === t.id ? 'var(--cor-primaria)' : 'var(--cor-fundo-sutil)'"
+            [style.color]="filtroTurma() === t.id ? '#fff' : 'var(--cor-texto-secundario)'"
           >{{ t.nome }}</button>
         }
       </div>
 
       @if (erro()) {
-        <p class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{{ erro() }}</p>
+        <p class="text-sm text-[var(--cor-erro-texto)] bg-[var(--cor-erro-fundo)] rounded-lg px-3 py-2">{{ erro() }}</p>
       }
 
       <div class="card overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="text-left text-xs text-slate-400 uppercase tracking-wider border-b border-slate-100">
+            <tr class="text-left text-xs text-[var(--cor-texto-terciario)] uppercase tracking-wider border-b border-[var(--cor-borda-sutil)]">
               <th class="pb-2 pr-3">Nome</th>
               <th class="pb-2 pr-3">E-mail</th>
               <th class="pb-2 pr-3">Turma</th>
@@ -52,12 +50,12 @@ import { Role, Usuario } from '../../../models/models';
           </thead>
           <tbody>
             @for (u of usuariosFiltrados(); track u.uid) {
-              <tr class="border-b border-slate-50 last:border-0" [class.opacity-50]="!u.ativo">
-                <td class="py-2 pr-3 font-medium text-slate-800">{{ u.nome }}</td>
-                <td class="py-2 pr-3 text-slate-500">{{ u.email }}</td>
+              <tr class="border-b border-[var(--cor-borda-sutil)] last:border-0" [class.opacity-50]="!u.ativo">
+                <td class="py-2 pr-3 font-medium text-[var(--cor-texto-principal)]">{{ u.nome }}</td>
+                <td class="py-2 pr-3 text-[var(--cor-texto-secundario)]">{{ u.email }}</td>
                 <td class="py-2 pr-3">
                   <select
-                    class="border border-slate-200 rounded-lg px-2 py-1 text-xs"
+                    class="border border-[var(--cor-borda-media)] rounded-lg px-2 py-1 text-xs"
                     [value]="u.turmaId"
                     (change)="mudarTurma(u, $any($event.target).value)"
                   >
@@ -68,7 +66,7 @@ import { Role, Usuario } from '../../../models/models';
                 </td>
                 <td class="py-2 pr-3">
                   <select
-                    class="border border-slate-200 rounded-lg px-2 py-1 text-xs"
+                    class="border border-[var(--cor-borda-media)] rounded-lg px-2 py-1 text-xs"
                     [value]="u.role"
                     (change)="mudarRole(u, $any($event.target).value)"
                     [disabled]="u.uid === auth.usuario()?.uid"
@@ -78,7 +76,13 @@ import { Role, Usuario } from '../../../models/models';
                   </select>
                 </td>
                 <td class="py-2 pr-3">
-                  <span class="badge" [class.bg-green-100]="u.ativo" [class.text-green-700]="u.ativo" [class.bg-slate-100]="!u.ativo" [class.text-slate-500]="!u.ativo">
+                  <span
+                    class="badge"
+                    [class.bg-green-100]="u.ativo"
+                    [class.text-green-700]="u.ativo"
+                    [style.background-color]="u.ativo ? null : 'var(--cor-fundo-sutil)'"
+                    [style.color]="u.ativo ? null : 'var(--cor-texto-secundario)'"
+                  >
                     {{ u.ativo ? 'Ativo' : 'Desativado' }}
                   </span>
                 </td>
@@ -93,13 +97,13 @@ import { Role, Usuario } from '../../../models/models';
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="6" class="py-6 text-center text-slate-400">Nenhum usuário encontrado.</td></tr>
+              <tr><td colspan="6" class="py-6 text-center text-[var(--cor-texto-terciario)]">Nenhum usuário encontrado.</td></tr>
             }
           </tbody>
         </table>
       </div>
 
-      <p class="text-xs text-slate-400">
+      <p class="text-xs text-[var(--cor-texto-terciario)]">
         "Desativar" impede o login no app sem excluir os dados do aluno. A remoção definitiva da conta de acesso
         precisa ser feita futuramente por uma rotina administrativa (fora do escopo atual do painel).
       </p>

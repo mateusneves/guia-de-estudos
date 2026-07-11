@@ -10,32 +10,31 @@ import { avatarUrl, seedAleatoria } from '../../shared/avatar';
   template: `
     <div class="p-6 max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Meu Perfil</h1>
-        <p class="text-slate-500 text-sm mt-1">Edite seu nome de exibição, senha e avatar.</p>
+        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Meu Perfil</h1>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">Edite seu nome de exibição, senha e avatar.</p>
       </div>
 
       <!-- Avatar -->
       <div class="card">
-        <h2 class="font-semibold text-slate-800 mb-4">Avatar</h2>
+        <h2 class="font-semibold text-[var(--cor-texto-principal)] mb-4">Avatar</h2>
         <div class="flex items-center gap-4 mb-4">
-          <img [src]="avatarAtual()" alt="Avatar atual" class="w-20 h-20 rounded-full bg-slate-100 border border-slate-200">
+          <img [src]="avatarAtual()" alt="Avatar atual" class="w-20 h-20 rounded-full bg-[var(--cor-fundo-sutil)] border border-[var(--cor-borda-media)]">
           <div>
-            <p class="text-sm text-slate-600">Este é o seu avatar atual.</p>
-            <p class="text-xs text-slate-400">Gerado por <a href="https://www.dicebear.com" target="_blank" rel="noopener" class="underline">DiceBear</a> (estilo Open Peeps).</p>
+            <p class="text-sm text-[var(--cor-texto-secundario)]">Este é o seu avatar atual.</p>
+            <p class="text-xs text-[var(--cor-texto-terciario)]">Gerado por <a href="https://www.dicebear.com" target="_blank" rel="noopener" class="underline">DiceBear</a> (estilo Open Peeps).</p>
           </div>
         </div>
 
-        <p class="text-xs font-medium text-slate-600 mb-2">Escolha uma opção ou gere outras:</p>
+        <p class="text-xs font-medium text-[var(--cor-texto-secundario)] mb-2">Escolha uma opção ou gere outras:</p>
         <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-3">
           @for (seed of opcoesAvatar(); track seed) {
             <button
               type="button"
               (click)="selecionarAvatar(seed)"
               class="rounded-full border-2 transition-colors p-0.5"
-              [class.border-[var(--cor-primaria)]]="seed === avatarSelecionado()"
-              [class.border-transparent]="seed !== avatarSelecionado()"
+              [style.border-color]="seed === avatarSelecionado() ? 'var(--cor-primaria)' : 'transparent'"
             >
-              <img [src]="avatarUrlDe(seed)" [alt]="'Opção de avatar'" class="w-full aspect-square rounded-full bg-slate-100">
+              <img [src]="avatarUrlDe(seed)" [alt]="'Opção de avatar'" class="w-full aspect-square rounded-full bg-[var(--cor-fundo-sutil)]">
             </button>
           }
         </div>
@@ -55,10 +54,10 @@ import { avatarUrl, seedAleatoria } from '../../shared/avatar';
 
       <!-- Nome -->
       <div class="card">
-        <h2 class="font-semibold text-slate-800 mb-4">Nome de exibição</h2>
+        <h2 class="font-semibold text-[var(--cor-texto-principal)] mb-4">Nome de exibição</h2>
         <form [formGroup]="formNome" (ngSubmit)="salvarNome()" class="flex flex-wrap items-end gap-3">
           <div class="flex-1 min-w-48">
-            <input formControlName="nome" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Seu nome">
+            <input formControlName="nome" class="w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm" placeholder="Seu nome">
           </div>
           <button type="submit" [disabled]="formNome.invalid" class="bg-[var(--cor-primaria)] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] disabled:opacity-50">
             Salvar nome
@@ -71,19 +70,19 @@ import { avatarUrl, seedAleatoria } from '../../shared/avatar';
 
       <!-- Senha -->
       <div class="card">
-        <h2 class="font-semibold text-slate-800 mb-4">Alterar senha</h2>
+        <h2 class="font-semibold text-[var(--cor-texto-principal)] mb-4">Alterar senha</h2>
         <form [formGroup]="formSenha" (ngSubmit)="salvarSenha()" class="space-y-3 max-w-sm">
           <div>
-            <label class="text-xs font-medium text-slate-600">Senha atual</label>
-            <input type="password" formControlName="senhaAtual" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+            <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Senha atual</label>
+            <input type="password" formControlName="senhaAtual" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm">
           </div>
           <div>
-            <label class="text-xs font-medium text-slate-600">Nova senha</label>
-            <input type="password" formControlName="novaSenha" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Mínimo 6 caracteres">
+            <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Nova senha</label>
+            <input type="password" formControlName="novaSenha" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm" placeholder="Mínimo 6 caracteres">
           </div>
           <div>
-            <label class="text-xs font-medium text-slate-600">Confirmar nova senha</label>
-            <input type="password" formControlName="confirmarSenha" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+            <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Confirmar nova senha</label>
+            <input type="password" formControlName="confirmarSenha" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm">
           </div>
           <button type="submit" [disabled]="formSenha.invalid" class="bg-[var(--cor-primaria)] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] disabled:opacity-50">
             Alterar senha

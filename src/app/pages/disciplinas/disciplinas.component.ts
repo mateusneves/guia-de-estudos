@@ -9,8 +9,8 @@ import { ProgressoService } from '../../services/progresso.service';
   template: `
     <div class="p-6 max-w-7xl mx-auto space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Disciplinas</h1>
-        <p class="text-slate-500 text-sm mt-1">{{ disciplinas.length }} disciplinas no semestre</p>
+        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Disciplinas</h1>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">{{ disciplinas.length }} disciplinas no semestre</p>
       </div>
 
       <!-- Filtro -->
@@ -18,18 +18,14 @@ import { ProgressoService } from '../../services/progresso.service';
         <button
           (click)="filtro.set('todas')"
           class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
-          [class.bg-[var(--cor-primaria)]]="filtro() === 'todas'"
-          [class.text-white]="filtro() === 'todas'"
-          [class.bg-slate-100]="filtro() !== 'todas'"
-          [class.text-slate-600]="filtro() !== 'todas'"
+          [style.background-color]="filtro() === 'todas' ? 'var(--cor-primaria)' : 'var(--cor-fundo-sutil)'"
+          [style.color]="filtro() === 'todas' ? '#fff' : 'var(--cor-texto-secundario)'"
         >Todas</button>
         <button
           (click)="filtro.set('com-avaliacoes')"
           class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
-          [class.bg-[var(--cor-primaria)]]="filtro() === 'com-avaliacoes'"
-          [class.text-white]="filtro() === 'com-avaliacoes'"
-          [class.bg-slate-100]="filtro() !== 'com-avaliacoes'"
-          [class.text-slate-600]="filtro() !== 'com-avaliacoes'"
+          [style.background-color]="filtro() === 'com-avaliacoes' ? 'var(--cor-primaria)' : 'var(--cor-fundo-sutil)'"
+          [style.color]="filtro() === 'com-avaliacoes' ? '#fff' : 'var(--cor-texto-secundario)'"
         >Com Avaliações</button>
       </div>
 
@@ -47,10 +43,10 @@ import { ProgressoService } from '../../services/progresso.service';
                 [style.background-color]="d.cor"
               >{{ d.codigo.substring(0, 2) }}</span>
               <div class="min-w-0 flex-1">
-                <p class="text-xs text-slate-400 font-mono">{{ d.codigo }}</p>
-                <p class="text-base font-semibold text-slate-800 group-hover:text-[var(--cor-primaria)] transition-colors leading-snug">{{ d.nome }}</p>
+                <p class="text-xs text-[var(--cor-texto-terciario)] font-mono">{{ d.codigo }}</p>
+                <p class="text-base font-semibold text-[var(--cor-texto-principal)] group-hover:text-[var(--cor-primaria)] transition-colors leading-snug">{{ d.nome }}</p>
               </div>
-              <svg class="w-4 h-4 text-slate-300 shrink-0 group-hover:text-[var(--cor-primaria)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-[var(--cor-texto-terciario)] shrink-0 group-hover:text-[var(--cor-primaria)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
               </svg>
             </div>
@@ -58,11 +54,11 @@ import { ProgressoService } from '../../services/progresso.service';
             @if (d.avaliacoes.length > 0) {
               <!-- Progresso -->
               <div class="mb-3">
-                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <div class="flex justify-between text-xs text-[var(--cor-texto-terciario)] mb-1">
                   <span>{{ getConcluidas(d.id) }}/{{ d.avaliacoes.length }} avaliações</span>
                   <span class="font-medium" [style.color]="d.cor">{{ getProgresso(d.id) }}%</span>
                 </div>
-                <div class="barra-progresso w-full bg-slate-100 rounded-full h-1.5">
+                <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-1.5">
                   <div
                     class="h-1.5 rounded-full transition-all"
                     [style.width.%]="getProgresso(d.id)"
@@ -73,13 +69,13 @@ import { ProgressoService } from '../../services/progresso.service';
 
               <!-- Stats -->
               <div class="flex gap-3 text-xs">
-                <div class="flex items-center gap-1 text-slate-500">
+                <div class="flex items-center gap-1 text-[var(--cor-texto-secundario)]">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                   </svg>
                   <span>{{ d.avaliacoes.length }} avaliações</span>
                 </div>
-                <div class="flex items-center gap-1 text-slate-500">
+                <div class="flex items-center gap-1 text-[var(--cor-texto-secundario)]">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                   </svg>
@@ -96,7 +92,7 @@ import { ProgressoService } from '../../services/progresso.service';
                 }
               </div>
             } @else {
-              <p class="text-xs text-slate-400 italic">Sem avaliações cadastradas</p>
+              <p class="text-xs text-[var(--cor-texto-terciario)] italic">Sem avaliações cadastradas</p>
             }
           </a>
         }

@@ -16,31 +16,31 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <div class="bg-white rounded-2xl shadow-xl p-6">
-          <h2 class="text-lg font-bold text-slate-800 mb-1">Entrar</h2>
-          <p class="text-sm text-slate-500 mb-5">Acesse com seu e-mail e senha.</p>
+          <h2 class="text-lg font-bold text-[var(--cor-texto-principal)] mb-1">Entrar</h2>
+          <p class="text-sm text-[var(--cor-texto-secundario)] mb-5">Acesse com seu e-mail e senha.</p>
 
           <form [formGroup]="form" (ngSubmit)="entrar()" class="space-y-4">
             <div>
-              <label class="text-xs font-medium text-slate-600">E-mail</label>
+              <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">E-mail</label>
               <input
                 type="email"
                 formControlName="email"
-                class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
+                class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
                 placeholder="voce@exemplo.com"
               >
             </div>
             <div>
-              <label class="text-xs font-medium text-slate-600">Senha</label>
+              <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Senha</label>
               <input
                 type="password"
                 formControlName="senha"
-                class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
+                class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
                 placeholder="••••••••"
               >
             </div>
 
             @if (erro()) {
-              <p class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{{ erro() }}</p>
+              <p class="text-xs text-[var(--cor-erro-texto)] bg-[var(--cor-erro-fundo)] rounded-lg px-3 py-2">{{ erro() }}</p>
             }
 
             <button
@@ -50,7 +50,7 @@ import { AuthService } from '../../services/auth.service';
             >{{ enviando() ? 'Entrando...' : 'Entrar' }}</button>
           </form>
 
-          <p class="text-center text-sm text-slate-500 mt-5">
+          <p class="text-center text-sm text-[var(--cor-texto-secundario)] mt-5">
             Não tem conta? Pergunte ao administrador da sua turma pelo link de convite de cadastro.
           </p>
         </div>

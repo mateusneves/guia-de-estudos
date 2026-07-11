@@ -10,44 +10,44 @@ import { Disciplina } from '../../models/models';
   template: `
     <div class="p-6 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Progresso do Semestre</h1>
-        <p class="text-slate-500 text-sm mt-1">Acompanhamento geral de avaliações e pontuação</p>
+        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Progresso do Semestre</h1>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">Acompanhamento geral de avaliações e pontuação</p>
       </div>
 
       <!-- Visão geral -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="card text-center">
           <p class="text-3xl font-bold text-[var(--cor-primaria)]">{{ totalAvaliacoes }}</p>
-          <p class="text-xs text-slate-500 mt-1">Total de Avaliações</p>
+          <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Total de Avaliações</p>
         </div>
         <div class="card text-center">
           <p class="text-3xl font-bold text-green-600">{{ totalConcluidas }}</p>
-          <p class="text-xs text-slate-500 mt-1">Concluídas</p>
+          <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Concluídas</p>
         </div>
         <div class="card text-center">
           <p class="text-3xl font-bold text-amber-500">{{ totalPendentes }}</p>
-          <p class="text-xs text-slate-500 mt-1">Pendentes</p>
+          <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Pendentes</p>
         </div>
         <div class="card text-center">
           <p class="text-3xl font-bold text-[var(--cor-secundaria)]">{{ percentualGeral }}%</p>
-          <p class="text-xs text-slate-500 mt-1">Progresso Geral</p>
+          <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Progresso Geral</p>
         </div>
       </div>
 
       <!-- Barra geral -->
       <div class="card">
         <div class="flex justify-between items-center mb-3">
-          <h2 class="font-semibold text-slate-800">Progresso Geral do Semestre</h2>
+          <h2 class="font-semibold text-[var(--cor-texto-principal)]">Progresso Geral do Semestre</h2>
           <span class="text-sm font-bold text-[var(--cor-primaria)]">{{ totalConcluidas }}/{{ totalAvaliacoes }}</span>
         </div>
-        <div class="barra-progresso w-full bg-slate-100 rounded-full h-4">
+        <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-4">
           <div
             class="h-4 rounded-full transition-all duration-700"
             style="background: linear-gradient(90deg, var(--cor-primaria), var(--cor-secundaria))"
             [style.width.%]="percentualGeral"
           ></div>
         </div>
-        <div class="flex justify-between text-xs text-slate-400 mt-1">
+        <div class="flex justify-between text-xs text-[var(--cor-texto-terciario)] mt-1">
           <span>Início</span>
           <span>{{ totalPontosConcluidos }}/{{ totalPontos }} pontos obtidos</span>
           <span>Fim</span>
@@ -56,7 +56,7 @@ import { Disciplina } from '../../models/models';
 
       <!-- Por disciplina -->
       <div>
-        <h2 class="font-semibold text-slate-800 mb-4">Por Disciplina</h2>
+        <h2 class="font-semibold text-[var(--cor-texto-principal)] mb-4">Por Disciplina</h2>
         <div class="space-y-3">
           @for (d of disciplinasComAvaliacoes; track d.id) {
             <div class="card">
@@ -67,16 +67,16 @@ import { Disciplina } from '../../models/models';
                   [style.background-color]="d.cor"
                 >{{ d.codigo.substring(0, 2) }}</a>
                 <div class="flex-1 min-w-0">
-                  <a [routerLink]="['/disciplinas', d.id]" class="text-sm font-semibold text-slate-800 hover:text-[var(--cor-primaria)] transition-colors">{{ d.nome }}</a>
-                  <p class="text-xs text-slate-400 font-mono">{{ d.codigo }}</p>
+                  <a [routerLink]="['/disciplinas', d.id]" class="text-sm font-semibold text-[var(--cor-texto-principal)] hover:text-[var(--cor-primaria)] transition-colors">{{ d.nome }}</a>
+                  <p class="text-xs text-[var(--cor-texto-terciario)] font-mono">{{ d.codigo }}</p>
                 </div>
                 <div class="text-right shrink-0">
                   <p class="text-sm font-bold" [style.color]="d.cor">{{ getProgresso(d) }}%</p>
-                  <p class="text-xs text-slate-400">{{ getConcluidas(d) }}/{{ d.avaliacoes.length }}</p>
+                  <p class="text-xs text-[var(--cor-texto-terciario)]">{{ getConcluidas(d) }}/{{ d.avaliacoes.length }}</p>
                 </div>
               </div>
 
-              <div class="barra-progresso w-full bg-slate-100 rounded-full h-2">
+              <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-2">
                 <div
                   class="h-2 rounded-full transition-all duration-500"
                   [style.width.%]="getProgresso(d)"
@@ -91,13 +91,13 @@ import { Disciplina } from '../../models/models';
                     (click)="storage.toggleConcluida(av.id)"
                     class="flex items-center gap-3 w-full px-2 py-2 rounded-lg text-left transition-colors"
                     [class.bg-green-50]="storage.isConcluida(av.id)"
-                    [class.bg-slate-50]="!storage.isConcluida(av.id)"
+                    [style.background-color]="storage.isConcluida(av.id) ? null : 'var(--cor-fundo-sutil)'"
                   >
                     <span
                       class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
                       [class.border-green-500]="storage.isConcluida(av.id)"
                       [class.bg-green-500]="storage.isConcluida(av.id)"
-                      [class.border-slate-300]="!storage.isConcluida(av.id)"
+                      [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-media)'"
                     >
                       @if (storage.isConcluida(av.id)) {
                         <svg class="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,16 +108,16 @@ import { Disciplina } from '../../models/models';
                     <div class="flex-1 min-w-0">
                       <p
                         class="text-xs font-medium leading-snug"
-                        [class.text-slate-700]="!storage.isConcluida(av.id)"
                         [class.text-green-700]="storage.isConcluida(av.id)"
                         [class.line-through]="storage.isConcluida(av.id)"
+                        [style.color]="storage.isConcluida(av.id) ? null : 'var(--cor-texto-principal)'"
                       >{{ av.nome || av.descricao }}</p>
                       @if (av.nome && av.descricao) {
-                        <p class="text-xs text-slate-500 mt-0.5 leading-snug">{{ av.descricao }}</p>
+                        <p class="text-xs text-[var(--cor-texto-secundario)] mt-0.5 leading-snug">{{ av.descricao }}</p>
                       }
                       <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                         <span class="badge text-white text-xs" [style.background-color]="getCorTipo(av.tipo)">{{ labelTipo(av.tipo) }}</span>
-                        <span class="text-xs text-slate-400">{{ av.dataDisplay }} · {{ av.pontos }} pts</span>
+                        <span class="text-xs text-[var(--cor-texto-terciario)]">{{ av.dataDisplay }} · {{ av.pontos }} pts</span>
                       </div>
                     </div>
                   </button>
@@ -125,9 +125,9 @@ import { Disciplina } from '../../models/models';
               </div>
 
               <!-- Pontos -->
-              <div class="mt-3 pt-3 border-t border-slate-50 flex justify-between text-xs text-slate-400">
-                <span>Pontos concluídos: <strong class="text-slate-700">{{ getPontosConcluidos(d) }}</strong></span>
-                <span>Total: <strong class="text-slate-700">{{ getTotalPontos(d) }} pts</strong></span>
+              <div class="mt-3 pt-3 border-t border-[var(--cor-borda-sutil)] flex justify-between text-xs text-[var(--cor-texto-terciario)]">
+                <span>Pontos concluídos: <strong class="text-[var(--cor-texto-principal)]">{{ getPontosConcluidos(d) }}</strong></span>
+                <span>Total: <strong class="text-[var(--cor-texto-principal)]">{{ getTotalPontos(d) }} pts</strong></span>
               </div>
             </div>
           }
@@ -136,18 +136,18 @@ import { Disciplina } from '../../models/models';
 
       <!-- Gráfico de pontos por tipo -->
       <div class="card">
-        <h2 class="font-semibold text-slate-800 mb-4">Distribuição por Tipo de Avaliação</h2>
+        <h2 class="font-semibold text-[var(--cor-texto-principal)] mb-4">Distribuição por Tipo de Avaliação</h2>
         <div class="space-y-3">
           @for (stat of estatsPorTipo; track stat.tipo) {
             <div>
               <div class="flex justify-between text-xs mb-1">
                 <div class="flex items-center gap-2">
                   <span class="w-3 h-3 rounded-sm" [style.background-color]="stat.cor"></span>
-                  <span class="text-slate-700 font-medium">{{ stat.label }}</span>
+                  <span class="text-[var(--cor-texto-principal)] font-medium">{{ stat.label }}</span>
                 </div>
-                <span class="text-slate-500">{{ stat.concluidas }}/{{ stat.total }} avaliações</span>
+                <span class="text-[var(--cor-texto-secundario)]">{{ stat.concluidas }}/{{ stat.total }} avaliações</span>
               </div>
-              <div class="barra-progresso w-full bg-slate-100 rounded-full h-1.5">
+              <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-1.5">
                 <div
                   class="h-1.5 rounded-full transition-all"
                   [style.width.%]="stat.total > 0 ? (stat.concluidas / stat.total * 100) : 0"
@@ -161,8 +161,8 @@ import { Disciplina } from '../../models/models';
 
       <!-- Backup -->
       <div class="card">
-        <h2 class="font-semibold text-slate-800 mb-1">Backup dos Dados</h2>
-        <p class="text-xs text-slate-500 mb-4">
+        <h2 class="font-semibold text-[var(--cor-texto-principal)] mb-1">Backup dos Dados</h2>
+        <p class="text-xs text-[var(--cor-texto-secundario)] mb-4">
           Suas marcações e notas ficam salvas no navegador. Use o backup para não perdê-las
           ao limpar o cache ou para transferir para outro dispositivo.
         </p>
@@ -225,7 +225,7 @@ import { Disciplina } from '../../models/models';
               >Sim, importar</button>
               <button
                 (click)="cancelarImportacao()"
-                class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-50 transition-colors"
+                class="px-3 py-1.5 bg-[var(--cor-fundo-sutil)] border border-[var(--cor-borda-media)] text-[var(--cor-texto-secundario)] rounded-lg text-xs font-medium hover:bg-[var(--cor-fundo-sutil)] transition-colors"
               >Cancelar</button>
             </div>
           </div>

@@ -18,38 +18,34 @@ interface AvaliacaoComDisciplina extends Avaliacao {
   template: `
     <div class="p-6 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Atividades</h1>
-        <p class="text-slate-500 text-sm mt-1">{{ todasAvaliacoes.length }} atividades no semestre</p>
+        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Atividades</h1>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">{{ todasAvaliacoes.length }} atividades no semestre</p>
       </div>
 
       <!-- Filtros -->
       <div class="card space-y-3">
         <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Status</p>
+          <p class="text-xs font-semibold text-[var(--cor-texto-terciario)] uppercase tracking-wider mb-2">Status</p>
           <div class="flex flex-wrap gap-2">
             @for (f of filtrosStatus; track f.key) {
               <button
                 (click)="filtroStatus.set(f.key)"
                 class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                [class.bg-[var(--cor-primaria)]]="filtroStatus() === f.key"
-                [class.text-white]="filtroStatus() === f.key"
-                [class.bg-slate-100]="filtroStatus() !== f.key"
-                [class.text-slate-600]="filtroStatus() !== f.key"
+                [style.background-color]="filtroStatus() === f.key ? 'var(--cor-primaria)' : 'var(--cor-fundo-sutil)'"
+                [style.color]="filtroStatus() === f.key ? '#fff' : 'var(--cor-texto-secundario)'"
               >{{ f.label }}</button>
             }
           </div>
         </div>
         <div>
-          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Tipo</p>
+          <p class="text-xs font-semibold text-[var(--cor-texto-terciario)] uppercase tracking-wider mb-2">Tipo</p>
           <div class="flex flex-wrap gap-2">
             @for (t of filtrosTipo; track t.key) {
               <button
                 (click)="filtroTipo.set(t.key)"
                 class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                [class.bg-[var(--cor-primaria)]]="filtroTipo() === t.key"
-                [class.text-white]="filtroTipo() === t.key"
-                [class.bg-slate-100]="filtroTipo() !== t.key"
-                [class.text-slate-600]="filtroTipo() !== t.key"
+                [style.background-color]="filtroTipo() === t.key ? 'var(--cor-primaria)' : 'var(--cor-fundo-sutil)'"
+                [style.color]="filtroTipo() === t.key ? '#fff' : 'var(--cor-texto-secundario)'"
               >{{ t.label }}</button>
             }
           </div>
@@ -57,8 +53,8 @@ interface AvaliacaoComDisciplina extends Avaliacao {
       </div>
 
       <!-- Resultados count -->
-      <p class="text-sm text-slate-500">
-        Exibindo <strong class="text-slate-800">{{ avaliacoesFiltradas().length }}</strong> atividades
+      <p class="text-sm text-[var(--cor-texto-secundario)]">
+        Exibindo <strong class="text-[var(--cor-texto-principal)]">{{ avaliacoesFiltradas().length }}</strong> atividades
       </p>
 
       <!-- Avaliações com data (agrupadas por mês) -->
@@ -67,9 +63,9 @@ interface AvaliacaoComDisciplina extends Avaliacao {
           @for (grupo of gruposPorMes(); track grupo.mes) {
             <div>
               <div class="flex items-center gap-3 mb-3">
-                <div class="h-px flex-1 bg-slate-200"></div>
-                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ grupo.mes }}</span>
-                <div class="h-px flex-1 bg-slate-200"></div>
+                <div class="h-px flex-1 bg-[var(--cor-fundo-sutil-forte)]"></div>
+                <span class="text-xs font-semibold text-[var(--cor-texto-secundario)] uppercase tracking-wider">{{ grupo.mes }}</span>
+                <div class="h-px flex-1 bg-[var(--cor-fundo-sutil-forte)]"></div>
               </div>
               <div class="space-y-2">
                 @for (av of grupo.avaliacoes; track av.id) {
@@ -78,15 +74,15 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                     [class.bg-green-50]="storage.isConcluida(av.id)"
                     [class.border-green-100]="storage.isConcluida(av.id)"
                     [class.bg-white]="!storage.isConcluida(av.id)"
-                    [class.border-slate-100]="!storage.isConcluida(av.id)"
                     [class.shadow-sm]="!storage.isConcluida(av.id)"
+                    [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-sutil)'"
                   >
                     <button
                       (click)="storage.toggleConcluida(av.id)"
                       class="mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
-                      [class.border-slate-300]="!storage.isConcluida(av.id)"
                       [class.border-green-500]="storage.isConcluida(av.id)"
                       [class.bg-green-500]="storage.isConcluida(av.id)"
+                      [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-media)'"
                     >
                       @if (storage.isConcluida(av.id)) {
                         <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,12 +94,11 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                     <div class="flex-1 min-w-0">
                       <p
                         class="text-sm font-medium leading-snug"
-                        [class.text-slate-800]="!storage.isConcluida(av.id)"
-                        [class.text-slate-400]="storage.isConcluida(av.id)"
                         [class.line-through]="storage.isConcluida(av.id)"
+                        [style.color]="storage.isConcluida(av.id) ? 'var(--cor-texto-terciario)' : 'var(--cor-texto-principal)'"
                       >{{ av.nome || av.descricao }}</p>
                       @if (av.nome && av.descricao) {
-                        <p class="text-xs text-slate-500 mt-0.5 leading-snug">{{ av.descricao }}</p>
+                        <p class="text-xs text-[var(--cor-texto-secundario)] mt-0.5 leading-snug">{{ av.descricao }}</p>
                       }
                       <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                         <a [routerLink]="['/disciplinas', av.disciplinaId]"
@@ -112,7 +107,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                           {{ av.disciplinaNome }}
                         </a>
                         <span class="badge text-white text-xs" [style.background-color]="getCorTipo(av.tipo)">{{ labelTipo(av.tipo) }}</span>
-                        <span class="text-xs text-slate-400">{{ av.pontos }} pts</span>
+                        <span class="text-xs text-[var(--cor-texto-terciario)]">{{ av.pontos }} pts</span>
                       </div>
                     </div>
 
@@ -121,10 +116,10 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                         class="text-sm font-bold"
                         [class.text-rose-500]="isUrgente(av.data) && !storage.isConcluida(av.id)"
                         [class.text-amber-500]="isEmBreve(av.data) && !isUrgente(av.data) && !storage.isConcluida(av.id)"
-                        [class.text-slate-600]="!isUrgente(av.data) && !isEmBreve(av.data) || storage.isConcluida(av.id)"
+                        [style.color]="(!isUrgente(av.data) && !isEmBreve(av.data) || storage.isConcluida(av.id)) ? 'var(--cor-texto-secundario)' : null"
                       >{{ av.dataDisplay }}</p>
                       @if (av.data && !storage.isConcluida(av.id)) {
-                        <p class="text-xs text-slate-400">{{ getDiasRestantes(av.data) }}</p>
+                        <p class="text-xs text-[var(--cor-texto-terciario)]">{{ getDiasRestantes(av.data) }}</p>
                       }
                     </div>
                   </div>
@@ -139,9 +134,9 @@ interface AvaliacaoComDisciplina extends Avaliacao {
       @if (avaliacoesSemData().length > 0 && (filtroStatus() === 'todas' || filtroStatus() === 'sem-data')) {
         <div>
           <div class="flex items-center gap-3 mb-3">
-            <div class="h-px flex-1 bg-slate-200"></div>
-            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Contínuas / Sem data fixa</span>
-            <div class="h-px flex-1 bg-slate-200"></div>
+            <div class="h-px flex-1 bg-[var(--cor-fundo-sutil-forte)]"></div>
+            <span class="text-xs font-semibold text-[var(--cor-texto-secundario)] uppercase tracking-wider">Contínuas / Sem data fixa</span>
+            <div class="h-px flex-1 bg-[var(--cor-fundo-sutil-forte)]"></div>
           </div>
           <div class="space-y-2">
             @for (av of avaliacoesSemData(); track av.id) {
@@ -150,15 +145,15 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                 [class.bg-green-50]="storage.isConcluida(av.id)"
                 [class.border-green-100]="storage.isConcluida(av.id)"
                 [class.bg-white]="!storage.isConcluida(av.id)"
-                [class.border-slate-100]="!storage.isConcluida(av.id)"
                 [class.shadow-sm]="!storage.isConcluida(av.id)"
+                [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-sutil)'"
               >
                 <button
                   (click)="storage.toggleConcluida(av.id)"
                   class="mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
-                  [class.border-slate-300]="!storage.isConcluida(av.id)"
                   [class.border-green-500]="storage.isConcluida(av.id)"
                   [class.bg-green-500]="storage.isConcluida(av.id)"
+                  [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-media)'"
                 >
                   @if (storage.isConcluida(av.id)) {
                     <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,22 +164,21 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                 <div class="flex-1 min-w-0">
                   <p
                     class="text-sm font-medium leading-snug"
-                    [class.text-slate-800]="!storage.isConcluida(av.id)"
-                    [class.text-slate-400]="storage.isConcluida(av.id)"
                     [class.line-through]="storage.isConcluida(av.id)"
+                    [style.color]="storage.isConcluida(av.id) ? 'var(--cor-texto-terciario)' : 'var(--cor-texto-principal)'"
                   >{{ av.nome || av.descricao }}</p>
                   @if (av.nome && av.descricao) {
-                    <p class="text-xs text-slate-500 mt-0.5 leading-snug">{{ av.descricao }}</p>
+                    <p class="text-xs text-[var(--cor-texto-secundario)] mt-0.5 leading-snug">{{ av.descricao }}</p>
                   }
                   <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                     <span class="w-2 h-2 rounded-full shrink-0" [style.background-color]="av.disciplinaCor"></span>
-                    <a [routerLink]="['/disciplinas', av.disciplinaId]" class="text-xs text-slate-500 hover:text-[var(--cor-primaria)]">{{ av.disciplinaNome }}</a>
+                    <a [routerLink]="['/disciplinas', av.disciplinaId]" class="text-xs text-[var(--cor-texto-secundario)] hover:text-[var(--cor-primaria)]">{{ av.disciplinaNome }}</a>
                     <span class="badge text-white text-xs" [style.background-color]="getCorTipo(av.tipo)">{{ labelTipo(av.tipo) }}</span>
-                    <span class="text-xs text-slate-400">{{ av.pontos }} pts</span>
+                    <span class="text-xs text-[var(--cor-texto-terciario)]">{{ av.pontos }} pts</span>
                   </div>
                 </div>
                 <div class="shrink-0">
-                  <p class="text-xs text-slate-400 text-right">{{ av.dataDisplay }}</p>
+                  <p class="text-xs text-[var(--cor-texto-terciario)] text-right">{{ av.dataDisplay }}</p>
                 </div>
               </div>
             }
@@ -194,10 +188,10 @@ interface AvaliacaoComDisciplina extends Avaliacao {
 
       @if (avaliacoesFiltradas().length === 0) {
         <div class="card text-center py-12">
-          <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-12 h-12 text-[var(--cor-texto-terciario)] mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
           </svg>
-          <p class="text-slate-400">Nenhuma atividade encontrada com estes filtros.</p>
+          <p class="text-[var(--cor-texto-terciario)]">Nenhuma atividade encontrada com estes filtros.</p>
         </div>
       }
 

@@ -16,25 +16,25 @@ interface AulaDoDia {
   template: `
     <div class="p-6 max-w-7xl mx-auto space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Horário Semanal</h1>
-        <p class="text-slate-500 text-sm mt-1">3º Ano — 1º Semestre 2026</p>
+        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Horário Semanal</h1>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">3º Ano — 1º Semestre 2026</p>
       </div>
 
       <!-- Legenda de módulos -->
       <div class="card">
-        <h3 class="text-sm font-semibold text-slate-700 mb-3">Módulos de Aula</h3>
+        <h3 class="text-sm font-semibold text-[var(--cor-texto-principal)] mb-3">Módulos de Aula</h3>
         <div class="flex flex-wrap gap-4">
           <div class="flex items-center gap-2">
             <span class="w-6 h-6 rounded bg-[var(--cor-primaria)] flex items-center justify-center text-white text-xs font-bold">M1</span>
-            <span class="text-sm text-slate-600">07:00 às 08:40</span>
+            <span class="text-sm text-[var(--cor-texto-secundario)]">07:00 às 08:40</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="w-6 h-6 rounded bg-[var(--cor-primaria-hover)] flex items-center justify-center text-white text-xs font-bold">M2</span>
-            <span class="text-sm text-slate-600">08:50 às 10:30</span>
+            <span class="text-sm text-[var(--cor-texto-secundario)]">08:50 às 10:30</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="w-6 h-6 rounded bg-[#0f766e] flex items-center justify-center text-white text-xs font-bold">M3</span>
-            <span class="text-sm text-slate-600">10:40 às 12:20</span>
+            <span class="text-sm text-[var(--cor-texto-secundario)]">10:40 às 12:20</span>
           </div>
         </div>
       </div>
@@ -43,14 +43,12 @@ interface AulaDoDia {
       <div class="hidden md:block card overflow-hidden p-0">
         <div class="grid" style="grid-template-columns: 100px repeat(5, 1fr);">
           <!-- Header -->
-          <div class="bg-slate-50 p-3 border-b border-r border-slate-100"></div>
+          <div class="bg-[var(--cor-fundo-sutil)] p-3 border-b border-r border-[var(--cor-borda-sutil)]"></div>
           @for (dia of dias; track dia) {
             <div
-              class="p-3 text-center font-semibold text-sm border-b border-r border-slate-100 last:border-r-0"
-              [class.bg-[var(--cor-primaria)]]="isHoje(dia)"
-              [class.text-white]="isHoje(dia)"
-              [class.bg-slate-50]="!isHoje(dia)"
-              [class.text-slate-700]="!isHoje(dia)"
+              class="p-3 text-center font-semibold text-sm border-b border-r border-[var(--cor-borda-sutil)] last:border-r-0"
+              [style.background-color]="isHoje(dia) ? 'var(--cor-primaria)' : 'var(--cor-fundo-sutil)'"
+              [style.color]="isHoje(dia) ? '#fff' : 'var(--cor-texto-principal)'"
             >
               {{ dia }}
               @if (isHoje(dia)) {
@@ -61,12 +59,12 @@ interface AulaDoDia {
 
           <!-- Módulos -->
           @for (modulo of modulos; track modulo.key) {
-            <div class="bg-slate-50 p-3 border-b border-r border-slate-100 last:border-b-0 flex flex-col justify-center">
-              <p class="font-bold text-slate-600 text-xs">{{ modulo.key }}</p>
-              <p class="text-slate-400 text-xs leading-tight">{{ modulo.horario }}</p>
+            <div class="bg-[var(--cor-fundo-sutil)] p-3 border-b border-r border-[var(--cor-borda-sutil)] last:border-b-0 flex flex-col justify-center">
+              <p class="font-bold text-[var(--cor-texto-secundario)] text-xs">{{ modulo.key }}</p>
+              <p class="text-[var(--cor-texto-terciario)] text-xs leading-tight">{{ modulo.horario }}</p>
             </div>
             @for (dia of dias; track dia) {
-              <div class="p-2 border-b border-r border-slate-100 last:border-r-0 last:border-b-0">
+              <div class="p-2 border-b border-r border-[var(--cor-borda-sutil)] last:border-r-0 last:border-b-0">
                 @let aula = getAula(dia, modulo.key);
                 @if (aula) {
                   <a
@@ -78,11 +76,11 @@ interface AulaDoDia {
                     <span class="text-xs font-mono font-semibold" [style.color]="getCorDisciplina(aula.disciplinaId)">
                       {{ getCodigo(aula.disciplinaId) }}
                     </span>
-                    <span class="text-xs text-slate-700 mt-0.5 leading-snug">{{ getNomeCurto(aula.disciplina) }}</span>
+                    <span class="text-xs text-[var(--cor-texto-principal)] mt-0.5 leading-snug">{{ getNomeCurto(aula.disciplina) }}</span>
                   </a>
                 } @else {
                   <div class="h-full min-h-12 flex items-center justify-center">
-                    <span class="text-slate-200 text-xs">—</span>
+                    <span class="text-[var(--cor-texto-terciario)] text-xs">—</span>
                   </div>
                 }
               </div>
@@ -94,9 +92,9 @@ interface AulaDoDia {
       <!-- Grade semanal mobile (cards por dia) -->
       <div class="md:hidden space-y-4">
         @for (dia of dias; track dia) {
-          <div class="card" [class.ring-2]="isHoje(dia)" [class.ring-[var(--cor-primaria)]]="isHoje(dia)">
+          <div class="card" [style.box-shadow]="isHoje(dia) ? 'var(--sombra-card), 0 0 0 2px var(--cor-primaria)' : null">
             <div class="flex items-center gap-2 mb-3">
-              <h3 class="font-semibold text-slate-800">{{ dia }}</h3>
+              <h3 class="font-semibold text-[var(--cor-texto-principal)]">{{ dia }}</h3>
               @if (isHoje(dia)) {
                 <span class="badge bg-[var(--cor-primaria)] text-white">Hoje</span>
               }
@@ -113,13 +111,13 @@ interface AulaDoDia {
                   >
                     <div class="min-w-0">
                       <p class="text-xs font-mono font-bold" [style.color]="getCorDisciplina(aula.disciplinaId)">{{ aula.modulo }} · {{ aula.horario }}</p>
-                      <p class="text-sm text-slate-800">{{ getNomeCurto(aula.disciplina) }}</p>
+                      <p class="text-sm text-[var(--cor-texto-principal)]">{{ getNomeCurto(aula.disciplina) }}</p>
                     </div>
                   </a>
                 }
               </div>
             } @else {
-              <p class="text-sm text-slate-400 text-center py-3">Sem aulas</p>
+              <p class="text-sm text-[var(--cor-texto-terciario)] text-center py-3">Sem aulas</p>
             }
           </div>
         }
@@ -127,23 +125,23 @@ interface AulaDoDia {
 
       <!-- Lista completa das disciplinas no horário -->
       <div class="card">
-        <h2 class="font-semibold text-slate-800 mb-4">Disciplinas no Horário</h2>
+        <h2 class="font-semibold text-[var(--cor-texto-principal)] mb-4">Disciplinas no Horário</h2>
         <div class="space-y-2">
           @for (item of listaHorario; track item.disciplinaId) {
-            <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+            <div class="flex items-center justify-between py-2 border-b border-[var(--cor-borda-sutil)] last:border-0">
               <div class="flex items-center gap-3">
                 <span
                   class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-xs font-bold shrink-0"
                   [style.background-color]="getCorDisciplina(item.disciplinaId)"
                 >{{ getCodigo(item.disciplinaId).substring(0, 2) }}</span>
                 <div>
-                  <p class="text-sm font-medium text-slate-800">{{ getNomeCurto(item.disciplina) }}</p>
-                  <p class="text-xs text-slate-400 font-mono">{{ item.disciplinaId.toUpperCase() }}</p>
+                  <p class="text-sm font-medium text-[var(--cor-texto-principal)]">{{ getNomeCurto(item.disciplina) }}</p>
+                  <p class="text-xs text-[var(--cor-texto-terciario)] font-mono">{{ item.disciplinaId.toUpperCase() }}</p>
                 </div>
               </div>
               <div class="text-right">
-                <p class="text-xs text-slate-600 font-medium">{{ item.dia }}</p>
-                <p class="text-xs text-slate-400">{{ item.modulo }} · {{ item.horario }}</p>
+                <p class="text-xs text-[var(--cor-texto-secundario)] font-medium">{{ item.dia }}</p>
+                <p class="text-xs text-[var(--cor-texto-terciario)]">{{ item.modulo }} · {{ item.horario }}</p>
               </div>
             </div>
           }

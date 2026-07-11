@@ -459,6 +459,93 @@ each Dashboard stat card its own distinct colored background like the
 reference image — recreating that would mean per-component styling instead of
 theme tokens, deliberately out of scope for a token-based system.
 
+#### Layout: floating sidebar card + margin (added 2026-07-11)
+
+The app shell (`app.ts`) has an outer `p-3 gap-3` on the root flex container —
+the sidebar and main content are no longer edge-to-edge with the viewport, both
+sit with a consistent margin, and the sidebar is a `rounded-2xl` floating card
+(with its own `box-shadow`, see `.sidebar-frame` in `styles.css`) rather than a
+flush panel. On mobile, the sidebar's `fixed` positioning was changed from
+`inset-y-0 left-0` to `inset-y-3 left-3` (reset back to `md:inset-y-0
+md:left-0` at the desktop breakpoint, where it's `position: relative` inside
+the flex row and margin comes from the parent's `gap-3`/`p-3` instead) so it
+floats consistently at both sizes rather than only on desktop.
+
+#### Text/subtle-background tokens — dark-card fidelity (added 2026-07-11)
+
+The medieval theme's card *background* went dark (see palette below) to match
+a reference image ("Allespresso" coffee-app UI kit — dark canvas, warm gold
+accent, cream/gray secondary tones). This is the point where theming stopped
+being just "brand accent colors" and had to cover **body text, subtle fills,
+and subtle borders too** — every page had `text-slate-800/600/400`,
+`bg-slate-50/100/200`, and `border-slate-50/100/200/300` hardcoded everywhere
+under the assumption a card is always light. A dark card with unthemed
+`text-slate-800` (near-black) would be illegible. Fixed with the same
+CSS-variable approach, extended with:
+
+- `--cor-texto-principal` / `--cor-texto-secundario` / `--cor-texto-terciario`
+  (were slate-800/700, slate-600/500, slate-400/300/200 respectively — each
+  tier merges two adjacent Tailwind shades into one token, a deliberate small
+  precision loss that's invisible in practice)
+- `--cor-fundo-sutil` / `--cor-fundo-sutil-forte` (were bg-slate-50/100, and
+  bg-slate-200)
+- `--cor-borda-sutil` / `--cor-borda-media` (were border-slate-50/100, and
+  border-slate-200/300)
+- `--cor-erro-fundo` / `--cor-erro-texto` (were the repeated `bg-red-50
+  text-red-600` / `bg-rose-50 text-rose-600` error-banner pattern used on every
+  admin page)
+
+**Any new page must use these tokens instead of a literal `text-slate-*` /
+`bg-slate-*` / `border-slate-*` / `bg-red-50 text-red-600`-style utility**, or
+it'll be illegible the moment a dark theme's card background is active — this
+is now the single most likely way for a new page to silently break theming.
+
+One category of color was deliberately **not** tokenized: semantic
+success/danger/warning colors (`text-green-600`, `text-rose-500`,
+`text-amber-600`, disciplina/tipo-specific colors already stored as data on
+each disciplina/avaliação, etc.) stay as literal Tailwind classes across both
+themes. These read fine on both a light and a dark card without adaptation,
+and — unlike primary/secondary brand colors — they carry meaning (this
+specific green always means "completed") that shouldn't shift with the theme.
+The one exception left unthemed by choice: the amber "confirmar importação"
+warning box in `progresso.component.ts` keeps its own fully self-contained
+amber-800-on-amber-50 styling in both themes — it's a rare, modal-style
+confirmation, not a persistent page element, and reads fine either way.
+
+**A recurring hazard hit repeatedly while converting dynamic `[class.x]="cond"`
+bindings to theme-token classes**: Angular's `[class.foo]` binding syntax
+requires `foo` to be a literal, static class-name-shaped attribute suffix —
+it cannot be `[class.bg-[var(--cor-primaria)]]`, because the attribute name
+itself would contain `(`, `)`, `-`, which Angular's template parser doesn't
+accept as part of a property-binding name (this slipped through undetected
+in an earlier brand-color pass and had to be swept up here too — the app
+still built and ran, just with that one binding silently inert). **The fix is
+always to switch to a `[style.property]` binding** (e.g. `[style.background-
+color]="cond ? 'var(--cor-primaria)' : 'var(--cor-fundo-sutil)'"`), which
+accepts any string value including one containing `var(...)`, parens, etc.,
+because the property name (`background-color`) is what's constrained, not the
+value. When two `[class.x]` bindings on one element are mutually exclusive
+(e.g. green-when-done vs. slate-when-not-done), keep the non-slate one as a
+class binding and convert only the slate one to a `null`-when-inactive style
+binding — the two compose correctly since a `null` style value never
+overrides an active class.
+
+#### The "Allespresso" palette (medieval theme, current values)
+
+`--cor-primaria: #c9873e` (the reference's "Dark Gold" — primary
+buttons/links), `--cor-secundaria: #d8cfc4` (its "Pastel Gray"/cream, used for
+secondary accents — deliberately *not* another gold tone, for contrast
+against primaria), `--cor-fundo: #100e0b` (near-black page canvas),
+`--cor-card-fundo: #1c1912` (dark warm-gray cards, one step lighter than the
+canvas for elevation), `--cor-card-borda` and `--cor-sidebar-ativo-borda` both
+gold at partial opacity (keeps the "illuminated manuscript" gold-trim identity
+from the theme's first version, even though the reference itself relies on
+shadow/elevation rather than colored borders). The sidebar gradient
+(`--cor-sidebar-inicio/fim`) uses a dark teal-black blend evoking the
+reference palette's "Japanese Indigo" swatch, even though indigo isn't used as
+a major UI accent anywhere else — it seemed better suited to a moody
+background gradient than to competing with gold as a second brand color.
+
 ### Routing and guards
 
 `app.routes.ts` lazy-loads every page. `authGuard`/`adminGuard`/`guestGuard`

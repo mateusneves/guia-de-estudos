@@ -12,8 +12,8 @@ import { ModuloHorario } from '../../../models/models';
   template: `
     <div class="p-6 max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Módulos de Horário</h1>
-        <p class="text-slate-500 text-sm mt-1">
+        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Módulos de Horário</h1>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">
           Cadastre aqui os blocos de horário da turma (ex: "M1" = 07:00 às 08:40).
           Ao criar uma disciplina, você seleciona esses módulos em vez de digitar o horário —
           evita erro de digitação e mantém a grade de horários consistente.
@@ -22,9 +22,9 @@ import { ModuloHorario } from '../../../models/models';
 
       <!-- Seletor de turma -->
       <div>
-        <label class="text-xs font-medium text-slate-600">Turma</label>
+        <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Turma</label>
         <select
-          class="mt-1 w-full md:w-72 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
+          class="mt-1 w-full md:w-72 border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm bg-[var(--cor-fundo-sutil)]"
           [value]="turmaSelecionada()"
           (change)="mudarTurma($any($event.target).value)"
         >
@@ -35,27 +35,27 @@ import { ModuloHorario } from '../../../models/models';
       </div>
 
       @if (erro()) {
-        <p class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{{ erro() }}</p>
+        <p class="text-sm text-[var(--cor-erro-texto)] bg-[var(--cor-erro-fundo)] rounded-lg px-3 py-2">{{ erro() }}</p>
       }
 
       <!-- Formulário -->
       <div class="card">
-        <h2 class="font-semibold text-slate-800 mb-4">{{ editandoId() ? 'Editar módulo' : 'Novo módulo' }}</h2>
+        <h2 class="font-semibold text-[var(--cor-texto-principal)] mb-4">{{ editandoId() ? 'Editar módulo' : 'Novo módulo' }}</h2>
         <form [formGroup]="form" (ngSubmit)="salvar()" class="grid md:grid-cols-3 gap-3 items-end">
           <div>
-            <label class="text-xs font-medium text-slate-600">Código</label>
-            <input formControlName="codigo" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="M1">
+            <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Código</label>
+            <input formControlName="codigo" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm" placeholder="M1">
           </div>
           <div class="md:col-span-2">
-            <label class="text-xs font-medium text-slate-600">Horário</label>
-            <input formControlName="horario" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="07:00 às 08:40">
+            <label class="text-xs font-medium text-[var(--cor-texto-secundario)]">Horário</label>
+            <input formControlName="horario" class="mt-1 w-full border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 text-sm" placeholder="07:00 às 08:40">
           </div>
           <div class="flex items-center gap-3 md:col-span-3">
             <button type="submit" [disabled]="form.invalid || !turmaSelecionada()" class="bg-[var(--cor-primaria)] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] disabled:opacity-50">
               {{ editandoId() ? 'Salvar' : 'Criar' }}
             </button>
             @if (editandoId()) {
-              <button type="button" (click)="cancelarEdicao()" class="text-sm text-slate-500 hover:text-slate-700">Cancelar</button>
+              <button type="button" (click)="cancelarEdicao()" class="text-sm text-[var(--cor-texto-secundario)] hover:text-[var(--cor-texto-principal)]">Cancelar</button>
             }
           </div>
         </form>
@@ -65,10 +65,10 @@ import { ModuloHorario } from '../../../models/models';
       <div class="card">
         <div class="space-y-2">
           @for (m of modulosDaTurma(); track m.id) {
-            <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+            <div class="flex items-center justify-between py-2 border-b border-[var(--cor-borda-sutil)] last:border-0">
               <div>
-                <span class="font-mono text-sm font-semibold text-slate-800">{{ m.codigo }}</span>
-                <span class="text-sm text-slate-500 ml-2">{{ m.horario }}</span>
+                <span class="font-mono text-sm font-semibold text-[var(--cor-texto-principal)]">{{ m.codigo }}</span>
+                <span class="text-sm text-[var(--cor-texto-secundario)] ml-2">{{ m.horario }}</span>
               </div>
               <div class="flex gap-3 text-sm">
                 <button (click)="editar(m)" class="text-[var(--cor-primaria)] hover:underline">Editar</button>
@@ -76,7 +76,7 @@ import { ModuloHorario } from '../../../models/models';
               </div>
             </div>
           } @empty {
-            <p class="text-sm text-slate-400">Nenhum módulo cadastrado para esta turma.</p>
+            <p class="text-sm text-[var(--cor-texto-terciario)]">Nenhum módulo cadastrado para esta turma.</p>
           }
         </div>
       </div>

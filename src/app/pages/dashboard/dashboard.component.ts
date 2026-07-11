@@ -21,14 +21,14 @@ interface AulaDoDia {
 
       <!-- Header -->
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
-        <p class="text-slate-500 text-sm mt-1">Bem-vindo ao seu guia de estudos — {{ nomesDia[diaSemanaAtual] }}</p>
+        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Dashboard</h1>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">Bem-vindo ao seu guia de estudos — {{ nomesDia[diaSemanaAtual] }}</p>
       </div>
 
       <!-- Gamificação -->
       <div class="card">
         @if (gamificacao.erro()) {
-          <div class="mb-3 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 text-xs">
+          <div class="mb-3 px-3 py-2 rounded-lg bg-[var(--cor-erro-fundo)] text-[var(--cor-erro-texto)] text-xs">
             {{ gamificacao.erro() }}
           </div>
         }
@@ -36,41 +36,41 @@ interface AulaDoDia {
           <img [src]="gamificacao.nivel().imagem" [alt]="gamificacao.nivel().titulo" class="w-24 h-auto shrink-0">
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between gap-2 flex-wrap">
-              <p class="font-semibold text-slate-800">{{ gamificacao.nivel().titulo }}</p>
-              <p class="text-xs text-slate-500">
+              <p class="font-semibold text-[var(--cor-texto-principal)]">{{ gamificacao.nivel().titulo }}</p>
+              <p class="text-xs text-[var(--cor-texto-secundario)]">
                 {{ gamificacao.xp() }} XP
                 @if (gamificacao.proximoNivel(); as prox) {
                   <span> / {{ prox.xpMinimo }} XP</span>
                 }
               </p>
             </div>
-            <div class="barra-progresso w-full bg-slate-100 rounded-full h-2 mt-2">
+            <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-2 mt-2">
               <div class="h-2 rounded-full bg-[var(--cor-secundaria)] transition-all" [style.width.%]="gamificacao.progressoNivel()"></div>
             </div>
             @if (!gamificacao.proximoNivel()) {
-              <p class="text-xs text-slate-400 mt-1">Nível máximo alcançado — o XP continua contando!</p>
+              <p class="text-xs text-[var(--cor-texto-terciario)] mt-1">Nível máximo alcançado — o XP continua contando!</p>
             }
           </div>
         </div>
 
         <div class="mt-4">
-          <div class="flex justify-between text-xs text-slate-500 mb-1">
+          <div class="flex justify-between text-xs text-[var(--cor-texto-secundario)] mb-1">
             <span>Progresso do semestre</span>
-            <span class="font-semibold text-slate-700">{{ gamificacao.percentualPeriodo() }}%</span>
+            <span class="font-semibold text-[var(--cor-texto-principal)]">{{ gamificacao.percentualPeriodo() }}%</span>
           </div>
-          <div class="barra-progresso w-full bg-slate-100 rounded-full h-2">
+          <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-2">
             <div class="h-2 rounded-full bg-[var(--cor-primaria)] transition-all" [style.width.%]="gamificacao.percentualPeriodo()"></div>
           </div>
         </div>
 
         @if (gamificacao.ultimasConquistas().length > 0) {
           <div class="mt-4">
-            <p class="text-xs font-medium text-slate-500 mb-2">Últimas conquistas</p>
+            <p class="text-xs font-medium text-[var(--cor-texto-secundario)] mb-2">Últimas conquistas</p>
             <div class="flex gap-4 flex-wrap">
               @for (selo of gamificacao.ultimasConquistas(); track selo.id) {
                 <div class="flex flex-col items-center gap-1 w-16" [title]="selo.descricao">
                   <img [src]="selo.imagem" [alt]="selo.titulo" class="w-10 h-10">
-                  <span class="text-[10px] text-slate-500 text-center leading-tight">{{ selo.titulo }}</span>
+                  <span class="text-[10px] text-[var(--cor-texto-secundario)] text-center leading-tight">{{ selo.titulo }}</span>
                 </div>
               }
             </div>
@@ -83,22 +83,22 @@ interface AulaDoDia {
         <div class="card text-center">
           <i class="fa-solid fa-book-open text-2xl text-[var(--cor-primaria)] mb-2"></i>
           <p class="text-3xl font-bold text-[var(--cor-primaria)]">{{ totalDisciplinas }}</p>
-          <p class="text-xs text-slate-500 mt-1">Disciplinas</p>
+          <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Disciplinas</p>
         </div>
         <div class="card text-center">
           <i class="fa-solid fa-scroll text-2xl text-[var(--cor-secundaria)] mb-2"></i>
           <p class="text-3xl font-bold text-[var(--cor-secundaria)]">{{ totalAvaliacoes }}</p>
-          <p class="text-xs text-slate-500 mt-1">Avaliações</p>
+          <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Avaliações</p>
         </div>
         <div class="card text-center">
           <i class="fa-solid fa-circle-check text-2xl text-green-600 mb-2"></i>
           <p class="text-3xl font-bold text-green-600">{{ totalConcluidas }}</p>
-          <p class="text-xs text-slate-500 mt-1">Concluídas</p>
+          <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Concluídas</p>
         </div>
         <div class="card text-center">
           <i class="fa-solid fa-hourglass-half text-2xl text-rose-500 mb-2"></i>
           <p class="text-3xl font-bold text-rose-500">{{ proximasEntregas }}</p>
-          <p class="text-xs text-slate-500 mt-1">Próximos 30 dias</p>
+          <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Próximos 30 dias</p>
         </div>
       </div>
 
@@ -107,31 +107,31 @@ interface AulaDoDia {
         <!-- Aulas de hoje -->
         <div class="card lg:col-span-1">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="font-semibold text-slate-800">Aulas de Hoje</h2>
+            <h2 class="font-semibold text-[var(--cor-texto-principal)]">Aulas de Hoje</h2>
             <a routerLink="/horario" class="text-xs text-[var(--cor-primaria)] hover:underline">Ver horário</a>
           </div>
           @if (aulasHoje.length > 0) {
             <div class="space-y-3">
               @for (aula of aulasHoje; track aula.horario) {
-                <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-50">
+                <div class="flex items-start gap-3 p-3 rounded-lg bg-[var(--cor-fundo-sutil)]">
                   <span
                     class="inline-flex items-center justify-center w-7 h-7 rounded-md text-white text-xs font-bold shrink-0"
                     [style.background-color]="getCorDisciplina(aula.disciplinaId)"
                   >{{ aula.modulo }}</span>
                   <div class="min-w-0">
-                    <p class="text-sm font-medium text-slate-800 leading-snug truncate">{{ getNomeCurto(aula.disciplina) }}</p>
-                    <p class="text-xs text-slate-400 mt-0.5">{{ aula.horario }}</p>
+                    <p class="text-sm font-medium text-[var(--cor-texto-principal)] leading-snug truncate">{{ getNomeCurto(aula.disciplina) }}</p>
+                    <p class="text-xs text-[var(--cor-texto-terciario)] mt-0.5">{{ aula.horario }}</p>
                   </div>
                 </div>
               }
             </div>
           } @else {
             <div class="flex flex-col items-center justify-center py-8 text-center">
-              <svg class="w-10 h-10 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-10 h-10 text-[var(--cor-texto-terciario)] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
               </svg>
-              <p class="text-sm text-slate-400">Sem aulas hoje</p>
-              <p class="text-xs text-slate-300">Aproveite para estudar!</p>
+              <p class="text-sm text-[var(--cor-texto-terciario)]">Sem aulas hoje</p>
+              <p class="text-xs text-[var(--cor-texto-terciario)]">Aproveite para estudar!</p>
             </div>
           }
         </div>
@@ -139,7 +139,7 @@ interface AulaDoDia {
         <!-- Próximas entregas -->
         <div class="card lg:col-span-2">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="font-semibold text-slate-800">Próximas Entregas</h2>
+            <h2 class="font-semibold text-[var(--cor-texto-principal)]">Próximas Entregas</h2>
             <a routerLink="/avaliacoes" class="text-xs text-[var(--cor-primaria)] hover:underline">Ver todas</a>
           </div>
           @if (proximasAvaliacoes.length > 0) {
@@ -147,18 +147,18 @@ interface AulaDoDia {
               @for (av of proximasAvaliacoes; track av.id) {
                 <div
                   class="flex items-start gap-3 p-3 rounded-lg border transition-colors"
-                  [class.border-slate-100]="!progresso.isConcluida(av.id)"
-                  [class.bg-slate-50]="!progresso.isConcluida(av.id)"
                   [class.border-green-100]="progresso.isConcluida(av.id)"
                   [class.bg-green-50]="progresso.isConcluida(av.id)"
+                  [style.border-color]="progresso.isConcluida(av.id) ? null : 'var(--cor-borda-sutil)'"
+                  [style.background-color]="progresso.isConcluida(av.id) ? null : 'var(--cor-fundo-sutil)'"
                 >
                   <!-- Checkbox -->
                   <button
                     (click)="progresso.toggleConcluida(av.id)"
                     class="mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
-                    [class.border-slate-300]="!progresso.isConcluida(av.id)"
                     [class.border-green-500]="progresso.isConcluida(av.id)"
                     [class.bg-green-500]="progresso.isConcluida(av.id)"
+                    [style.border-color]="progresso.isConcluida(av.id) ? null : 'var(--cor-borda-media)'"
                   >
                     @if (progresso.isConcluida(av.id)) {
                       <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,19 +171,18 @@ interface AulaDoDia {
                   <div class="flex-1 min-w-0">
                     <p
                       class="text-sm font-medium leading-snug"
-                      [class.text-slate-800]="!progresso.isConcluida(av.id)"
                       [class.line-through]="progresso.isConcluida(av.id)"
-                      [class.text-slate-400]="progresso.isConcluida(av.id)"
+                      [style.color]="progresso.isConcluida(av.id) ? 'var(--cor-texto-terciario)' : 'var(--cor-texto-principal)'"
                     >{{ av.nome || av.descricao }}</p>
                     @if (av.nome && av.descricao) {
-                      <p class="text-xs text-slate-500 mt-0.5 leading-snug">{{ av.descricao }}</p>
+                      <p class="text-xs text-[var(--cor-texto-secundario)] mt-0.5 leading-snug">{{ av.descricao }}</p>
                     }
                     <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                       <span
                         class="inline-block w-2 h-2 rounded-full shrink-0"
                         [style.background-color]="getCorDisciplina(av.disciplinaId)"
                       ></span>
-                      <span class="text-xs text-slate-500">{{ getNomeDisciplina(av.disciplinaId) }}</span>
+                      <span class="text-xs text-[var(--cor-texto-secundario)]">{{ getNomeDisciplina(av.disciplinaId) }}</span>
                       <span
                         class="badge text-white"
                         [style.background-color]="getCorTipo(av.tipo)"
@@ -191,9 +190,9 @@ interface AulaDoDia {
                       <span
                         class="text-xs font-semibold"
                         [class.text-rose-500]="isUrgente(av.data)"
-                        [class.text-slate-600]="!isUrgente(av.data)"
+                        [style.color]="isUrgente(av.data) ? null : 'var(--cor-texto-secundario)'"
                       >{{ av.dataDisplay }}</span>
-                      <span class="text-xs text-slate-400">· {{ av.pontos }} pts</span>
+                      <span class="text-xs text-[var(--cor-texto-terciario)]">· {{ av.pontos }} pts</span>
                     </div>
                   </div>
                 </div>
@@ -204,7 +203,7 @@ interface AulaDoDia {
               <svg class="w-10 h-10 text-green-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <p class="text-sm text-slate-400">Sem entregas pendentes!</p>
+              <p class="text-sm text-[var(--cor-texto-terciario)]">Sem entregas pendentes!</p>
             </div>
           }
         </div>
@@ -214,7 +213,7 @@ interface AulaDoDia {
       <!-- Disciplinas grid -->
       <div>
         <div class="flex items-center justify-between mb-4">
-          <h2 class="font-semibold text-slate-800">Disciplinas do Semestre</h2>
+          <h2 class="font-semibold text-[var(--cor-texto-principal)]">Disciplinas do Semestre</h2>
           <a routerLink="/disciplinas" class="text-xs text-[var(--cor-primaria)] hover:underline">Ver todas</a>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -229,16 +228,16 @@ interface AulaDoDia {
                   [style.background-color]="d.cor"
                 >{{ d.codigo.substring(0, 2) }}</span>
                 <div class="min-w-0">
-                  <p class="text-xs text-slate-500 font-mono">{{ d.codigo }}</p>
-                  <p class="text-sm font-semibold text-slate-800 leading-snug group-hover:text-[var(--cor-primaria)] transition-colors">{{ d.nome }}</p>
+                  <p class="text-xs text-[var(--cor-texto-secundario)] font-mono">{{ d.codigo }}</p>
+                  <p class="text-sm font-semibold text-[var(--cor-texto-principal)] leading-snug group-hover:text-[var(--cor-primaria)] transition-colors">{{ d.nome }}</p>
                 </div>
               </div>
               <div class="mt-3">
-                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <div class="flex justify-between text-xs text-[var(--cor-texto-terciario)] mb-1">
                   <span>{{ getConcluidas(d.id) }}/{{ d.avaliacoes.length }} tarefas</span>
                   <span>{{ getProgresso(d.id) }}%</span>
                 </div>
-                <div class="barra-progresso w-full bg-slate-100 rounded-full h-1.5">
+                <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-1.5">
                   <div
                     class="h-1.5 rounded-full transition-all"
                     [style.width.%]="getProgresso(d.id)"
