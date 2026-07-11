@@ -19,7 +19,7 @@ interface NavItem {
   imports: [RouterOutlet, RouterLink, RouterLinkActive, XpToastComponent],
   template: `
     @if (auth.logado()) {
-      <div class="flex h-screen overflow-hidden bg-[var(--cor-fundo)] p-3 gap-3">
+      <div class="flex h-screen overflow-hidden bg-[var(--cor-fundo)] p-0 gap-0 md:p-6 md:gap-6">
 
         <!-- Backdrop mobile -->
         @if (sidebarOpen() && isMobile()) {
@@ -29,9 +29,9 @@ interface NavItem {
           ></div>
         }
 
-        <!-- Sidebar (card flutuante, com margem — não colada nas bordas) -->
+        <!-- Sidebar (card flutuante no desktop; colada nas bordas no mobile, sem margem) -->
         <aside
-          class="sidebar-frame fixed md:relative inset-y-3 left-3 md:inset-y-0 md:left-0 z-50 flex flex-col shrink-0 overflow-hidden rounded-2xl transition-all duration-300"
+          class="sidebar-frame fixed md:relative inset-y-0 left-0 z-50 flex flex-col shrink-0 overflow-hidden rounded-none md:rounded-2xl transition-all duration-300"
           [style.width]="sidebarOpen() ? '16rem' : '0'"
           style="background: linear-gradient(180deg, var(--cor-sidebar-inicio) 0%, var(--cor-sidebar-fim) 100%);"
         >

@@ -73,8 +73,8 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                     class="flex items-start gap-3 p-4 rounded-xl border transition-all group"
                     [class.bg-green-50]="storage.isConcluida(av.id)"
                     [class.border-green-100]="storage.isConcluida(av.id)"
-                    [class.bg-white]="!storage.isConcluida(av.id)"
                     [class.shadow-sm]="!storage.isConcluida(av.id)"
+                    [style.background-color]="storage.isConcluida(av.id) ? null : 'var(--cor-card-fundo)'"
                     [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-sutil)'"
                   >
                     <button
@@ -144,8 +144,8 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                 class="flex items-start gap-3 p-4 rounded-xl border transition-all"
                 [class.bg-green-50]="storage.isConcluida(av.id)"
                 [class.border-green-100]="storage.isConcluida(av.id)"
-                [class.bg-white]="!storage.isConcluida(av.id)"
                 [class.shadow-sm]="!storage.isConcluida(av.id)"
+                [style.background-color]="storage.isConcluida(av.id) ? null : 'var(--cor-card-fundo)'"
                 [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-sutil)'"
               >
                 <button

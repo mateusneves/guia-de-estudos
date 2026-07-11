@@ -459,17 +459,30 @@ each Dashboard stat card its own distinct colored background like the
 reference image — recreating that would mean per-component styling instead of
 theme tokens, deliberately out of scope for a token-based system.
 
-#### Layout: floating sidebar card + margin (added 2026-07-11)
+#### Layout: floating sidebar card + margin (added 2026-07-11, revised 2026-07-11)
 
-The app shell (`app.ts`) has an outer `p-3 gap-3` on the root flex container —
-the sidebar and main content are no longer edge-to-edge with the viewport, both
-sit with a consistent margin, and the sidebar is a `rounded-2xl` floating card
-(with its own `box-shadow`, see `.sidebar-frame` in `styles.css`) rather than a
-flush panel. On mobile, the sidebar's `fixed` positioning was changed from
-`inset-y-0 left-0` to `inset-y-3 left-3` (reset back to `md:inset-y-0
-md:left-0` at the desktop breakpoint, where it's `position: relative` inside
-the flex row and margin comes from the parent's `gap-3`/`p-3` instead) so it
-floats consistently at both sizes rather than only on desktop.
+The app shell (`app.ts`)'s root flex container is **desktop-only** margin: `p-0
+gap-0 md:p-6 md:gap-6`. On mobile there's deliberately no margin at all — the
+sidebar (as a `fixed` drawer) and the main content both sit flush against the
+viewport edges, since the extra breathing room only reads as "modern" on a
+wide desktop layout and just eats scarce space on a phone screen. At the `md`
+breakpoint the outer padding and the `gap` between the sidebar and the content
+area are always kept equal (`p-6`/`gap-6`, both driven off the same Tailwind
+spacing step) — this is intentional, not incidental: the margin around the
+whole app and the gap between sidebar and content should read as one
+consistent spacing unit, not two different ones. The sidebar is a `rounded-2xl`
+floating card only on desktop (`rounded-none md:rounded-2xl` on the `<aside>`
+in `app.ts`) — on mobile it's flush to the screen edges (no margin, per
+above), so rounded corners there would look like a rendering glitch rather
+than a floating card; only round it where it actually floats. It also has no
+border, just its own shadow/corners (`.sidebar-frame` in `styles.css` — an
+earlier medieval-only gold border around the whole sidebar was removed since
+it read as too heavy); its `fixed` positioning
+is plain `inset-y-0 left-0` at every breakpoint now (flush to the viewport on
+mobile, and ignored on desktop where `md:relative` plus the parent's
+`gap-6`/`p-6` is what actually creates its spacing). If you ever want the
+sidebar to float with its own margin on mobile again, that's a deliberate
+reversal of this note, not a bug.
 
 #### Text/subtle-background tokens — dark-card fidelity (added 2026-07-11)
 
@@ -511,6 +524,25 @@ The one exception left unthemed by choice: the amber "confirmar importação"
 warning box in `progresso.component.ts` keeps its own fully self-contained
 amber-800-on-amber-50 styling in both themes — it's a rare, modal-style
 confirmation, not a persistent page element, and reads fine either way.
+
+**Second exception, added 2026-07-11**: the "atividade concluída" card/checkbox
+fill (`bg-green-50`/`border-green-100`/`border-green-500`/`bg-green-500` —
+these 4 exact Tailwind classes are used *only* for this one feature across the
+whole app, in `dashboard`, `avaliacoes`, `progresso`, and `disciplina-detalhe`)
+does get rethemed in Medieval, by explicit user request to reuse the sidebar's
+own green rather than a generic success-green. `--cor-sucesso-fundo`/
+`-borda-sutil`/`-borda` in `styles.css` hold this — the `padrao` values just
+mirror the Tailwind green-50/100/500 hex codes (so it's a visual no-op there),
+while the `medieval` values are computed with `color-mix()` directly off
+`--cor-sidebar-inicio`, not a separately-chosen hex, so this stays literally
+"the sidebar's color" if that gradient ever changes. Applied via 4 global
+`[data-tema="medieval"] .bg-green-50 { ... }`-style overrides in `styles.css`
+(safe precisely because those class names have no other use anywhere in the
+app — confirmed by grep before adding this) rather than editing every
+component template. **Don't extend this pattern to `text-green-600`/
+`text-green-700`** — those two are shared with the unrelated "Em curso"/"Ativo"
+admin badges and the perfil success messages, which should stay literal per
+the rule above.
 
 **A recurring hazard hit repeatedly while converting dynamic `[class.x]="cond"`
 bindings to theme-token classes**: Angular's `[class.foo]` binding syntax
@@ -555,6 +587,41 @@ already logged in); everything else under `authGuard`, and `/admin/**` additiona
 under `adminGuard`. `app.ts` renders either the full sidebar shell or a bare
 `<router-outlet>` depending on `auth.logado()` — login/cadastro pages render
 full-screen without the shell.
+
+### Form fields — global base-layer conventions (added 2026-07-11)
+
+Two form-field rules are enforced globally in `styles.css`'s `@layer base`,
+not per-component, so every current and future page gets them automatically:
+
+- **`label { display: block; }`** — every `<label>` always sits above its
+  field, never beside it. Without this, a `<label>` (inline by default)
+  followed by an `<input>`/`<select>` that isn't `w-full` (e.g. a fixed
+  `md:w-80`) can end up sharing the same line on wide viewports — this is
+  exactly what happened to the "Período" selector in `disciplinas-admin`
+  before this rule existed. A `<label>` used as an inline button/checkbox
+  wrapper (the "Importar backup" label-as-button in `progresso.component.ts`,
+  the "Ativa" checkbox label in `turmas-admin.component.ts`) already carries
+  its own explicit `flex` class, which wins over this base rule — no per-case
+  exception needed.
+- **`input:not([type=checkbox]):not([type=radio]):not([type=color]), select,
+  textarea { background-color: var(--cor-fundo-sutil); color:
+  var(--cor-texto-principal); }`** — every form field gets a themed background
+  and an explicitly-set text color by default. Before this, most `<input>`/
+  `<textarea>` elements only had a themed *border* class, so on a dark card
+  (Medieval) the field's background stayed at the browser's native
+  near-white default while the text (inherited `--cor-texto-principal`, light
+  cream in Medieval) rendered near-invisible against it. `<select>` had the
+  opposite problem even where an explicit `bg-[var(--cor-fundo-sutil)]` class
+  *was* already set: its text still rendered black in some browsers, because
+  `<select>` doesn't reliably inherit `color` the way other elements do — it
+  needs `color` set directly. This base rule fixes both by supplying values
+  for whichever of the two properties a given field didn't already set
+  explicitly (an explicit `bg-*`/`text-*` class on a specific field still
+  wins, same cascade-layer reasoning as `.card`/`.badge`). `color-scheme:
+  light` (`:root`) / `color-scheme: dark` (`[data-tema="medieval"]`) was added
+  alongside this for the same reason — it nudges native widget chrome (the
+  `<select>` dropdown panel, scrollbars) toward a matching palette instead of
+  fighting the explicit colors above.
 
 ### Admin CRUD conventions
 

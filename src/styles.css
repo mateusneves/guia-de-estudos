@@ -16,6 +16,7 @@
  * `text-slate-*`/`bg-slate-*`/`border-slate-*` fixos.
  */
 :root {
+  color-scheme: light;
   --cor-primaria: #1e3a5f;
   --cor-primaria-hover: #2d5a8e;
   --cor-primaria-30: rgba(30, 58, 95, 0.3);
@@ -40,9 +41,13 @@
   --cor-borda-media: #e2e8f0;
   --cor-erro-fundo: #fef2f2;
   --cor-erro-texto: #dc2626;
+  --cor-sucesso-fundo: #f0fdf4;
+  --cor-sucesso-borda-sutil: #dcfce7;
+  --cor-sucesso-borda: #22c55e;
 }
 
 [data-tema="medieval"] {
+  color-scheme: dark;
   /* Paleta baseada na referência "Allespresso" (dark UI + dourado/indigo/cinza quente). */
   --cor-primaria: #c9873e;
   --cor-primaria-hover: #db9d57;
@@ -68,6 +73,14 @@
   --cor-borda-media: rgba(201, 135, 62, 0.3);
   --cor-erro-fundo: rgba(220, 38, 38, 0.15);
   --cor-erro-texto: #f28b82;
+  /* Verde do cartão de "atividade concluída" — deliberadamente derivado do mesmo verde
+     do degradê da sidebar (--cor-sidebar-inicio), a pedido do usuário, em vez de um verde
+     genérico. Único desvio da regra de "cores semânticas não são tokenizadas" (ver seção
+     "Temas visuais" no CLAUDE.md) porque aqui o pedido foi explicitamente usar a cor da
+     sidebar, não uma cor de sucesso arbitrária. */
+  --cor-sucesso-fundo: color-mix(in srgb, var(--cor-sidebar-inicio) 60%, var(--cor-card-fundo) 40%);
+  --cor-sucesso-borda-sutil: color-mix(in srgb, var(--cor-sidebar-inicio) 75%, white 25%);
+  --cor-sucesso-borda: color-mix(in srgb, var(--cor-sidebar-inicio) 55%, white 45%);
 }
 
 @layer base {
@@ -79,6 +92,33 @@
 
   h1, h2, h3 {
     font-family: var(--fonte-titulo);
+  }
+
+  /* Padrão do app: todo <label> de formulário fica acima do campo, nunca ao lado.
+     display:block é o que garante isso de forma confiável — sem isso, um <label> (inline
+     por padrão) seguido de um <input>/<select> que não seja w-full (ex: com largura fixa
+     md:w-80) pode ficar na mesma linha em telas largas, como acontecia no seletor de
+     Período em /admin/disciplinas. Um <label> usado como botão/checkbox inline (ex:
+     "Importar backup" em progresso.component.ts, o toggle "Ativa" em turmas-admin) já
+     tem sua própria classe `flex` explícita, que tem prioridade sobre esta regra — não
+     precisa de exceção aqui. */
+  label {
+    display: block;
+  }
+
+  /* Cor de fundo/texto padrão de todo campo de formulário — sem isto, o campo herda só a
+     cor de texto do .card ao redor (var(--cor-texto-principal)) mas mantém o fundo branco
+     nativo do navegador, o que no tema medieval (texto claro) ficava quase ilegível; e
+     <select> especificamente não herda a cor do texto de forma confiável em todos os
+     navegadores, aparecendo com texto preto mesmo tendo um fundo escuro definido. Qualquer
+     classe de fundo ou texto explícita já presente num campo (ex: os selects que já usam
+     bg-[var(--cor-fundo-sutil)]) continua tendo prioridade — esta regra só preenche a
+     lacuna quando nada foi definido. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+  select,
+  textarea {
+    background-color: var(--cor-fundo-sutil);
+    color: var(--cor-texto-principal);
   }
 }
 
@@ -138,11 +178,9 @@
   background-image: radial-gradient(circle at 15% 10%, rgba(201, 135, 62, 0.08), transparent 55%);
 }
 
-/* Friso dourado ao redor da sidebar — agora que ela é um card flutuante (com margem em
-   todos os lados, não colada nas bordas), a moldura precisa envolver o card todo, não só
-   um lado. */
+/* Sidebar flutuante no tema medieval — sem friso, só uma sombra mais forte que o padrão
+   para se destacar do fundo quase preto. */
 [data-tema="medieval"] .sidebar-frame {
-  border: 2px solid var(--cor-primaria);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
@@ -150,3 +188,13 @@
 [data-tema="medieval"] .barra-progresso {
   border: 1px solid var(--cor-primaria);
 }
+
+/* Cartão/checkbox de "atividade concluída" no tema medieval — usa o verde da sidebar
+   (--cor-sucesso-* acima) em vez do verde genérico do Tailwind usado no tema padrão.
+   Estas 4 classes só existem, em todo o app, nos cartões/checkboxes de atividade
+   concluída (dashboard, avaliações, progresso, disciplina-detalhe) — seguro sobrescrever
+   globalmente aqui sem afetar outro elemento. */
+[data-tema="medieval"] .bg-green-50 { background-color: var(--cor-sucesso-fundo); }
+[data-tema="medieval"] .border-green-100 { border-color: var(--cor-sucesso-borda-sutil); }
+[data-tema="medieval"] .border-green-500 { border-color: var(--cor-sucesso-borda); }
+[data-tema="medieval"] .bg-green-500 { background-color: var(--cor-sucesso-borda); }
