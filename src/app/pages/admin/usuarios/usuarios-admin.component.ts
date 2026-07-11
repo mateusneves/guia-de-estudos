@@ -19,7 +19,7 @@ import { Role, Usuario } from '../../../models/models';
         <button
           (click)="filtroTurma.set(null)"
           class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-          [class.bg-[#1e3a5f]]="filtroTurma() === null"
+          [class.bg-[var(--cor-primaria)]]="filtroTurma() === null"
           [class.text-white]="filtroTurma() === null"
           [class.bg-slate-100]="filtroTurma() !== null"
         >Todas as turmas</button>
@@ -27,7 +27,7 @@ import { Role, Usuario } from '../../../models/models';
           <button
             (click)="filtroTurma.set(t.id)"
             class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-            [class.bg-[#1e3a5f]]="filtroTurma() === t.id"
+            [class.bg-[var(--cor-primaria)]]="filtroTurma() === t.id"
             [class.text-white]="filtroTurma() === t.id"
             [class.bg-slate-100]="filtroTurma() !== t.id"
           >{{ t.nome }}</button>

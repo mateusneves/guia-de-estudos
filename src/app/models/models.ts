@@ -57,6 +57,8 @@ export interface Turma {
   conviteToken?: string;
   /** Código de autorização exigido no cadastro, verificado via regra do Firestore — nunca lido antes do login. */
   codigoConvite?: string;
+  /** id de um tema em `shared/temas-catalogo.ts` — ausente/desconhecido cai no tema "padrao". Só admin altera. */
+  temaId?: string;
 }
 
 /** Dados públicos de um convite, resolvidos a partir do token na URL — a única coisa legível antes do login. */
@@ -94,6 +96,34 @@ export interface Usuario {
 export interface Progresso {
   concluidas: string[];
   notas: Record<string, string>;
+  /** XP vitalício — nunca diminui, acumula entre semestres (diferente dos selos, que são por período). */
+  xp: number;
+  /** Último dia (local, "AAAA-MM-DD") em que o XP de login diário já foi concedido — evita conceder duas vezes no mesmo dia. */
+  ultimoDiaXp: string | null;
+}
+
+/** Estado de gamificação de um usuário dentro de um período específico — zera a cada novo período em curso. Doc id: "{uid}_{periodoId}". */
+export interface ProgressoPeriodo {
+  uid: string;
+  periodoId: string;
+  /** id do selo -> data ISO de quando foi desbloqueado (define também a ordem de "últimas conquistas"). */
+  selos: Record<string, string>;
+  /** ids de avaliação que já concederam o bônus de +50 XP neste período (evita conceder de novo ao desmarcar/remarcar). */
+  atividadesBonificadas: string[];
+  /** ids de disciplina que já concederam o bônus de +200 XP neste período. */
+  disciplinasBonificadas: string[];
+  /** Quantidade de dias (calendário local) distintos com login neste período — base das conquistas de frequência. */
+  diasComLogin: number;
+}
+
+/** Um lançamento no extrato de XP vitalício de um usuário — subcoleção `progresso/{uid}/historico`. Nunca editado/apagado, só criado (ledger). */
+export interface EventoXp {
+  id: string;
+  /** ISO. */
+  data: string;
+  /** Pode ser negativo (ex: desmarcar uma atividade reverte o XP que ela tinha concedido). */
+  delta: number;
+  motivo: string;
 }
 
 export interface EstatisticasDisciplina {

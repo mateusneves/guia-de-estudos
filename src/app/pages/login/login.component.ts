@@ -8,7 +8,7 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-login',
   imports: [ReactiveFormsModule],
   template: `
-    <div class="min-h-screen flex items-center justify-center p-4" style="background: linear-gradient(180deg, #1a2e4a 0%, #0f1e31 100%);">
+    <div class="min-h-screen flex items-center justify-center p-4" style="background: linear-gradient(180deg, var(--cor-sidebar-inicio) 0%, var(--cor-sidebar-fim) 100%);">
       <div class="w-full max-w-sm">
         <div class="flex flex-col items-center mb-6">
           <img src="logo-curso.webp" alt="Logo Seminário" class="h-16 w-auto object-contain rounded mb-3">
@@ -25,7 +25,7 @@ import { AuthService } from '../../services/auth.service';
               <input
                 type="email"
                 formControlName="email"
-                class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/30"
+                class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
                 placeholder="voce@exemplo.com"
               >
             </div>
@@ -34,7 +34,7 @@ import { AuthService } from '../../services/auth.service';
               <input
                 type="password"
                 formControlName="senha"
-                class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/30"
+                class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
                 placeholder="••••••••"
               >
             </div>
@@ -46,7 +46,7 @@ import { AuthService } from '../../services/auth.service';
             <button
               type="submit"
               [disabled]="form.invalid || enviando()"
-              class="w-full bg-[#1e3a5f] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-[#2d5a8e] transition-colors disabled:opacity-50"
+              class="w-full bg-[var(--cor-primaria)] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] transition-colors disabled:opacity-50"
             >{{ enviando() ? 'Entrando...' : 'Entrar' }}</button>
           </form>
 

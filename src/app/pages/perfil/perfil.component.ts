@@ -32,7 +32,7 @@ import { avatarUrl, seedAleatoria } from '../../shared/avatar';
               type="button"
               (click)="selecionarAvatar(seed)"
               class="rounded-full border-2 transition-colors p-0.5"
-              [class.border-[#1e3a5f]]="seed === avatarSelecionado()"
+              [class.border-[var(--cor-primaria)]]="seed === avatarSelecionado()"
               [class.border-transparent]="seed !== avatarSelecionado()"
             >
               <img [src]="avatarUrlDe(seed)" [alt]="'Opção de avatar'" class="w-full aspect-square rounded-full bg-slate-100">
@@ -40,12 +40,12 @@ import { avatarUrl, seedAleatoria } from '../../shared/avatar';
           }
         </div>
         <div class="flex items-center gap-3">
-          <button type="button" (click)="gerarOpcoes()" class="text-xs text-[#1e3a5f] hover:underline font-medium">Gerar outras opções</button>
+          <button type="button" (click)="gerarOpcoes()" class="text-xs text-[var(--cor-primaria)] hover:underline font-medium">Gerar outras opções</button>
           <button
             type="button"
             (click)="salvarAvatar()"
             [disabled]="!avatarSelecionado() || avatarSelecionado() === avatarSeedSalva()"
-            class="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-[#2d5a8e] disabled:opacity-50"
+            class="bg-[var(--cor-primaria)] text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-[var(--cor-primaria-hover)] disabled:opacity-50"
           >Salvar avatar</button>
         </div>
         @if (mensagemAvatar()) {
@@ -60,7 +60,7 @@ import { avatarUrl, seedAleatoria } from '../../shared/avatar';
           <div class="flex-1 min-w-48">
             <input formControlName="nome" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="Seu nome">
           </div>
-          <button type="submit" [disabled]="formNome.invalid" class="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#2d5a8e] disabled:opacity-50">
+          <button type="submit" [disabled]="formNome.invalid" class="bg-[var(--cor-primaria)] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] disabled:opacity-50">
             Salvar nome
           </button>
         </form>
@@ -85,7 +85,7 @@ import { avatarUrl, seedAleatoria } from '../../shared/avatar';
             <label class="text-xs font-medium text-slate-600">Confirmar nova senha</label>
             <input type="password" formControlName="confirmarSenha" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
           </div>
-          <button type="submit" [disabled]="formSenha.invalid" class="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#2d5a8e] disabled:opacity-50">
+          <button type="submit" [disabled]="formSenha.invalid" class="bg-[var(--cor-primaria)] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] disabled:opacity-50">
             Alterar senha
           </button>
         </form>

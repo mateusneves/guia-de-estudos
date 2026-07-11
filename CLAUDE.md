@@ -9,7 +9,8 @@ services) app that helps a seminary class track disciplinas (courses), avaliaç�
 (assignments/tests) and personal progress through a semester. It is deployed as a
 static site on GitHub Pages, with **Firebase (Auth + Firestore)** as the backend.
 The app supports multiple turmas (class cohorts), invite-gated student self-signup,
-and an admin panel for managing turmas/disciplinas/atividades/usuários.
+an admin panel for managing turmas/disciplinas/atividades/usuários, and a
+gamification layer (XP, levels, achievement badges) to encourage consistent study habits.
 
 ## Commands
 
@@ -96,7 +97,173 @@ Firestore collections (see `src/app/models/models.ts` for the matching TS types)
   and `notas: Record<disciplinaId, string>`. Doc id is the uid, not auto-generated.
   Deliberately **not** scoped by período — a student's completed-activity history
   persists across semesters even as `periodoId` scoping moves them into new
-  disciplinas/avaliações each term.
+  disciplinas/avaliações each term. As of 2026-07-10 also carries `xp` (lifetime,
+  never decreases) and `ultimoDiaXp` (last local calendar date the daily-login XP
+  was granted) — see "Gamification" below.
+- `progresso_periodo/{uid}_{periodoId}` — the *período-scoped* half of
+  gamification: `selos` (map of achievement id → ISO unlock timestamp),
+  `atividadesBonificadas`/`disciplinasBonificadas` (ids already paid their XP
+  bonus this período, so re-checking/un-checking an activity never double-pays),
+  `diasComLogin` (count, this período only). Composite doc id, not auto-generated
+  — always `${uid}_${periodoId}`. Resets to nothing every time a new período
+  becomes ativo, unlike `progresso/{uid}`'s `xp`.
+
+### Gamification (added 2026-07-10)
+
+XP and level are **lifetime** (stored on `progresso/{uid}`, never reset).
+Achievement badges ("selos") and the daily-login streak are **per período**
+(stored on `progresso_periodo/{uid}_{periodoId}`) — a new período starts every
+student back at zero selos, by explicit product decision (XP/level are the
+long-term thread across semesters; selos are meant to feel fresh each term).
+This means `bem_vindo`/`primeira_vitoria` are really "first login/activity *of
+this período*", not lifetime-first, despite the achievement names.
+
+`src/app/shared/gamificacao-catalogo.ts` holds the **static** catalog — level
+titles/XP thresholds (`NIVEIS`), achievement definitions (`SELOS`), and the %
+milestones that award both a selo and (only at 100%) XP (`MARCOS_PROGRESSO`).
+This is deliberately code, not Firestore — only the *unlock state* is persisted
+per user, the same "catalog in code, per-user state in the DB" split already
+used for `labelTipo`/`getCorTipo` maps elsewhere. Badge images are pre-made PNGs
+in `public/images/` (the user supplied all of them — level badges
+`nivel-*.png`, achievement badges `selo-*.png` plus `disciplina-concluida.png`);
+there is no generic icon library involved, don't add one unless a *new*
+achievement without art shows up.
+
+Level thresholds (`NIVEIS` in the catalog) were deliberately calibrated **not**
+for a hypothetical student using the app from semester 1 of a multi-year
+program, but for this actual turma, which is starting the feature mid-program
+(3º ano) with a couple of semesters left — reaching the max level ("Reformador",
+11.000 XP) is meant to be achievable within roughly 2 solidly-engaged semesters
+for the real current users, not a multi-year grind. A future turma that starts
+using the app from day one will hit max level faster and then just keep
+accumulating XP numerically with no further title change — an accepted
+trade-off, not a bug.
+
+`GamificacaoService` (`services/gamificacao.service.ts`) is where the actual
+event logic lives — it's injected eagerly by the root `App` component (same
+reasoning as `TurmasService`/`PeriodosService`: needs to react to activity
+completions regardless of which page is currently open, and correctly
+auth-gates itself the same way, see the pitfall below). Several things worth
+knowing before touching it:
+
+1. **It never reads `DisciplinasService`/`AvaliacoesService`.** Those two are
+   *overridable* (an admin browsing `/admin/disciplinas` can point them at a
+   different período/turma via `setPeriodo(...)`), and gamification must always
+   track the *logged-in user's own* período, never whatever an admin happens to
+   be looking at. So `GamificacaoService` computes its own `meuPeriodoId`
+   (mirroring `DisciplinasService`'s *default*-only logic, independent of any
+   override) and runs its own separate `onSnapshot` queries against
+   `disciplinas`/`avaliacoes` filtered by that id. This looks like duplication
+   of `DisciplinasService`'s query — it is, deliberately, to stay correct while
+   an admin is mid-session overriding the shared services for their own turma.
+2. **`avaliarProgresso()` is a full reconciliation, not a pure-additive
+   grant.** On every run it recomputes *current truth* — which atividades are
+   done, which disciplinas are 100% done, what % of the período that is, which
+   selos should currently be unlocked — and diffs that against what's already
+   recorded (`atividadesBonificadas`/`disciplinasBonificadas`/`selos`),
+   **granting what became newly true and revoking (XP and selo) what stopped
+   being true.** This was a deliberate reversal of the original "XP never
+   decreases" idempotent-only design: a student unchecking an activity they
+   completed by mistake now gets that activity's +50 XP taken back, and if that
+   activity had been the one closing out a disciplina or the período's 100%,
+   that bonus/selo is revoked too (see `SELOS_REVERSIVEIS`). The exception is
+   `bem_vindo`/`uma_semana`/`habito_criado` — those reflect *login history*
+   (`diasComLogin`, itself a monotonic counter), not currently-computable
+   completion state, so they're only ever added, never revoked. This
+   reconciliation approach directly replaced an earlier "only ever add, never
+   remove" version that had a serious bug — see the "Historical bugs worth
+   remembering" callout below.
+3. **`MIN_ATIVIDADES_DISCIPLINA` (3) / `MIN_ATIVIDADES_PERIODO` (5)** gate the
+   *disciplina_concluida* selo and the *progresso_%* milestones (including the
+   100%/+500 XP one) respectively — a disciplina or período needs at least
+   that many atividades registered before "concluded" bonuses become eligible
+   at all. Without this, since atividades are added gradually by the admin
+   throughout the período (see "Admin CRUD conventions"), completing the one
+   activity that happens to exist so far would look like "100% do semestre"
+   the moment it's created — reported directly by the user testing early in
+   the período with a single disciplina/atividade registered. The running %
+   progress bar itself (`percentualPeriodo`, shown on the Dashboard) is **not**
+   gated by this minimum — only the selo/XP grants are; the bar always shows
+   "% of what's currently assigned," which is accurate even with few items.
+4. **`registrarEventoXp` / `progresso/{uid}/historico`** — every XP delta
+   (positive or negative) is logged as an immutable ledger entry
+   (`{data, delta, motivo}`) by `ProgressoService.registrarEventoXp()`, a
+   `progresso/{uid}` subcollection (lifetime-scoped like XP itself, **not**
+   reset per período like `progresso_periodo` is). `HistoricoService` reads it
+   back for the `/historico` page. The same event also drives an ephemeral
+   toast (`GamificacaoService.notificacoes`, rendered by `XpToastComponent` in
+   `app.ts`, auto-dismissing after 5s) — added specifically so XP grants (and
+   reversals) are immediately visible instead of a silent Firestore write,
+   which had made a previous bug much harder to notice/diagnose.
+5. **Reentrancy guards** (`avaliarEmAndamento`/`loginEmAndamento` booleans) skip
+   a new invocation while a previous `avaliarProgresso`/`registrarLoginDiario`
+   call's writes haven't round-tripped back into `_progressoPeriodo` yet — see
+   the "Historical bugs worth remembering" callout for why this matters.
+
+#### Historical bugs worth remembering
+
+Three separate bugs have hit this area in production so far (a runaway-XP
+incident that hit ~4.5 million before manual correction, a silent stop to all
+future grants, and a login-triggered false revoke that went negative) — all
+now fixed, but the failure modes are worth recognizing if something here
+misbehaves again:
+
+- **`setDoc(..., {merge:true})` does not parse dot-notation string keys as
+  nested paths** — only `updateDoc` does that. An earlier version wrote selo
+  updates as `{'selos.bem_vindo': timestamp}` via `setDoc`+merge, which
+  Firestore stored as a **literal top-level field named `"selos.bem_vindo"`**
+  (dot included in the actual field name), leaving the real `selos` map
+  permanently `{}`. Every `!periodoDoc.selos[id]` guard was therefore always
+  `true`, so every selo (and the 500-XP "100% do período" bonus tied to
+  `progresso_100`) was re-granted on **every rerun of the effect**, not just
+  during races. Fix: pass a genuinely nested object (`{selos: {id: timestamp}}`)
+  to `setDoc`+merge — Firestore does deep-merge nested map fields correctly
+  when given a real nested object, just not dot-notation strings.
+- **A signal that's "new object, same content" still counts as changed.**
+  `ProgressoService`'s Firestore listener called `.set({...})` with a fresh
+  plain object on every snapshot, including when only `xp` changed — so its
+  `concluidas` computed emitted a new array *reference* even though the actual
+  completed-ids list hadn't changed. Since `GamificacaoService.avaliarProgresso`
+  reads `concluidas()` synchronously (tracked as an effect dependency), writing
+  XP triggered a "changed" notification that re-ran the same evaluation before
+  the previous grant's `atividadesBonificadas` write had confirmed — regranting
+  the same bonus over and over as fast as Firestore's round-trip allowed. Fixed
+  by giving `concluidas` a content-based `equal` function. This class of bug
+  (derived signal churn from unrelated field changes) is worth checking first
+  whenever an effect appears to rerun more often than its actual dependencies
+  changed.
+- **A guarded-out effect run can silently un-track a signal.** Angular's
+  `effect()` only records dependencies for signals actually read *during a
+  given run* — if a run hits an early `return` before reaching a read that a
+  later branch would have made, that signal drops out of the tracked set
+  until some *other* run happens to read it again. `avaliarProgresso`'s
+  reentrancy guard (`if (this.avaliarEmAndamento) return;`) sat *before* the
+  code path that read `progressoService.concluidas()`, and Firestore's local
+  cache echoes a pending write back almost instantly (well before that
+  write's own `await` resolves) — so unchecking an activity would often
+  guard-skip the echo of its *own* write, permanently dropping `concluidas()`
+  from the effect's tracked deps until an unrelated `progresso_periodo`
+  change happened to reawaken it. Symptom: uncheck an activity (works),
+  recheck it (silently no-ops forever). Fix: read every signal the effect
+  cares about **unconditionally, before any early return** — guards may skip
+  the *evaluation*, they must never skip the *tracking*.
+- **A transient reset placeholder can look like real ground truth to a
+  reconciling effect.** `ProgressoService` resets its local signal to
+  `{concluidas: [], ultimoDiaXp: null, ...}` on every auth-state change
+  (logout *and* login) before the real Firestore snapshot has had a chance to
+  reload — normally invisible, but `GamificacaoService`'s reconciliation logic
+  treats "not currently concluded" and "haven't logged in today" as real,
+  actionable facts. If either evaluation effect ran during that narrow
+  pre-reload window (routinely does, right after a login), it would revoke
+  real XP for an activity that was actually still complete, and/or double-grant
+  the daily login bonus on the same calendar day. Fix: `ProgressoService`
+  exposes a `carregado` signal (false until the first real snapshot — or the
+  "no doc yet, just created one" case for a brand-new user — has landed for
+  the current uid), and both `GamificacaoService` evaluation effects gate on
+  it (read unconditionally first, same rule as above). **Any signal that gets
+  reset to a "safe-looking" default on logout before being reloaded on the
+  next login is a candidate for this same bug** if something downstream
+  reconciles against it as ground truth rather than as "not yet known."
 
 ### Service layer and how turma/período-scoping propagates
 
@@ -173,7 +340,13 @@ Firestore collections (see `src/app/models/models.ts` for the matching TS types)
   `UsuariosService`, `ModulosHorarioService` — all safe today because nothing
   injects them before their page's `authGuard`/`adminGuard` runs), or (b) use
   this same `logado()`-gated `effect()` if there's any chance it's constructed
-  earlier (like anything injected directly by `App`).**
+  earlier (like anything injected directly by `App`).** `GamificacaoService`
+  is also injected directly by `App` and gets the same protection by a slightly
+  different route: its subscriptions are gated on `meuPeriodoId()` being
+  non-null, which itself reads `authService.perfil()` — null pre-auth — so it
+  naturally never subscribes before the user is authenticated, without needing
+  its own explicit `logado()` effect wrapper. If you refactor
+  `GamificacaoService`'s gating logic, preserve that property.
 - `ProgressoService` replaces the old `localStorage`-backed `StorageService`.
   Same public API (`isConcluida`, `toggleConcluida`, `getNota`, `setNota`,
   `exportar`/`importar` JSON backup). On first login it seeds the new
@@ -216,6 +389,75 @@ everyone has *some* deterministic avatar even before ever visiting `/perfil`.
 The sidebar footer (`app.ts`) renders the logged-in user's avatar this way and
 links to `/perfil`. If you add another avatar-rendering spot, reuse
 `avatarUrl(...)` rather than re-deriving the DiceBear URL format.
+
+### Temas visuais (added 2026-07-11)
+
+Each turma can have its own visual theme (`turmas/{turmaId}.temaId`, admin-only —
+edited via the "Tema visual" `<select>` in `/admin/turmas`, same form as
+nome/ativa). Two themes exist today: `padrao` (the app's original look) and
+`medieval` (a parchment/illuminated-manuscript reskin). No `firestore.rules`
+change was needed — `temaId` is just another field on the existing `turmas`
+document, covered by the existing read/write rules for that collection.
+
+**Architecture — CSS custom properties, not per-component logic.** All theme
+colors/fonts are CSS variables defined in `src/styles.css`: `:root` holds the
+`padrao` values, and `[data-tema="medieval"]` overrides them. Every component
+that needs a brand color uses `var(--cor-primaria)`, `var(--cor-secundaria)`,
+etc. (Tailwind arbitrary-value classes support `var()` directly, e.g.
+`bg-[var(--cor-primaria)]`) instead of a hardcoded hex — this was a full sweep
+across the app; **never reintroduce a literal hex for primary/secondary/sidebar/
+background chrome colors**, always use the CSS variable. The one deliberate
+exception: `disciplinas-admin.component.ts`'s color-*picker* default value
+(`cor: '#1e3a5f'`, the default color for a *new disciplina*) is unrelated
+content data, not UI chrome — don't theme it.
+
+`TemaService` (`services/tema.service.ts`) is the only piece of runtime logic:
+it computes the logged-in user's own turma's `temaId` (defaulting to `padrao`
+for no turma/unknown id, via `temaPorId()`) and writes `data-tema="<id>"` onto
+`<html>` in an `effect()`. It's injected eagerly by root `App` (same
+lightweight pattern as `GamificacaoService`) purely to keep that effect alive;
+no template reads it directly. Since it derives from `authService.perfil()`
+(null pre-auth) rather than owning its own Firestore subscription, it doesn't
+need the `logado()`-gated resubscription pattern the eager pre-auth pitfall
+requires elsewhere — it naturally resolves to `padrao` on `/login`/`/cadastro`
+and updates once the user's profile loads.
+
+`src/app/shared/temas-catalogo.ts` is the static catalog (mirrors
+`gamificacao-catalogo.ts`'s "catalog in code, per-entity state in DB" split) —
+just `{id, nome, descricao}` per theme, used for the admin `<select>` and
+`temaPorId()`'s fallback lookup. **To add a new theme**: (1) add an entry here
+with a new `id`, (2) add a matching `[data-tema="<id>"] { --cor-...: ...; }`
+block in `styles.css` defining the same set of tokens `:root` already has. No
+component changes needed — this is the intended "upload a new theme" workflow
+for a future theme, done entirely in these two files.
+
+The sidebar's interactive chrome (hover/active nav background, section-divider
+lines, "Administração" header color/font) is themed too, via its own tokens
+(`--cor-sidebar-hover`, `--cor-sidebar-ativo`, `--cor-sidebar-ativo-borda`,
+`--cor-sidebar-divisor`) and two utility classes, `.sidebar-titulo` (applies
+`--fonte-titulo`) and `.sidebar-divisor` (applies the divider color) — these
+were added after the initial theme rollout only reskinned the gradient
+background and left every hover/active/divider state hardcoded to a plain
+white overlay, which made the sidebar look almost unchanged between themes.
+**Any new sidebar element with a border/hover/active state should use these
+classes/tokens, not a literal `border-white/10` or `bg-white/10`-style
+Tailwind utility**, or it'll have the same "doesn't actually reskin" problem.
+
+Similarly, **every progress/status/XP bar's outer track div carries a
+`.barra-progresso` class** (`.card`/`.badge`-style shared class, not a
+per-page one-off) — it's a no-op in `padrao` but gets a gold border in
+`medieval` (`[data-tema="medieval"] .barra-progresso`). Any new progress bar
+must add this class to its track element or it won't pick up future
+bar-specific theme styling.
+
+**Known scope limits, by design for v1**: icons are still FontAwesome
+everywhere (no pixel-art assets — the reference image used for `medieval` had
+pixel-art icons, but generating those wasn't possible here; if real icon
+assets are ever supplied, same pattern as gamification's `public/images/`
+badges), and the medieval theme reskins `.card` uniformly rather than giving
+each Dashboard stat card its own distinct colored background like the
+reference image — recreating that would mean per-component styling instead of
+theme tokens, deliberately out of scope for a token-based system.
 
 ### Routing and guards
 
@@ -283,7 +525,11 @@ doc but only with `role: 'aluno'`; only an existing admin can change `role`,
 caller's `turmaId` to match the `turmaId` of the período the document belongs to
 (checked via a `get()` on `periodos/{periodoId}` inside the rule — see
 `turmaDoPeriodo()`), or the caller is admin; `progresso/{uid}` is writable only by
-that uid. Rules are not deployed via CI — publish changes manually through the
+that uid. `progresso_periodo/{docId}` uses the same "writable only by its owner"
+shape, but since its doc id is a composite (`${uid}_${periodoId}`, not the uid
+itself), ownership is checked via a `uid` *field* inside the document
+(`resource.data.uid == request.auth.uid`) rather than the path segment. Rules
+are not deployed via CI — publish changes manually through the
 Firebase Console (Firestore → Rules) or `firebase deploy --only firestore:rules`
 (project id lives in `.firebaserc`).
 

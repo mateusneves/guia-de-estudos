@@ -96,6 +96,22 @@ service cloud.firestore {
       allow read: if logado() && (request.auth.uid == uid || souAdmin());
       allow create: if logado() && request.auth.uid == uid;
       allow update: if logado() && request.auth.uid == uid;
+
+      // Ledger de XP (append-only) — cada aluno só lê/cria o próprio, nunca edita/apaga um lançamento já feito.
+      match /historico/{eventoId} {
+        allow read: if logado() && (request.auth.uid == uid || souAdmin());
+        allow create: if logado() && request.auth.uid == uid;
+      }
+    }
+
+    // Gamificação por período (selos, bônus de XP de atividade/disciplina, dias de
+    // login) — zera a cada novo período em curso, por isso é um doc separado de
+    // "progresso" (que é vitalício). Doc id "{uid}_{periodoId}"; cada aluno só
+    // lê/escreve o próprio, verificado pelo campo "uid" dentro do documento.
+    match /progresso_periodo/{docId} {
+      allow read: if logado() && (resource.data.uid == request.auth.uid || souAdmin());
+      allow create: if logado() && request.resource.data.uid == request.auth.uid;
+      allow update: if logado() && resource.data.uid == request.auth.uid;
     }
   }
 }

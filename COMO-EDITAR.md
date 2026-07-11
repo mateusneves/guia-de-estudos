@@ -32,6 +32,17 @@ Esses são dois conceitos diferentes:
 
 Em **Administração → Turmas**: crie/edite as turmas.
 
+### Tema visual
+
+Cada turma pode ter seu próprio tema visual, escolhido no mesmo formulário de
+criar/editar turma (campo "Tema visual"). Hoje existem dois: **Padrão** (visual
+original) e **Medieval** (pergaminho e ouro). Só administrador pode trocar, e a
+troca vale para todos os alunos daquela turma automaticamente.
+
+Se quiser um tema novo no futuro, é um pedido de desenvolvimento (adicionar uma
+entrada no catálogo do tema e as cores correspondentes no CSS) — não tem uma
+tela de upload de temas prontos.
+
 ### Convite de cadastro
 
 Desde que o cadastro passou a ser só por convite, cada turma tem um **link** e um
@@ -97,6 +108,33 @@ Isso é o que aparece na tela **Atividades** do aluno (antes chamada de
 Dashboard. As atividades do 1º semestre (cadastradas pelo seed antes do campo
 "Nome" existir) mostram o texto da descrição no lugar do nome — funciona normal,
 só não tem um título curto até você editá-las e preencher o campo Nome.
+
+## Gamificação
+
+A tela de Dashboard do aluno mostra nível, XP e selos de conquista automaticamente
+— não tem nada pra cadastrar aqui, é tudo calculado sozinho conforme o aluno usa
+o app (login, conclusão de atividades/disciplinas, % do semestre):
+
+- **XP e nível são vitalícios**: nunca resetam, acumulam do 1º semestre em que o
+  aluno começou a usar o app até o fim do curso.
+- **Selos de conquista são por período**: zeram a cada novo semestre em curso —
+  o aluno começa do zero de selos quando um novo período é ativado, mesmo
+  mantendo o nível/XP anteriores.
+- Os títulos dos níveis (Catecúmeno → Discípulo → Bereano → Exegeta → Teólogo →
+  Reformador) e as faixas de XP de cada um estão no código
+  (`src/app/shared/gamificacao-catalogo.ts`), assim como a lista de selos. Pra
+  ajustar quanto XP cada nível exige, ou o texto/imagem de um selo, é lá — não
+  tem tela de admin pra isso (são poucos valores, faz mais sentido editar direto).
+- As imagens dos selos e dos níveis ficam em `public/images/`.
+- Uma disciplina só pode ganhar o selo de "concluída" com pelo menos 3
+  atividades cadastradas nela, e os selos/bônus de "% do período" (incluindo o
+  de 100%) só valem com pelo menos 5 atividades cadastradas no período todo —
+  isso evita que 1 atividade solitária pareça "terminei tudo" logo no início,
+  já que as atividades vão sendo cadastradas aos poucos ao longo do semestre.
+- Cada vez que o aluno ganha (ou perde, ao desmarcar uma atividade por engano)
+  pontos de XP, aparece um aviso na tela mostrando quanto e por quê. Todo esse
+  extrato fica salvo e pode ser conferido a qualquer momento em **Histórico de
+  XP**, no menu do aluno.
 
 ## Usuários
 

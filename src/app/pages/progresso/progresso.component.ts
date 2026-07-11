@@ -17,7 +17,7 @@ import { Disciplina } from '../../models/models';
       <!-- Visão geral -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="card text-center">
-          <p class="text-3xl font-bold text-[#1e3a5f]">{{ totalAvaliacoes }}</p>
+          <p class="text-3xl font-bold text-[var(--cor-primaria)]">{{ totalAvaliacoes }}</p>
           <p class="text-xs text-slate-500 mt-1">Total de Avaliações</p>
         </div>
         <div class="card text-center">
@@ -29,7 +29,7 @@ import { Disciplina } from '../../models/models';
           <p class="text-xs text-slate-500 mt-1">Pendentes</p>
         </div>
         <div class="card text-center">
-          <p class="text-3xl font-bold text-[#c9a84c]">{{ percentualGeral }}%</p>
+          <p class="text-3xl font-bold text-[var(--cor-secundaria)]">{{ percentualGeral }}%</p>
           <p class="text-xs text-slate-500 mt-1">Progresso Geral</p>
         </div>
       </div>
@@ -38,12 +38,12 @@ import { Disciplina } from '../../models/models';
       <div class="card">
         <div class="flex justify-between items-center mb-3">
           <h2 class="font-semibold text-slate-800">Progresso Geral do Semestre</h2>
-          <span class="text-sm font-bold text-[#1e3a5f]">{{ totalConcluidas }}/{{ totalAvaliacoes }}</span>
+          <span class="text-sm font-bold text-[var(--cor-primaria)]">{{ totalConcluidas }}/{{ totalAvaliacoes }}</span>
         </div>
-        <div class="w-full bg-slate-100 rounded-full h-4">
+        <div class="barra-progresso w-full bg-slate-100 rounded-full h-4">
           <div
             class="h-4 rounded-full transition-all duration-700"
-            style="background: linear-gradient(90deg, #1e3a5f, #c9a84c)"
+            style="background: linear-gradient(90deg, var(--cor-primaria), var(--cor-secundaria))"
             [style.width.%]="percentualGeral"
           ></div>
         </div>
@@ -67,7 +67,7 @@ import { Disciplina } from '../../models/models';
                   [style.background-color]="d.cor"
                 >{{ d.codigo.substring(0, 2) }}</a>
                 <div class="flex-1 min-w-0">
-                  <a [routerLink]="['/disciplinas', d.id]" class="text-sm font-semibold text-slate-800 hover:text-[#1e3a5f] transition-colors">{{ d.nome }}</a>
+                  <a [routerLink]="['/disciplinas', d.id]" class="text-sm font-semibold text-slate-800 hover:text-[var(--cor-primaria)] transition-colors">{{ d.nome }}</a>
                   <p class="text-xs text-slate-400 font-mono">{{ d.codigo }}</p>
                 </div>
                 <div class="text-right shrink-0">
@@ -76,7 +76,7 @@ import { Disciplina } from '../../models/models';
                 </div>
               </div>
 
-              <div class="w-full bg-slate-100 rounded-full h-2">
+              <div class="barra-progresso w-full bg-slate-100 rounded-full h-2">
                 <div
                   class="h-2 rounded-full transition-all duration-500"
                   [style.width.%]="getProgresso(d)"
@@ -147,7 +147,7 @@ import { Disciplina } from '../../models/models';
                 </div>
                 <span class="text-slate-500">{{ stat.concluidas }}/{{ stat.total }} avaliações</span>
               </div>
-              <div class="w-full bg-slate-100 rounded-full h-1.5">
+              <div class="barra-progresso w-full bg-slate-100 rounded-full h-1.5">
                 <div
                   class="h-1.5 rounded-full transition-all"
                   [style.width.%]="stat.total > 0 ? (stat.concluidas / stat.total * 100) : 0"
@@ -171,7 +171,7 @@ import { Disciplina } from '../../models/models';
           <!-- Exportar -->
           <button
             (click)="exportar()"
-            class="flex items-center gap-2 px-4 py-2 bg-[#1e3a5f] text-white rounded-lg text-sm font-medium hover:bg-[#2d5a8e] transition-colors"
+            class="flex items-center gap-2 px-4 py-2 bg-[var(--cor-primaria)] text-white rounded-lg text-sm font-medium hover:bg-[var(--cor-primaria-hover)] transition-colors"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -181,7 +181,7 @@ import { Disciplina } from '../../models/models';
 
           <!-- Importar -->
           <label
-            class="flex items-center gap-2 px-4 py-2 border border-[#1e3a5f] text-[#1e3a5f] rounded-lg text-sm font-medium hover:bg-[#1e3a5f] hover:text-white transition-colors cursor-pointer"
+            class="flex items-center gap-2 px-4 py-2 border border-[var(--cor-primaria)] text-[var(--cor-primaria)] rounded-lg text-sm font-medium hover:bg-[var(--cor-primaria)] hover:text-white transition-colors cursor-pointer"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>

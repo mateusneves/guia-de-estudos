@@ -31,7 +31,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
               <button
                 (click)="filtroStatus.set(f.key)"
                 class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                [class.bg-[#1e3a5f]]="filtroStatus() === f.key"
+                [class.bg-[var(--cor-primaria)]]="filtroStatus() === f.key"
                 [class.text-white]="filtroStatus() === f.key"
                 [class.bg-slate-100]="filtroStatus() !== f.key"
                 [class.text-slate-600]="filtroStatus() !== f.key"
@@ -46,7 +46,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
               <button
                 (click)="filtroTipo.set(t.key)"
                 class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                [class.bg-[#1e3a5f]]="filtroTipo() === t.key"
+                [class.bg-[var(--cor-primaria)]]="filtroTipo() === t.key"
                 [class.text-white]="filtroTipo() === t.key"
                 [class.bg-slate-100]="filtroTipo() !== t.key"
                 [class.text-slate-600]="filtroTipo() !== t.key"
@@ -178,7 +178,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                   }
                   <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                     <span class="w-2 h-2 rounded-full shrink-0" [style.background-color]="av.disciplinaCor"></span>
-                    <a [routerLink]="['/disciplinas', av.disciplinaId]" class="text-xs text-slate-500 hover:text-[#1e3a5f]">{{ av.disciplinaNome }}</a>
+                    <a [routerLink]="['/disciplinas', av.disciplinaId]" class="text-xs text-slate-500 hover:text-[var(--cor-primaria)]">{{ av.disciplinaNome }}</a>
                     <span class="badge text-white text-xs" [style.background-color]="getCorTipo(av.tipo)">{{ labelTipo(av.tipo) }}</span>
                     <span class="text-xs text-slate-400">{{ av.pontos }} pts</span>
                   </div>

@@ -18,7 +18,7 @@ import { ProgressoService } from '../../services/progresso.service';
         <button
           (click)="filtro.set('todas')"
           class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
-          [class.bg-[#1e3a5f]]="filtro() === 'todas'"
+          [class.bg-[var(--cor-primaria)]]="filtro() === 'todas'"
           [class.text-white]="filtro() === 'todas'"
           [class.bg-slate-100]="filtro() !== 'todas'"
           [class.text-slate-600]="filtro() !== 'todas'"
@@ -26,7 +26,7 @@ import { ProgressoService } from '../../services/progresso.service';
         <button
           (click)="filtro.set('com-avaliacoes')"
           class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
-          [class.bg-[#1e3a5f]]="filtro() === 'com-avaliacoes'"
+          [class.bg-[var(--cor-primaria)]]="filtro() === 'com-avaliacoes'"
           [class.text-white]="filtro() === 'com-avaliacoes'"
           [class.bg-slate-100]="filtro() !== 'com-avaliacoes'"
           [class.text-slate-600]="filtro() !== 'com-avaliacoes'"
@@ -48,9 +48,9 @@ import { ProgressoService } from '../../services/progresso.service';
               >{{ d.codigo.substring(0, 2) }}</span>
               <div class="min-w-0 flex-1">
                 <p class="text-xs text-slate-400 font-mono">{{ d.codigo }}</p>
-                <p class="text-base font-semibold text-slate-800 group-hover:text-[#1e3a5f] transition-colors leading-snug">{{ d.nome }}</p>
+                <p class="text-base font-semibold text-slate-800 group-hover:text-[var(--cor-primaria)] transition-colors leading-snug">{{ d.nome }}</p>
               </div>
-              <svg class="w-4 h-4 text-slate-300 shrink-0 group-hover:text-[#1e3a5f] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-slate-300 shrink-0 group-hover:text-[var(--cor-primaria)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
               </svg>
             </div>
@@ -62,7 +62,7 @@ import { ProgressoService } from '../../services/progresso.service';
                   <span>{{ getConcluidas(d.id) }}/{{ d.avaliacoes.length }} avaliações</span>
                   <span class="font-medium" [style.color]="d.cor">{{ getProgresso(d.id) }}%</span>
                 </div>
-                <div class="w-full bg-slate-100 rounded-full h-1.5">
+                <div class="barra-progresso w-full bg-slate-100 rounded-full h-1.5">
                   <div
                     class="h-1.5 rounded-full transition-all"
                     [style.width.%]="getProgresso(d.id)"

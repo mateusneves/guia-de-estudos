@@ -1,5 +1,5 @@
-import { Injectable, NgZone, effect, inject, signal } from '@angular/core';
-import { arrayRemove, arrayUnion, doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import { Injectable, NgZone, computed, effect, inject, signal } from '@angular/core';
+import { addDoc, arrayRemove, arrayUnion, collection, doc, increment, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { AuthService } from './auth.service';
 import { Progresso } from '../models/models';
@@ -19,23 +19,49 @@ export class ProgressoService {
   private authService = inject(AuthService);
   private ngZone = inject(NgZone);
 
-  private readonly _progresso = signal<Progresso>({ concluidas: [], notas: {} });
+  private readonly _progresso = signal<Progresso>({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null });
   private unsub: (() => void) | null = null;
+
+  // equal por conteúdo: snap.data() cria um array novo em toda leitura do Firestore,
+  // mesmo quando só "xp" mudou — sem isso, GamificacaoService (que lê `concluidas()`
+  // dentro do efeito que também escreve `xp`) reentra em loop: grava XP → concluidas()
+  // "muda" de referência → reavalia progresso → grava XP de novo, sem parar.
+  readonly concluidas = computed(() => this._progresso().concluidas, {
+    equal: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]),
+  });
+  readonly xp = computed(() => this._progresso().xp);
+  readonly ultimoDiaXp = computed(() => this._progresso().ultimoDiaXp);
+
+  // false enquanto o valor acima é só o placeholder local (logout, ou login recém-feito
+  // mas o onSnapshot real ainda não respondeu) — NUNCA reflete o Firestore de verdade
+  // até isto virar true. GamificacaoService depende disto para não tratar esse
+  // placeholder transitório como "usuário desmarcou tudo"/"ainda não logou hoje" (ver
+  // CLAUDE.md "Gamificação" — foi exatamente essa confusão que causou XP negativo
+  // e XP de login duplicado no mesmo dia logo após um logout+login).
+  private readonly _carregado = signal(false);
+  readonly carregado = this._carregado.asReadonly();
 
   constructor() {
     effect(() => {
       const uid = this.authService.usuario()?.uid ?? null;
       this.unsub?.();
       this.unsub = null;
-      this._progresso.set({ concluidas: [], notas: {} });
+      this._progresso.set({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null });
+      this._carregado.set(false);
       if (!uid) return;
 
       this.unsub = onSnapshot(doc(db, 'progresso', uid), snap => this.ngZone.run(() => {
         if (snap.exists()) {
           const dados = snap.data() as Progresso;
-          this._progresso.set({ concluidas: dados.concluidas ?? [], notas: dados.notas ?? {} });
+          this._progresso.set({
+            concluidas: dados.concluidas ?? [],
+            notas: dados.notas ?? {},
+            xp: dados.xp ?? 0,
+            ultimoDiaXp: dados.ultimoDiaXp ?? null,
+          });
+          this._carregado.set(true);
         } else {
-          this.criarDocInicial(uid);
+          this.criarDocInicial(uid).then(() => this._carregado.set(true));
         }
       }));
     });
@@ -44,10 +70,10 @@ export class ProgressoService {
   private async criarDocInicial(uid: string): Promise<void> {
     // Aproveita marcações feitas no navegador antes do login (localStorage) como ponto de partida.
     const legado = this.lerLegado();
-    await setDoc(doc(db, 'progresso', uid), legado, { merge: true });
+    await setDoc(doc(db, 'progresso', uid), { ...legado, xp: 0, ultimoDiaXp: null }, { merge: true });
   }
 
-  private lerLegado(): Progresso {
+  private lerLegado(): Pick<Progresso, 'concluidas' | 'notas'> {
     try {
       const conclusoes = localStorage.getItem(LEGACY_STORAGE_KEY);
       const notas = localStorage.getItem(LEGACY_NOTAS_KEY);
@@ -81,6 +107,35 @@ export class ProgressoService {
     const uid = this.authService.usuario()?.uid;
     if (!uid) return;
     await updateDoc(doc(db, 'progresso', uid), { [`notas.${disciplinaId}`]: texto });
+  }
+
+  /**
+   * Ajusta o XP vitalício por um delta — positivo ao conceder, negativo ao reverter
+   * (ex: desmarcar uma atividade tira de volta o XP que ela tinha dado). Também grava
+   * o motivo em `progresso/{uid}/historico`, um ledger append-only usado tanto pelo
+   * toast de "+X XP" quanto pela tela de Histórico.
+   */
+  async registrarEventoXp(delta: number, motivo: string): Promise<void> {
+    const uid = this.authService.usuario()?.uid;
+    if (!uid || delta === 0) return;
+    await updateDoc(doc(db, 'progresso', uid), { xp: increment(delta) });
+    await addDoc(collection(db, 'progresso', uid, 'historico'), {
+      data: new Date().toISOString(),
+      delta,
+      motivo,
+    });
+  }
+
+  /** Concede o XP de login do dia e marca `ultimoDiaXp`, num só write — usado pelo GamificacaoService. */
+  async registrarLoginDoDia(diaLocal: string, xpLogin: number): Promise<void> {
+    const uid = this.authService.usuario()?.uid;
+    if (!uid) return;
+    await updateDoc(doc(db, 'progresso', uid), { xp: increment(xpLogin), ultimoDiaXp: diaLocal });
+    await addDoc(collection(db, 'progresso', uid, 'historico'), {
+      data: new Date().toISOString(),
+      delta: xpLogin,
+      motivo: 'Login do dia',
+    });
   }
 
   exportar(): void {
@@ -123,7 +178,8 @@ export class ProgressoService {
           }
 
           const notas = backup.notas ?? {};
-          await setDoc(doc(db, 'progresso', uid), { concluidas: backup.conclusoes, notas }, { merge: false });
+          // merge: true — preserva xp/ultimoDiaXp, que não fazem parte do backup.
+          await setDoc(doc(db, 'progresso', uid), { concluidas: backup.conclusoes, notas }, { merge: true });
 
           resolve({ conclusoes: backup.conclusoes.length, notas: Object.keys(notas).length });
         } catch {

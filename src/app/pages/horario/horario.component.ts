@@ -25,11 +25,11 @@ interface AulaDoDia {
         <h3 class="text-sm font-semibold text-slate-700 mb-3">Módulos de Aula</h3>
         <div class="flex flex-wrap gap-4">
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded bg-[#1e3a5f] flex items-center justify-center text-white text-xs font-bold">M1</span>
+            <span class="w-6 h-6 rounded bg-[var(--cor-primaria)] flex items-center justify-center text-white text-xs font-bold">M1</span>
             <span class="text-sm text-slate-600">07:00 às 08:40</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded bg-[#2d5a8e] flex items-center justify-center text-white text-xs font-bold">M2</span>
+            <span class="w-6 h-6 rounded bg-[var(--cor-primaria-hover)] flex items-center justify-center text-white text-xs font-bold">M2</span>
             <span class="text-sm text-slate-600">08:50 às 10:30</span>
           </div>
           <div class="flex items-center gap-2">
@@ -47,14 +47,14 @@ interface AulaDoDia {
           @for (dia of dias; track dia) {
             <div
               class="p-3 text-center font-semibold text-sm border-b border-r border-slate-100 last:border-r-0"
-              [class.bg-[#1e3a5f]]="isHoje(dia)"
+              [class.bg-[var(--cor-primaria)]]="isHoje(dia)"
               [class.text-white]="isHoje(dia)"
               [class.bg-slate-50]="!isHoje(dia)"
               [class.text-slate-700]="!isHoje(dia)"
             >
               {{ dia }}
               @if (isHoje(dia)) {
-                <span class="ml-1 text-xs text-[#c9a84c]">●</span>
+                <span class="ml-1 text-xs text-[var(--cor-secundaria)]">●</span>
               }
             </div>
           }
@@ -94,11 +94,11 @@ interface AulaDoDia {
       <!-- Grade semanal mobile (cards por dia) -->
       <div class="md:hidden space-y-4">
         @for (dia of dias; track dia) {
-          <div class="card" [class.ring-2]="isHoje(dia)" [class.ring-[#1e3a5f]]="isHoje(dia)">
+          <div class="card" [class.ring-2]="isHoje(dia)" [class.ring-[var(--cor-primaria)]]="isHoje(dia)">
             <div class="flex items-center gap-2 mb-3">
               <h3 class="font-semibold text-slate-800">{{ dia }}</h3>
               @if (isHoje(dia)) {
-                <span class="badge bg-[#1e3a5f] text-white">Hoje</span>
+                <span class="badge bg-[var(--cor-primaria)] text-white">Hoje</span>
               }
             </div>
             @let aulasdia = getAulasDia(dia);

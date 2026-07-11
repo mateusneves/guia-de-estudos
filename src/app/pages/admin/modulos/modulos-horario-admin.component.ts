@@ -51,7 +51,7 @@ import { ModuloHorario } from '../../../models/models';
             <input formControlName="horario" class="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="07:00 às 08:40">
           </div>
           <div class="flex items-center gap-3 md:col-span-3">
-            <button type="submit" [disabled]="form.invalid || !turmaSelecionada()" class="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#2d5a8e] disabled:opacity-50">
+            <button type="submit" [disabled]="form.invalid || !turmaSelecionada()" class="bg-[var(--cor-primaria)] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] disabled:opacity-50">
               {{ editandoId() ? 'Salvar' : 'Criar' }}
             </button>
             @if (editandoId()) {
@@ -71,7 +71,7 @@ import { ModuloHorario } from '../../../models/models';
                 <span class="text-sm text-slate-500 ml-2">{{ m.horario }}</span>
               </div>
               <div class="flex gap-3 text-sm">
-                <button (click)="editar(m)" class="text-[#1e3a5f] hover:underline">Editar</button>
+                <button (click)="editar(m)" class="text-[var(--cor-primaria)] hover:underline">Editar</button>
                 <button (click)="excluir(m)" class="text-red-500 hover:underline">Excluir</button>
               </div>
             </div>

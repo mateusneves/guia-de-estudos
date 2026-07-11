@@ -98,7 +98,7 @@ interface LinhaHorario {
                 } @empty {
                   <p class="text-xs text-slate-400">Nenhum horário definido para esta disciplina.</p>
                 }
-                <button type="button" (click)="adicionarHorario()" class="text-xs text-[#1e3a5f] hover:underline font-medium">+ Adicionar horário</button>
+                <button type="button" (click)="adicionarHorario()" class="text-xs text-[var(--cor-primaria)] hover:underline font-medium">+ Adicionar horário</button>
               </div>
               @if (modulosHorario.porTurma(turmaIdAtual()).length === 0) {
                 <p class="text-xs text-amber-600 mt-1">
@@ -119,7 +119,7 @@ interface LinhaHorario {
             </div>
 
             <div class="flex items-center gap-3">
-              <button type="submit" [disabled]="form.invalid" class="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#2d5a8e] disabled:opacity-50">
+              <button type="submit" [disabled]="form.invalid" class="bg-[var(--cor-primaria)] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] disabled:opacity-50">
                 {{ editandoId() ? 'Salvar' : 'Criar' }}
               </button>
               @if (editandoId()) {
@@ -142,8 +142,8 @@ interface LinhaHorario {
                   </div>
                 </div>
                 <div class="flex gap-3 text-sm">
-                  <a [routerLink]="['/admin/atividades']" [queryParams]="{ disciplina: d.id }" class="text-[#1e3a5f] hover:underline">Atividades</a>
-                  <button (click)="editar(d)" class="text-[#1e3a5f] hover:underline">Editar</button>
+                  <a [routerLink]="['/admin/atividades']" [queryParams]="{ disciplina: d.id }" class="text-[var(--cor-primaria)] hover:underline">Atividades</a>
+                  <button (click)="editar(d)" class="text-[var(--cor-primaria)] hover:underline">Editar</button>
                   <button (click)="excluir(d)" class="text-red-500 hover:underline">Excluir</button>
                 </div>
               </div>

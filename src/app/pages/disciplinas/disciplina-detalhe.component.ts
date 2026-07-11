@@ -12,7 +12,7 @@ import { Avaliacao, Disciplina } from '../../models/models';
       <div class="p-6 max-w-5xl mx-auto space-y-6">
         <!-- Breadcrumb -->
         <div class="flex items-center gap-2 text-sm">
-          <a routerLink="/disciplinas" class="text-slate-400 hover:text-[#1e3a5f]">Disciplinas</a>
+          <a routerLink="/disciplinas" class="text-slate-400 hover:text-[var(--cor-primaria)]">Disciplinas</a>
           <span class="text-slate-300">›</span>
           <span class="text-slate-700 font-medium">{{ d.nome }}</span>
         </div>
@@ -43,7 +43,7 @@ import { Avaliacao, Disciplina } from '../../models/models';
               <span class="font-medium text-slate-700">Progresso Geral</span>
               <span class="font-bold" [style.color]="d.cor">{{ getConcluidas(d) }}/{{ d.avaliacoes.length }} concluídas</span>
             </div>
-            <div class="w-full bg-slate-100 rounded-full h-2.5">
+            <div class="barra-progresso w-full bg-slate-100 rounded-full h-2.5">
               <div
                 class="h-2.5 rounded-full transition-all duration-500"
                 [style.width.%]="getProgresso(d)"
@@ -153,7 +153,7 @@ import { Avaliacao, Disciplina } from '../../models/models';
                 Notas Pessoais
               </h3>
               <textarea
-                class="w-full text-sm border border-slate-200 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/30 text-slate-700 placeholder-slate-300"
+                class="w-full text-sm border border-slate-200 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)] text-slate-700 placeholder-slate-300"
                 rows="5"
                 placeholder="Anotações, lembretes, observações..."
                 [value]="storage.getNota(d.id)"
@@ -186,7 +186,7 @@ import { Avaliacao, Disciplina } from '../../models/models';
     } @else {
       <div class="p-6 text-center">
         <p class="text-slate-500">Disciplina não encontrada.</p>
-        <a routerLink="/disciplinas" class="text-[#1e3a5f] hover:underline text-sm">← Voltar</a>
+        <a routerLink="/disciplinas" class="text-[var(--cor-primaria)] hover:underline text-sm">← Voltar</a>
       </div>
     }
   `,

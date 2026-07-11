@@ -86,7 +86,7 @@ import { Avaliacao } from '../../../models/models';
             </div>
 
             <div class="flex items-center gap-3">
-              <button type="submit" [disabled]="form.invalid" class="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[#2d5a8e] disabled:opacity-50">
+              <button type="submit" [disabled]="form.invalid" class="bg-[var(--cor-primaria)] text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] disabled:opacity-50">
                 {{ editandoId() ? 'Salvar' : 'Criar' }}
               </button>
               @if (editandoId()) {
@@ -101,7 +101,7 @@ import { Avaliacao } from '../../../models/models';
           <button
             (click)="filtroDisciplina.set('')"
             class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-            [class.bg-[#1e3a5f]]="filtroDisciplina() === ''"
+            [class.bg-[var(--cor-primaria)]]="filtroDisciplina() === ''"
             [class.text-white]="filtroDisciplina() === ''"
             [class.bg-slate-100]="filtroDisciplina() !== ''"
           >Todas as disciplinas</button>
@@ -109,7 +109,7 @@ import { Avaliacao } from '../../../models/models';
             <button
               (click)="filtroDisciplina.set(d.id)"
               class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-              [class.bg-[#1e3a5f]]="filtroDisciplina() === d.id"
+              [class.bg-[var(--cor-primaria)]]="filtroDisciplina() === d.id"
               [class.text-white]="filtroDisciplina() === d.id"
               [class.bg-slate-100]="filtroDisciplina() !== d.id"
             >{{ d.nome }}</button>
@@ -126,7 +126,7 @@ import { Avaliacao } from '../../../models/models';
                   <p class="text-xs text-slate-400">{{ nomeDisciplina(a.disciplinaId) }} · {{ a.dataDisplay }} · {{ a.pontos }} pts · {{ a.tipo }}</p>
                 </div>
                 <div class="flex gap-3 text-sm shrink-0">
-                  <button (click)="editar(a)" class="text-[#1e3a5f] hover:underline">Editar</button>
+                  <button (click)="editar(a)" class="text-[var(--cor-primaria)] hover:underline">Editar</button>
                   <button (click)="excluir(a)" class="text-red-500 hover:underline">Excluir</button>
                 </div>
               </div>
