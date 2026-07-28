@@ -1,1 +1,0 @@
-var i=[{id:"padrao",nome:"Padr\xE3o",descricao:"Visual limpo e institucional \u2014 o tema original do app."},{id:"medieval",nome:"Medieval",descricao:"Pergaminho, tinta e ouro \u2014 inspirado em manuscritos iluminados."}];function n(e){return i.find(o=>o.id===e)??i[0]}export{i as a,n as b};
