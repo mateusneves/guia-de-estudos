@@ -1,0 +1,1 @@
+function e(t,a=!1){let r=new URLSearchParams({seed:t});return a&&r.set("facialHairProbability","100"),`https://api.dicebear.com/9.x/open-peeps/svg?${r.toString()}`}function i(){return Math.random().toString(36).slice(2,10)}export{e as a,i as b};
