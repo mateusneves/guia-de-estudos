@@ -99,7 +99,7 @@ export class AuthService {
   }
 
   /** Atualiza nome de exibição e/ou avatar do próprio usuário logado. */
-  async atualizarPerfil(dados: Partial<Pick<Usuario, 'nome' | 'avatarSeed'>>): Promise<void> {
+  async atualizarPerfil(dados: Partial<Pick<Usuario, 'nome' | 'avatarSeed' | 'avatarComBarba'>>): Promise<void> {
     const user = this.usuario();
     if (!user) throw new Error('Você precisa estar logado.');
 

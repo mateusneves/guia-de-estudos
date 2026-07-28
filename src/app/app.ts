@@ -108,7 +108,8 @@ interface NavItem {
           <header class="flex items-center gap-3 shrink-0 px-4 pt-4 md:px-0 md:pt-0">
             <button
               (click)="toggleSidebar()"
-              class="sidebar-link-icone md:hidden hover:bg-[var(--cor-fundo-sutil-forte)] hover:text-[var(--cor-texto-principal)]"
+              class="sidebar-link-icone md:hidden"
+              style="background-color: var(--cor-primaria); color: #fff;"
             >
               <i class="fa-solid fa-bars"></i>
             </button>
@@ -123,7 +124,7 @@ interface NavItem {
             <div class="hidden md:block flex-1"></div>
 
             <a routerLink="/perfil" (click)="onNavClick()" class="flex items-center gap-3 shrink-0 rounded-full px-2 py-1.5 transition-colors hover:bg-[var(--cor-fundo-sutil)]">
-              <img [src]="avatarUrlDe(avatarSeed())" alt="Seu avatar" class="w-11 h-11 rounded-full bg-white shrink-0">
+              <img [src]="avatarUrlDe(avatarSeed(), !!auth.perfil()?.avatarComBarba)" alt="Seu avatar" class="w-11 h-11 rounded-full bg-white shrink-0">
               <div class="hidden sm:block min-w-0 text-left">
                 <p class="text-sm font-medium text-[var(--cor-texto-principal)] truncate leading-tight">{{ auth.perfil()?.nome }}</p>
                 <p class="text-xs text-[var(--cor-texto-secundario)] truncate leading-tight mt-0.5">{{ gamificacao.nivel().titulo }}</p>

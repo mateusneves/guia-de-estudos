@@ -89,6 +89,11 @@ export interface Usuario {
   criadoEm: string;
   /** Seed usada para gerar o avatar (DiceBear, estilo Open Peeps) — opcional, usuários antigos podem não ter. */
   avatarSeed?: string;
+  /** true se o avatar foi escolhido com "priorizar barba/bigode" ativo — precisa ficar
+   * salvo junto da seed porque a mesma seed pode render traços diferentes dependendo
+   * desse parâmetro (ver avatarUrl em shared/avatar.ts); sem isso, o avatar escolhido em
+   * /perfil ficaria diferente do exibido no resto do app. */
+  avatarComBarba?: boolean;
   /** Código de autorização usado no cadastro (registro/auditoria) — não tem função depois de criada a conta. */
   codigoConvite?: string;
 }

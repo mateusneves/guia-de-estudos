@@ -25,7 +25,13 @@ import { avatarUrl, seedAleatoria } from '../../shared/avatar';
           </div>
         </div>
 
-        <p class="text-xs font-medium text-[var(--cor-texto-secundario)] mb-2">Escolha uma opção ou gere outras:</p>
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+          <p class="text-xs font-medium text-[var(--cor-texto-secundario)]">Escolha uma opção ou gere outras:</p>
+          <label class="flex items-center gap-1.5 text-xs text-[var(--cor-texto-secundario)] cursor-pointer">
+            <input type="checkbox" [checked]="comBarba()" (change)="alternarComBarba()">
+            Priorizar barba/bigode
+          </label>
+        </div>
         <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-3">
           @for (seed of opcoesAvatar(); track seed) {
             <button
@@ -34,7 +40,7 @@ import { avatarUrl, seedAleatoria } from '../../shared/avatar';
               class="rounded-full border-2 transition-colors p-0.5"
               [style.border-color]="seed === avatarSelecionado() ? 'var(--cor-primaria)' : 'transparent'"
             >
-              <img [src]="avatarUrlDe(seed)" [alt]="'Opção de avatar'" class="w-full aspect-square rounded-full bg-[var(--cor-fundo-sutil)]">
+              <img [src]="avatarUrlDe(seed, comBarba())" [alt]="'Opção de avatar'" class="w-full aspect-square rounded-full bg-[var(--cor-fundo-sutil)]">
             </button>
           }
         </div>
@@ -43,7 +49,7 @@ import { avatarUrl, seedAleatoria } from '../../shared/avatar';
           <button
             type="button"
             (click)="salvarAvatar()"
-            [disabled]="!avatarSelecionado() || avatarSelecionado() === avatarSeedSalva()"
+            [disabled]="!avatarSelecionado() || (avatarSelecionado() === avatarSeedSalva() && comBarba() === avatarComBarbaSalva())"
             class="bg-[var(--cor-primaria)] text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-[var(--cor-primaria-hover)] disabled:opacity-50"
           >Salvar avatar</button>
         </div>
@@ -103,6 +109,7 @@ export class PerfilComponent {
 
   opcoesAvatar = signal<string[]>([]);
   avatarSelecionado = signal<string>('');
+  comBarba = signal(false);
   mensagemAvatar = signal('');
   erroAvatar = signal(false);
 
@@ -125,6 +132,7 @@ export class PerfilComponent {
   constructor() {
     const seedAtual = this.avatarSeedSalva();
     this.avatarSelecionado.set(seedAtual);
+    this.comBarba.set(this.avatarComBarbaSalva());
     this.gerarOpcoes();
   }
 
@@ -132,8 +140,12 @@ export class PerfilComponent {
     return this.auth.perfil()?.avatarSeed || this.auth.usuario()?.uid || '';
   }
 
+  avatarComBarbaSalva(): boolean {
+    return !!this.auth.perfil()?.avatarComBarba;
+  }
+
   avatarAtual(): string {
-    return avatarUrl(this.avatarSelecionado() || this.avatarSeedSalva());
+    return avatarUrl(this.avatarSelecionado() || this.avatarSeedSalva(), this.comBarba());
   }
 
   gerarOpcoes(): void {
@@ -146,10 +158,15 @@ export class PerfilComponent {
     this.avatarSelecionado.set(seed);
   }
 
+  alternarComBarba(): void {
+    this.comBarba.update(v => !v);
+    this.gerarOpcoes();
+  }
+
   async salvarAvatar(): Promise<void> {
     this.mensagemAvatar.set('');
     try {
-      await this.auth.atualizarPerfil({ avatarSeed: this.avatarSelecionado() });
+      await this.auth.atualizarPerfil({ avatarSeed: this.avatarSelecionado(), avatarComBarba: this.comBarba() });
       this.erroAvatar.set(false);
       this.mensagemAvatar.set('Avatar atualizado!');
     } catch (e) {
