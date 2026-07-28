@@ -1,0 +1,490 @@
+[
+  {
+    "data": "2026-09-02",
+    "dataDisplay": "02/09/2026",
+    "descricao": "Leitura do texto \"Por que Aconselhamento BÃ­blico e nÃ£o PsicolÃ³gico?\" (John D. Street)",
+    "disciplinaId": "tp04",
+    "id": "tp04-1",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 5,
+    "tipo": "leitura"
+  },
+  {
+    "data": "2026-11-03",
+    "dataDisplay": "03/11/2026",
+    "descricao": "Leitura e DeclaraÃ§Ã£o: \"Aconselhando uns aos outros\" (Edward T. Welch)",
+    "disciplinaId": "tp04",
+    "id": "tp04-2",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "leitura"
+  },
+  {
+    "data": "2026-09-29",
+    "dataDisplay": "29/09/2026",
+    "descricao": "Leitura e DeclaraÃ§Ã£o: \"Pornografia: Realidade, Perigos e LibertaÃ§Ã£o\" (Dr. Augustus Nicodemos)",
+    "disciplinaId": "tp04",
+    "id": "tp04-3",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 8,
+    "tipo": "leitura"
+  },
+  {
+    "data": "2026-10-13",
+    "dataDisplay": "13/10/2026",
+    "descricao": "Leitura e DeclaraÃ§Ã£o: \"Casamento, DivÃ³rcio e Segundo Casamento\" (David L. Brown), \"DivÃ³rcio e Novo Casamento\" (Gilberto Norman Pickering) e \"Casamento e DivÃ³rcio\" (John Owen)",
+    "disciplinaId": "tp04",
+    "id": "tp04-4",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 7,
+    "tipo": "leitura"
+  },
+  {
+    "data": "2026-11-10",
+    "dataDisplay": "10/11/2026",
+    "descricao": "Leitura e DeclaraÃ§Ã£o: \"Ministrando aos Abusados e aos Abusadores\" (Sean Michael Lucas) e \"Ministrando aos que Incorreram em Pecados Sexuais\" (Rosaria Butterfield)",
+    "disciplinaId": "tp04",
+    "id": "tp04-5",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "leitura"
+  },
+  {
+    "data": "2026-12-01",
+    "dataDisplay": "01/12/2026",
+    "descricao": "AvaliaÃ§Ã£o Final de todo o conteÃºdo ministrado nas aulas",
+    "disciplinaId": "tp04",
+    "id": "tp04-6",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 50,
+    "tipo": "prova"
+  },
+
+  {
+    "data": "2026-09-03",
+    "dataDisplay": "03/09/2026",
+    "descricao": "Leituras obrigatÃ³rias (Trilha 1: Louis Berkhof, \"A Igreja\" / Trilha 2: James Bannerman p.28-107) â 1Âª entrega, comprovante assinado em classe",
+    "disciplinaId": "ts06",
+    "id": "ts06-1",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 3.75,
+    "tipo": "leitura"
+  },
+  {
+    "data": "2026-10-01",
+    "dataDisplay": "01/10/2026",
+    "descricao": "Leituras obrigatÃ³rias (Trilha 1: Edmund Clowney, cap.1-4 / Trilha 2: James Bannerman p.196-279) â 2Âª entrega, comprovante assinado em classe",
+    "disciplinaId": "ts06",
+    "id": "ts06-2",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 3.75,
+    "tipo": "leitura"
+  },
+  {
+    "data": "2026-11-05",
+    "dataDisplay": "05/11/2026",
+    "descricao": "Leituras obrigatÃ³rias (Trilha 1: Guy Waters, livro completo / Trilha 2: James Bannerman p.478-648) â 3Âª entrega, comprovante assinado em classe",
+    "disciplinaId": "ts06",
+    "id": "ts06-3",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 3.75,
+    "tipo": "leitura"
+  },
+  {
+    "data": "2026-12-03",
+    "dataDisplay": "03/12/2026",
+    "descricao": "Leituras obrigatÃ³rias (Trilha 1: Louis Berkhof, \"Os meios de graÃ§a\" / Trilha 2: James Bannerman p.664-783) â 4Âª entrega, comprovante assinado em classe",
+    "disciplinaId": "ts06",
+    "id": "ts06-4",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 3.75,
+    "tipo": "leitura"
+  },
+  {
+    "data": "2026-12-03",
+    "dataDisplay": "03/12/2026",
+    "descricao": "Leitura BÃ­blica de Atos: relato de aprendizado e meditaÃ§Ã£o (1 pÃ¡gina); memorizaÃ§Ã£o textual de Atos 20:28 (ARA) exigida no exame final",
+    "disciplinaId": "ts06",
+    "id": "ts06-5",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "leitura"
+  },
+  {
+    "data": null,
+    "dataDisplay": null,
+    "descricao": "ParticipaÃ§Ã£o nas aulas e comprometimento com a disciplina (avaliaÃ§Ã£o contÃ­nua ao longo do semestre)",
+    "disciplinaId": "ts06",
+    "id": "ts06-6",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 5,
+    "tipo": "participacao"
+  },
+  {
+    "data": "2026-09-17",
+    "dataDisplay": "17/09/2026",
+    "descricao": "AvaliaÃ§Ã£o 1 (Prova aberta/fechada)",
+    "disciplinaId": "ts06",
+    "id": "ts06-7",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "prova"
+  },
+  {
+    "data": "2026-10-29",
+    "dataDisplay": "29/10/2026",
+    "descricao": "AvaliaÃ§Ã£o 2 (Prova aberta discursiva)",
+    "disciplinaId": "ts06",
+    "id": "ts06-8",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "prova"
+  },
+  {
+    "data": "2026-12-03",
+    "dataDisplay": "03/12/2026",
+    "descricao": "AvaliaÃ§Ã£o 3 (Prova fechada - todo o conteÃºdo)",
+    "disciplinaId": "ts06",
+    "id": "ts06-9",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 30,
+    "tipo": "prova"
+  },
+
+  {
+    "data": "2026-10-19",
+    "dataDisplay": "19/10/2026",
+    "descricao": "Estudo Dirigido a respeito da leitura do livro-texto obrigatÃ³rio",
+    "disciplinaId": "th08",
+    "id": "th08-1",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 30,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-10-26",
+    "dataDisplay": "26/10/2026",
+    "descricao": "1Âº QuestionÃ¡rio referente ao conteÃºdo programÃ¡tico (envio via e-mail)",
+    "disciplinaId": "th08",
+    "id": "th08-2",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "questionario"
+  },
+  {
+    "data": "2026-11-16",
+    "dataDisplay": "16/11/2026",
+    "descricao": "2Âº QuestionÃ¡rio referente ao conteÃºdo programÃ¡tico (envio via e-mail)",
+    "disciplinaId": "th08",
+    "id": "th08-3",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "questionario"
+  },
+  {
+    "data": null,
+    "dataDisplay": null,
+    "descricao": "Texto AcadÃªmico sobre tema da matÃ©ria (mÃ­nimo 30 linhas, Ã  caneta) â entrega no final do semestre, data exata nÃ£o especificada no plano de ensino",
+    "disciplinaId": "th08",
+    "id": "th08-4",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "trabalho"
+  },
+  {
+    "data": null,
+    "dataDisplay": null,
+    "descricao": "Exame Final (aberto, todo o conteÃºdo do semestre) â realizado na semana de provas, data exata nÃ£o especificada no plano de ensino",
+    "disciplinaId": "th08",
+    "id": "th08-5",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 40,
+    "tipo": "prova"
+  },
+
+  {
+    "data": "2026-10-26",
+    "dataDisplay": "26/10/2026",
+    "descricao": "AvaliaÃ§Ã£o aberta sobre a leitura do livro-texto \"Icabode â Da mente de Cristo Ã  consciÃªncia moderna\" (Rubem Amorese)",
+    "disciplinaId": "ts54",
+    "id": "ts54-1",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "prova"
+  },
+  {
+    "data": "2026-10-05",
+    "dataDisplay": "05/10/2026",
+    "descricao": "1Âº QuestionÃ¡rio referente ao conteÃºdo programÃ¡tico",
+    "disciplinaId": "ts54",
+    "id": "ts54-2",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "questionario"
+  },
+  {
+    "data": "2026-11-22",
+    "dataDisplay": "22/11/2026",
+    "descricao": "2Âº QuestionÃ¡rio referente ao conteÃºdo programÃ¡tico",
+    "disciplinaId": "ts54",
+    "id": "ts54-3",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "questionario"
+  },
+  {
+    "data": null,
+    "dataDisplay": null,
+    "descricao": "ApresentaÃ§Ã£o de trabalho sobre um tema da matÃ©ria (agendamento definido na 1Âª aula)",
+    "disciplinaId": "ts54",
+    "id": "ts54-4",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "apresentacao"
+  },
+  {
+    "data": null,
+    "dataDisplay": null,
+    "descricao": "ElaboraÃ§Ã£o de texto temÃ¡tico sobre assunto ministrado durante o curso â entrega no final do semestre, data exata nÃ£o especificada",
+    "disciplinaId": "ts54",
+    "id": "ts54-5",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "trabalho"
+  },
+  {
+    "data": null,
+    "dataDisplay": null,
+    "descricao": "Prova Final â realizada no final do semestre conforme cronograma do seminÃ¡rio, data exata nÃ£o especificada",
+    "disciplinaId": "ts54",
+    "id": "ts54-6",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 30,
+    "tipo": "prova"
+  },
+
+  {
+    "data": "2026-09-28",
+    "dataDisplay": "28/09/2026",
+    "descricao": "Leitura e relatÃ³rio: MacArthur, John. \"Evangelismo: como compartilhar o evangelho com fidelidade\" (Cap. 14-20, p.215-316)",
+    "disciplinaId": "tp26",
+    "id": "tp26-1",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "leitura"
+  },
+  {
+    "data": null,
+    "dataDisplay": null,
+    "descricao": "AnotaÃ§Ãµes pessoais de cada aula â entrega no final do semestre, data exata nÃ£o especificada",
+    "disciplinaId": "tp26",
+    "id": "tp26-2",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-11-09",
+    "dataDisplay": "09/11/2026",
+    "descricao": "AvaliaÃ§Ã£o crÃ­tica em estudo de caso â apresentaÃ§Ã£o em grupo (5 grupos) de modelo de missÃµes urbanas com crÃ­tica teolÃ³gica e prÃ¡tica. ApresentaÃ§Ãµes: Grupos 1 e 2 em 19/10/2026, Grupos 3 e 4 em 26/10/2026, Grupo 5 em 09/11/2026",
+    "disciplinaId": "tp26",
+    "id": "tp26-3",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 40,
+    "tipo": "apresentacao"
+  },
+  {
+    "data": "2026-11-30",
+    "dataDisplay": "30/11/2026",
+    "descricao": "AvaliaÃ§Ã£o Final",
+    "disciplinaId": "tp26",
+    "id": "tp26-4",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 40,
+    "tipo": "prova"
+  },
+
+  {
+    "data": "2026-08-19",
+    "dataDisplay": "19/08/2026",
+    "descricao": "Atividade 1 â Trabalho em sala com uso orientado de IA, referÃªncia: MEISTER, Mauro Fernando. \"Olho por olho: a lei de TaliÃ£o no contexto bÃ­blico\"",
+    "disciplinaId": "ts10",
+    "id": "ts10-1",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 15,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-09-09",
+    "dataDisplay": "09/09/2026",
+    "descricao": "Atividade 2 â Trabalho em sala com uso orientado de IA, referÃªncia: SANTOS, Valdeci da Silva. \"Uma perspectiva cristÃ£ sobre a homossexualidade\"",
+    "disciplinaId": "ts10",
+    "id": "ts10-2",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 15,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-10-14",
+    "dataDisplay": "14/10/2026",
+    "descricao": "Atividade 3 â Prova dissertativa com estudo de caso (consideraÃ§Ãµes Ã©ticas da Primeira TÃ¡bua da Lei)",
+    "disciplinaId": "ts10",
+    "id": "ts10-3",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 30,
+    "tipo": "prova"
+  },
+  {
+    "data": "2026-11-25",
+    "dataDisplay": "25/11/2026",
+    "descricao": "Atividade 4 â Prova dissertativa com estudo de caso (consideraÃ§Ãµes Ã©ticas da Segunda TÃ¡bua da Lei)",
+    "disciplinaId": "ts10",
+    "id": "ts10-4",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 30,
+    "tipo": "prova"
+  },
+  {
+    "data": null,
+    "dataDisplay": null,
+    "descricao": "Leitura obrigatÃ³ria: DeYoung, Kevin. \"Os dez mandamentos: significado, importÃ¢ncia e motivos para obedecer\" (data especÃ­fica nÃ£o informada no plano de ensino)",
+    "disciplinaId": "ts10",
+    "id": "ts10-5",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "leitura"
+  },
+
+  {
+    "data": "2026-08-25",
+    "dataDisplay": "25/08/2026",
+    "descricao": "SeleÃ§Ã£o e traduÃ§Ã£o da perÃ­cope (cÃ³pia manual do texto hebraico, traduÃ§Ã£o literal e dinÃ¢mica, e justificativa da delimitaÃ§Ã£o da perÃ­cope)",
+    "disciplinaId": "te18",
+    "id": "te18-1",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-09-22",
+    "dataDisplay": "22/09/2026",
+    "descricao": "AnÃ¡lise Contextual",
+    "disciplinaId": "te18",
+    "id": "te18-2",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-10-27",
+    "dataDisplay": "27/10/2026",
+    "descricao": "AnÃ¡lise Textual",
+    "disciplinaId": "te18",
+    "id": "te18-3",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 40,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-11-24",
+    "dataDisplay": "24/11/2026",
+    "descricao": "AnÃ¡lise TeolÃ³gica (entrega do trabalho exegÃ©tico completo, com as partes anteriores anexadas)",
+    "disciplinaId": "te18",
+    "id": "te18-4",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "trabalho"
+  },
+
+  {
+    "data": "2026-09-23",
+    "dataDisplay": "23/09/2026",
+    "descricao": "Leitura e declaraÃ§Ã£o: GREENWAY, Roger. \"Ide e fazei discÃ­pulos: uma introduÃ§Ã£o Ã s missÃµes cristÃ£s\" (Cap. 1 ao 11, atÃ© p.110)",
+    "disciplinaId": "tp08",
+    "id": "tp08-1",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "leitura"
+  },
+  {
+    "data": null,
+    "dataDisplay": null,
+    "descricao": "Resumo de aulas (anotaÃ§Ãµes manuscritas semanais) â entrega no final do semestre, data exata nÃ£o especificada",
+    "disciplinaId": "tp08",
+    "id": "tp08-2",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 10,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-10-08",
+    "dataDisplay": "08/10/2026",
+    "descricao": "Teste",
+    "disciplinaId": "tp08",
+    "id": "tp08-3",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "prova"
+  },
+  {
+    "data": "2026-11-05",
+    "dataDisplay": "05/11/2026",
+    "descricao": "Trabalho",
+    "disciplinaId": "tp08",
+    "id": "tp08-4",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 30,
+    "tipo": "trabalho"
+  },
+  {
+    "data": null,
+    "dataDisplay": null,
+    "descricao": "AvaliaÃ§Ã£o Final (conteÃºdo de toda a matÃ©ria) â realizada na semana de prova RDNE, data exata nÃ£o especificada",
+    "disciplinaId": "tp08",
+    "id": "tp08-5",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 30,
+    "tipo": "prova"
+  },
+
+  {
+    "data": "2026-08-26",
+    "dataDisplay": "26/08/2026",
+    "descricao": "AvaliaÃ§Ã£o 01 â Escolha da perÃ­cope, justificativa, traduÃ§Ã£o literal e dinÃ¢mica",
+    "disciplinaId": "te21",
+    "id": "te21-1",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-09-23",
+    "dataDisplay": "23/09/2026",
+    "descricao": "AvaliaÃ§Ã£o 02 â AnÃ¡lise contextual",
+    "disciplinaId": "te21",
+    "id": "te21-2",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-10-28",
+    "dataDisplay": "28/10/2026",
+    "descricao": "AvaliaÃ§Ã£o 03 â AnÃ¡lise textual",
+    "disciplinaId": "te21",
+    "id": "te21-3",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 40,
+    "tipo": "trabalho"
+  },
+  {
+    "data": "2026-11-25",
+    "dataDisplay": "25/11/2026",
+    "descricao": "AvaliaÃ§Ã£o 04 â AnÃ¡lise teolÃ³gica",
+    "disciplinaId": "te21",
+    "id": "te21-4",
+    "periodoId": "w99ORrXZ9Zxs1DpFm8IW",
+    "pontos": 20,
+    "tipo": "trabalho"
+  }
+]

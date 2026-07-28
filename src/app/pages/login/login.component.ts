@@ -8,14 +8,18 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-login',
   imports: [ReactiveFormsModule],
   template: `
-    <div class="min-h-screen flex items-center justify-center p-4" style="background: linear-gradient(180deg, var(--cor-sidebar-inicio) 0%, var(--cor-sidebar-fim) 100%);">
+    <div class="min-h-screen flex items-center justify-center p-4" style="background-color: var(--cor-fundo);">
       <div class="w-full max-w-sm">
         <div class="flex flex-col items-center mb-6">
-          <img src="logo-curso.webp" alt="Logo Seminário" class="h-16 w-auto object-contain rounded mb-3">
-          <h1 class="text-white font-semibold text-lg">Guia de Estudos</h1>
+          <div class="w-16 h-16 rounded-full flex items-center justify-center mb-3 shrink-0" style="background-color: var(--cor-primaria);">
+            <svg viewBox="0 0 32 32" fill="none" class="h-8 w-8 text-white">
+              <path d="M13 9H28C28 9 29 9 29 10V30C29 30 29 31 28 31H4C4 31 3 31 3 30V5M3 5C3 1 7 1 7 1H29M3 5C3 9 7 9 7 9M7 5V17L10 15L13 17V5H27" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h1 class="text-[var(--cor-texto-principal)] font-semibold text-lg">Guia de Estudos</h1>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-xl p-6">
+        <div class="card">
           <h2 class="text-lg font-bold text-[var(--cor-texto-principal)] mb-1">Entrar</h2>
           <p class="text-sm text-[var(--cor-texto-secundario)] mb-5">Acesse com seu e-mail e senha.</p>
 
@@ -46,7 +50,7 @@ import { AuthService } from '../../services/auth.service';
             <button
               type="submit"
               [disabled]="form.invalid || enviando()"
-              class="w-full bg-[var(--cor-primaria)] text-white rounded-lg py-2.5 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] transition-colors disabled:opacity-50"
+              class="w-full bg-[var(--cor-primaria)] text-white rounded-full py-2.5 text-sm font-medium hover:bg-[var(--cor-primaria-hover)] transition-colors disabled:opacity-50"
             >{{ enviando() ? 'Entrando...' : 'Entrar' }}</button>
           </form>
 

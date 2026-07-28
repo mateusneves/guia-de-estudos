@@ -19,6 +19,7 @@ export interface DefinicaoTema {
 export const TEMAS: DefinicaoTema[] = [
   { id: 'padrao', nome: 'Padrão', descricao: 'Visual limpo e institucional — o tema original do app.' },
   { id: 'medieval', nome: 'Medieval', descricao: 'Pergaminho, tinta e ouro — inspirado em manuscritos iluminados.' },
+  { id: 'moderno', nome: 'Moderno', descricao: 'Preto, branco e verde-limão — visual minimalista e editorial.' },
 ];
 
 export function temaPorId(id: string | undefined | null): DefinicaoTema {

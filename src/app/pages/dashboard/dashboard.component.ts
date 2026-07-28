@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DisciplinasService } from '../../services/disciplinas.service';
 import { ProgressoService } from '../../services/progresso.service';
@@ -32,8 +32,20 @@ interface AulaDoDia {
             {{ gamificacao.erro() }}
           </div>
         }
-        <div class="flex items-center gap-4">
-          <img [src]="gamificacao.nivel().imagem" [alt]="gamificacao.nivel().titulo" class="w-24 h-auto shrink-0">
+
+        <button
+          type="button"
+          (click)="gamificacaoExpandida.set(!gamificacaoExpandida())"
+          class="w-full flex items-center gap-3 text-left"
+        >
+          <div
+            class="rounded-full flex items-center justify-center shrink-0 transition-all"
+            [class.w-24]="gamificacaoExpandida()" [class.h-24]="gamificacaoExpandida()"
+            [class.w-10]="!gamificacaoExpandida()" [class.h-10]="!gamificacaoExpandida()"
+            [style.background-color]="gamificacao.nivel().cor"
+          >
+            <i [class]="gamificacao.nivel().icone + ' text-white ' + (gamificacaoExpandida() ? 'text-3xl' : 'text-base')"></i>
+          </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <p class="font-semibold text-[var(--cor-texto-principal)]">{{ gamificacao.nivel().titulo }}</p>
@@ -45,59 +57,76 @@ interface AulaDoDia {
               </p>
             </div>
             <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-2 mt-2">
-              <div class="h-2 rounded-full bg-[var(--cor-secundaria)] transition-all" [style.width.%]="gamificacao.progressoNivel()"></div>
+              <div class="h-2 rounded-full bg-[var(--cor-primaria)] transition-all" [style.width.%]="gamificacao.progressoNivel()"></div>
             </div>
-            @if (!gamificacao.proximoNivel()) {
+            @if (!gamificacaoExpandida() && !gamificacao.proximoNivel()) {
               <p class="text-xs text-[var(--cor-texto-terciario)] mt-1">Nível máximo alcançado — o XP continua contando!</p>
             }
           </div>
-        </div>
+          <i class="fa-solid fa-chevron-down text-[var(--cor-texto-terciario)] shrink-0 transition-transform" [class.rotate-180]="gamificacaoExpandida()"></i>
+        </button>
 
-        <div class="mt-4">
-          <div class="flex justify-between text-xs text-[var(--cor-texto-secundario)] mb-1">
-            <span>Progresso do semestre</span>
-            <span class="font-semibold text-[var(--cor-texto-principal)]">{{ gamificacao.percentualPeriodo() }}%</span>
-          </div>
-          <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-2">
-            <div class="h-2 rounded-full bg-[var(--cor-primaria)] transition-all" [style.width.%]="gamificacao.percentualPeriodo()"></div>
-          </div>
-        </div>
+        @if (gamificacaoExpandida()) {
+          @if (!gamificacao.proximoNivel()) {
+            <p class="text-xs text-[var(--cor-texto-terciario)] mt-1">Nível máximo alcançado — o XP continua contando!</p>
+          }
 
-        @if (gamificacao.ultimasConquistas().length > 0) {
           <div class="mt-4">
-            <p class="text-xs font-medium text-[var(--cor-texto-secundario)] mb-2">Últimas conquistas</p>
-            <div class="flex gap-4 flex-wrap">
-              @for (selo of gamificacao.ultimasConquistas(); track selo.id) {
-                <div class="flex flex-col items-center gap-1 w-16" [title]="selo.descricao">
-                  <img [src]="selo.imagem" [alt]="selo.titulo" class="w-10 h-10">
-                  <span class="text-[10px] text-[var(--cor-texto-secundario)] text-center leading-tight">{{ selo.titulo }}</span>
-                </div>
-              }
+            <div class="flex justify-between text-xs text-[var(--cor-texto-secundario)] mb-1">
+              <span>Progresso do semestre</span>
+              <span class="font-semibold text-[var(--cor-texto-principal)]">{{ gamificacao.percentualPeriodo() }}%</span>
+            </div>
+            <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-2">
+              <div class="h-2 rounded-full bg-[var(--cor-primaria)] transition-all" [style.width.%]="gamificacao.percentualPeriodo()"></div>
             </div>
           </div>
+
+          @if (gamificacao.ultimasConquistas().length > 0) {
+            <div class="mt-4">
+              <p class="text-xs font-medium text-[var(--cor-texto-secundario)] mb-2">Últimas conquistas</p>
+              <div class="flex gap-4 flex-wrap">
+                @for (selo of gamificacao.ultimasConquistas(); track selo.id) {
+                  <div class="flex flex-col items-center gap-1 w-16" [title]="selo.descricao">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" [style.background-color]="selo.cor">
+                      <i [class]="selo.icone + ' text-white text-base'"></i>
+                    </div>
+                    <span class="text-[10px] text-[var(--cor-texto-secundario)] text-center leading-tight">{{ selo.titulo }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
         }
       </div>
 
       <!-- Stats row -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="card text-center">
-          <i class="fa-solid fa-book-open text-2xl text-[var(--cor-primaria)] mb-2"></i>
-          <p class="text-3xl font-bold text-[var(--cor-primaria)]">{{ totalDisciplinas }}</p>
+        <div class="card">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mb-3" style="background-color: color-mix(in srgb, var(--cor-primaria) 12%, transparent);">
+            <i class="fa-solid fa-book-open text-[var(--cor-primaria)]"></i>
+          </div>
+          <p class="text-3xl font-bold text-[var(--cor-texto-principal)]">{{ totalDisciplinas }}</p>
           <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Disciplinas</p>
         </div>
-        <div class="card text-center">
-          <i class="fa-solid fa-scroll text-2xl text-[var(--cor-secundaria)] mb-2"></i>
-          <p class="text-3xl font-bold text-[var(--cor-secundaria)]">{{ totalAvaliacoes }}</p>
+        <div class="card">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mb-3" style="background-color: color-mix(in srgb, var(--cor-secundaria) 15%, transparent);">
+            <i class="fa-solid fa-scroll text-[var(--cor-secundaria)]"></i>
+          </div>
+          <p class="text-3xl font-bold text-[var(--cor-texto-principal)]">{{ totalAvaliacoes }}</p>
           <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Avaliações</p>
         </div>
-        <div class="card text-center">
-          <i class="fa-solid fa-circle-check text-2xl text-green-600 mb-2"></i>
-          <p class="text-3xl font-bold text-green-600">{{ totalConcluidas }}</p>
+        <div class="card">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-green-100">
+            <i class="fa-solid fa-circle-check text-green-600"></i>
+          </div>
+          <p class="text-3xl font-bold text-[var(--cor-texto-principal)]">{{ totalConcluidas }}</p>
           <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Concluídas</p>
         </div>
-        <div class="card text-center">
-          <i class="fa-solid fa-hourglass-half text-2xl text-rose-500 mb-2"></i>
-          <p class="text-3xl font-bold text-rose-500">{{ proximasEntregas }}</p>
+        <div class="card">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-rose-100">
+            <i class="fa-solid fa-hourglass-half text-rose-500"></i>
+          </div>
+          <p class="text-3xl font-bold text-[var(--cor-texto-principal)]">{{ proximasEntregas }}</p>
           <p class="text-xs text-[var(--cor-texto-secundario)] mt-1">Próximos 30 dias</p>
         </div>
       </div>
@@ -256,6 +285,7 @@ interface AulaDoDia {
 export class DashboardComponent {
   private disciplinasService = inject(DisciplinasService);
   gamificacao = inject(GamificacaoService);
+  gamificacaoExpandida = signal(false);
   get disciplinas() { return this.disciplinasService.disciplinas(); }
 
   nomesDia: Record<string, string> = {

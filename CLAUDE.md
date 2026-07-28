@@ -123,11 +123,16 @@ titles/XP thresholds (`NIVEIS`), achievement definitions (`SELOS`), and the %
 milestones that award both a selo and (only at 100%) XP (`MARCOS_PROGRESSO`).
 This is deliberately code, not Firestore — only the *unlock state* is persisted
 per user, the same "catalog in code, per-user state in the DB" split already
-used for `labelTipo`/`getCorTipo` maps elsewhere. Badge images are pre-made PNGs
-in `public/images/` (the user supplied all of them — level badges
-`nivel-*.png`, achievement badges `selo-*.png` plus `disciplina-concluida.png`);
-there is no generic icon library involved, don't add one unless a *new*
-achievement without art shows up.
+used for `labelTipo`/`getCorTipo` maps elsewhere. Levels and selos are rendered
+as a FontAwesome icon (`icone`, e.g. `'fa-solid fa-crown'`) on a solid-color
+circle (`cor`, a literal hex per item — deliberately not a theme token, same
+reasoning as `getCorTipo`: each badge needs a stable identity color regardless
+of theme) — this replaced an earlier version using hand-supplied PNGs in
+`public/images/` (`nivel-*.png`/`selo-*.png`), dropped by explicit user
+request because they weren't happy with those images. `public/images/` may
+still contain the old PNG files; they're unused dead assets now, not wired
+into any component. When adding a new level or selo, give it its own
+`icone`/`cor` pair rather than reusing another entry's.
 
 Level thresholds (`NIVEIS` in the catalog) were deliberately calibrated **not**
 for a hypothetical student using the app from semester 1 of a multi-year

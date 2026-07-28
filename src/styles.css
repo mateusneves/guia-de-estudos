@@ -28,10 +28,6 @@
   --cor-card-borda: #f1f5f9;
   --sombra-card: 0 1px 2px rgba(0, 0, 0, 0.05);
   --fonte-titulo: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --cor-sidebar-hover: rgba(255, 255, 255, 0.1);
-  --cor-sidebar-ativo: rgba(255, 255, 255, 0.15);
-  --cor-sidebar-ativo-borda: transparent;
-  --cor-sidebar-divisor: rgba(255, 255, 255, 0.1);
   --cor-texto-principal: #1e293b;
   --cor-texto-secundario: #64748b;
   --cor-texto-terciario: #94a3b8;
@@ -59,11 +55,7 @@
   --cor-card-fundo: #1c1912;
   --cor-card-borda: rgba(201, 135, 62, 0.35);
   --sombra-card: 0 4px 14px rgba(0, 0, 0, 0.55);
-  --fonte-titulo: 'Cinzel', serif;
-  --cor-sidebar-hover: rgba(201, 135, 62, 0.16);
-  --cor-sidebar-ativo: rgba(201, 135, 62, 0.24);
-  --cor-sidebar-ativo-borda: var(--cor-primaria);
-  --cor-sidebar-divisor: rgba(201, 135, 62, 0.3);
+  --fonte-titulo: 'Poppins', ui-sans-serif, system-ui, sans-serif;
   --cor-texto-principal: #f0e6d2;
   --cor-texto-secundario: #b3a58a;
   --cor-texto-terciario: #7d7260;
@@ -81,6 +73,43 @@
   --cor-sucesso-fundo: color-mix(in srgb, var(--cor-sidebar-inicio) 60%, var(--cor-card-fundo) 40%);
   --cor-sucesso-borda-sutil: color-mix(in srgb, var(--cor-sidebar-inicio) 75%, white 25%);
   --cor-sucesso-borda: color-mix(in srgb, var(--cor-sidebar-inicio) 55%, white 45%);
+}
+
+[data-tema="moderno"] {
+  color-scheme: light;
+  /* Preto quase puro + verde-limão sobre branco/cinza-claro, inspirado em dashboards
+     editoriais minimalistas — cor-primaria carrega o preto (usado tanto como texto/link
+     quanto como fundo de badge/chip ativo com texto branco, então precisa de alto
+     contraste nos dois papéis) e cor-secundaria carrega o limão, mas num tom escurecido
+     (verde lima ~700, não o tom neon puro) porque esta variável também é usada como cor de
+     TEXTO direto sobre fundo claro em alguns lugares (ex: números grandes do Dashboard) —
+     um limão neon ali teria contraste ilegível; o tom mais escuro ainda lê como "limão",
+     só com contraste aprovado (~5:1 sobre branco). O limão vibrante aparece mesmo assim,
+     só que como acento decorativo (borda ativa da sidebar), onde contraste de texto não
+     se aplica. */
+  --cor-primaria: #14171a;
+  --cor-primaria-hover: #2c3036;
+  --cor-primaria-30: rgba(20, 23, 26, 0.3);
+  --cor-secundaria: #4d7c0f;
+  --cor-sidebar-inicio: #1c1f22;
+  --cor-sidebar-fim: #0a0b0c;
+  --cor-fundo: #f5f5f1;
+  --cor-card-fundo: #ffffff;
+  --cor-card-borda: #ececea;
+  --sombra-card: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --fonte-titulo: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --cor-texto-principal: #14171a;
+  --cor-texto-secundario: #6b7280;
+  --cor-texto-terciario: #9ca3af;
+  --cor-fundo-sutil: #f4f4f1;
+  --cor-fundo-sutil-forte: #e8e8e3;
+  --cor-borda-sutil: #ececea;
+  --cor-borda-media: #dcdcd6;
+  --cor-erro-fundo: #fef2f2;
+  --cor-erro-texto: #dc2626;
+  --cor-sucesso-fundo: #f0fdf4;
+  --cor-sucesso-borda-sutil: #dcfce7;
+  --cor-sucesso-borda: #22c55e;
 }
 
 @layer base {
@@ -123,39 +152,54 @@
 }
 
 @layer components {
-  /* Card flutuante — sombra de base para o sidebar "descolar" da página em qualquer
-     tema; o tema medieval soma um friso dourado por cima (ver regra específica abaixo). */
-  .sidebar-frame {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  /* Item de navegação da sidebar — NÃO é mais uma caixa com borda/sombra (isso já foi
+     tentado e achado "parecendo card demais"). Só o ícone fica num círculo colorido
+     (.sidebar-link-icone, mesma linguagem dos chips de ícone dos cards de estatística
+     do Dashboard); o rótulo de texto fica solto ao lado, sem fundo próprio. A linha
+     inteira ganha um leve realce (--cor-fundo-sutil) no hover/ativo só pra manter a
+     área clicável perceptível, sem virar uma caixa com borda. Compacto de propósito
+     (py-1.5, gap-1 entre itens) para a sidebar inteira caber sem precisar rolar. */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-2 py-1.5 rounded-full text-sm font-medium transition-all duration-200;
+    text-decoration: none;
+    color: var(--cor-texto-secundario);
   }
 
-  .sidebar-link {
-    @apply flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-slate-300;
-    text-decoration: none;
-    border-left: 3px solid transparent;
+  .sidebar-link-icone {
+    @apply w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm transition-colors duration-200;
+    background-color: var(--cor-card-fundo);
+    color: var(--cor-texto-secundario);
   }
 
   .sidebar-link:hover {
-    background-color: var(--cor-sidebar-hover);
-    @apply text-white;
+    background-color: var(--cor-fundo-sutil);
+    color: var(--cor-texto-principal);
+  }
+
+  /* Círculo do ícone muda de cor no hover (tingido com a cor primária, mais claro que
+     o preenchimento sólido do estado ativo) — dá o feedback pedido sem antecipar o
+     preto/dourado/verde sólido só reservado pro item de fato selecionado. */
+  .sidebar-link:hover .sidebar-link-icone {
+    background-color: color-mix(in srgb, var(--cor-primaria) 18%, var(--cor-fundo-sutil-forte));
+    color: var(--cor-primaria);
   }
 
   .sidebar-link.active {
-    background-color: var(--cor-sidebar-ativo);
-    border-left-color: var(--cor-sidebar-ativo-borda);
-    @apply text-white;
+    color: var(--cor-texto-principal);
+    font-weight: 600;
+  }
+
+  .sidebar-link.active .sidebar-link-icone {
+    background-color: var(--cor-primaria);
+    color: #fff;
   }
 
   .sidebar-titulo {
     font-family: var(--fonte-titulo);
   }
 
-  .sidebar-divisor {
-    border-color: var(--cor-sidebar-divisor);
-  }
-
   .card {
-    @apply rounded-2xl p-5;
+    @apply rounded-xl p-5;
     background-color: var(--cor-card-fundo);
     border: 1px solid var(--cor-card-borda);
     box-shadow: var(--sombra-card);
@@ -178,12 +222,6 @@
   background-image: radial-gradient(circle at 15% 10%, rgba(201, 135, 62, 0.08), transparent 55%);
 }
 
-/* Sidebar flutuante no tema medieval — sem friso, só uma sombra mais forte que o padrão
-   para se destacar do fundo quase preto. */
-[data-tema="medieval"] .sidebar-frame {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-}
-
 /* Borda dourada em toda barra de progresso/status/XP (ver .barra-progresso acima). */
 [data-tema="medieval"] .barra-progresso {
   border: 1px solid var(--cor-primaria);
@@ -198,3 +236,26 @@
 [data-tema="medieval"] .border-green-100 { border-color: var(--cor-sucesso-borda-sutil); }
 [data-tema="medieval"] .border-green-500 { border-color: var(--cor-sucesso-borda); }
 [data-tema="medieval"] .bg-green-500 { background-color: var(--cor-sucesso-borda); }
+
+/* Tema Moderno — a diferença do Padrão/Medieval aqui não é só cor, é a "linguagem de
+   forma": cantos bem mais arredondados e títulos de página maiores/mais compactos
+   (menos peso, tracking mais fechado) — inspirado num dashboard de referência com
+   essa estética. .sidebar-link já é rounded-full em todos os temas (não é mais uma
+   caixa com borda), então não precisa de override aqui. Fica em regra à parte (em vez
+   de mudar o token usado pelos outros temas) porque o Padrão foi deliberadamente
+   ajustado para cantos MENOS arredondados (ver .card em @layer components) — Moderno
+   é a exceção proposital que vai na direção oposta. */
+[data-tema="moderno"] .card {
+  border-radius: 1.25rem;
+}
+
+/* Título de página (todas as páginas usam h1.text-2xl.font-bold) — maior, mais fechado
+   e um pouco mais leve, para o efeito "manchete editorial" da referência. Não se aplica
+   ao h1.text-lg do cabeçalho de login/cadastro (legenda pequena da logo), que não usa
+   a classe text-2xl. */
+[data-tema="moderno"] h1.text-2xl {
+  font-size: 2rem;
+  line-height: 2.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}

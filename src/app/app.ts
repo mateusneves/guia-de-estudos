@@ -29,42 +29,33 @@ interface NavItem {
           ></div>
         }
 
-        <!-- Sidebar (card flutuante no desktop; colada nas bordas no mobile, sem margem) -->
+        <!-- Sidebar: sem painel de fundo próprio. Logo e "Sair" continuam cards
+             flutuantes; os itens de navegação NÃO são mais caixas com borda/sombra —
+             só o ícone fica dentro de um círculo colorido, o texto do rótulo fica ao
+             lado, fora de qualquer card (ver .sidebar-link/.sidebar-link-icone).
+             Sem scroll interno de propósito: a coluna cresce naturalmente e conta
+             com a altura generosa do <aside> (h-screen) para caber sem cortar nem
+             rolar — ver .sidebar-link mais compacto em styles.css. -->
         <aside
-          class="sidebar-frame fixed md:relative inset-y-0 left-0 z-50 flex flex-col shrink-0 overflow-hidden rounded-none md:rounded-2xl transition-all duration-300"
+          class="fixed md:relative inset-y-0 left-0 z-50 flex flex-col shrink-0 overflow-hidden transition-all duration-300"
           [style.width]="sidebarOpen() ? '16rem' : '0'"
-          style="background: linear-gradient(180deg, var(--cor-sidebar-inicio) 0%, var(--cor-sidebar-fim) 100%);"
+          style="background-color: var(--cor-fundo);"
         >
-          <div class="flex flex-col h-full w-64">
+          <div class="flex flex-col gap-3 h-full w-64 shrink-0 p-3">
 
-            <!-- Logo institucional -->
-            <div class="flex items-center gap-3 px-5 py-5 border-b sidebar-divisor shrink-0">
-              <img
-                src="logo-curso.webp"
-                alt="Logo Seminário"
-                class="h-12 w-auto object-contain rounded"
-              >
+            <!-- Logo institucional — sem card ao redor, só ícone + texto soltos -->
+            <div class="flex items-center gap-3 shrink-0 px-2 py-2">
+              <svg viewBox="0 0 32 32" fill="none" class="h-10 w-10 shrink-0 text-[var(--cor-texto-principal)]">
+                <path d="M13 9H28C28 9 29 9 29 10V30C29 30 29 31 28 31H4C4 31 3 31 3 30V5M3 5C3 1 7 1 7 1H29M3 5C3 9 7 9 7 9M7 5V17L10 15L13 17V5H27" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
               <div class="min-w-0">
-                <p class="sidebar-titulo text-white font-semibold text-sm leading-tight whitespace-nowrap">Guia de Estudos</p>
+                <p class="sidebar-titulo font-semibold text-base leading-tight whitespace-nowrap text-[var(--cor-texto-principal)]">Guia de Estudos</p>
                 <p class="text-[var(--cor-texto-terciario)] text-xs whitespace-nowrap truncate">{{ nomeTurma() }}</p>
               </div>
             </div>
 
-            <!-- Usuário logado -->
-            <a routerLink="/perfil" (click)="onNavClick()" class="flex items-center gap-3 px-5 py-4 border-b sidebar-divisor shrink-0 hover:bg-white/5 transition-colors">
-              <img [src]="avatarUrlDe(avatarSeed())" alt="Seu avatar" class="w-11 h-11 rounded-full bg-white/10 shrink-0">
-              <div class="min-w-0 flex-1">
-                <p class="text-white text-sm font-medium truncate">{{ auth.perfil()?.nome }}</p>
-                <p class="text-[var(--cor-texto-terciario)] text-xs truncate">{{ auth.isAdmin() ? 'Administrador' : 'Aluno' }}</p>
-                <p class="text-[var(--cor-secundaria)] text-xs truncate mt-1 font-medium">{{ gamificacao.nivel().titulo }}</p>
-                <div class="barra-progresso w-full bg-white/10 rounded-full h-1.5 mt-1">
-                  <div class="h-1.5 rounded-full bg-[var(--cor-secundaria)] transition-all" [style.width.%]="gamificacao.progressoNivel()"></div>
-                </div>
-              </div>
-            </a>
-
-            <!-- Nav -->
-            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            <!-- Nav — ícone em círculo, rótulo fora do card -->
+            <nav class="flex flex-col gap-1 shrink-0">
               @for (item of navItems; track item.path) {
                 <a
                   [routerLink]="item.path"
@@ -72,13 +63,15 @@ interface NavItem {
                   class="sidebar-link"
                   (click)="onNavClick()"
                 >
-                  <i [class]="item.icon + ' fa-fw text-base'"></i>
+                  <span class="sidebar-link-icone"><i [class]="item.icon + ' fa-fw text-sm'"></i></span>
                   <span class="whitespace-nowrap">{{ item.label }}</span>
                 </a>
               }
+            </nav>
 
-              @if (auth.isAdmin()) {
-                <p class="sidebar-titulo px-3 pt-4 pb-1 text-xs font-semibold text-[var(--cor-secundaria)] uppercase tracking-wider">Administração</p>
+            @if (auth.isAdmin()) {
+              <p class="sidebar-titulo px-2 text-xs font-semibold text-[var(--cor-texto-terciario)] uppercase tracking-wider shrink-0">Administração</p>
+              <nav class="flex flex-col gap-1 shrink-0">
                 @for (item of adminNavItems; track item.path) {
                   <a
                     [routerLink]="item.path"
@@ -86,16 +79,18 @@ interface NavItem {
                     class="sidebar-link"
                     (click)="onNavClick()"
                   >
-                    <i [class]="item.icon + ' fa-fw text-base'"></i>
+                    <span class="sidebar-link-icone"><i [class]="item.icon + ' fa-fw text-sm'"></i></span>
                     <span class="whitespace-nowrap">{{ item.label }}</span>
                   </a>
                 }
-              }
-            </nav>
+              </nav>
+            }
 
-            <!-- Footer -->
-            <div class="px-5 py-4 border-t sidebar-divisor shrink-0">
-              <button (click)="sair()" class="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm">
+            <div class="flex-1"></div>
+
+            <!-- Sair -->
+            <div class="card !p-3 shrink-0">
+              <button (click)="sair()" class="w-full flex items-center justify-center gap-2 text-[var(--cor-texto-secundario)] hover:text-[var(--cor-texto-principal)] transition-colors text-sm">
                 <i class="fa-solid fa-right-from-bracket text-sm"></i>
                 <span>Sair</span>
               </button>
@@ -105,36 +100,35 @@ interface NavItem {
         </aside>
 
         <!-- Área principal -->
-        <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <div class="flex flex-col flex-1 min-w-0 overflow-hidden gap-4">
 
-          <!-- Top bar (apenas mobile) -->
-          <header class="md:hidden flex items-center gap-3 px-4 py-3 border-b sidebar-divisor shrink-0"
-                  style="background: linear-gradient(180deg, var(--cor-sidebar-inicio) 0%, var(--cor-sidebar-fim) 100%);">
-
-            <!-- Botão hamburger -->
+          <!-- Top bar — hamburger + logo só no mobile (a sidebar vira gaveta); o
+               cartão de identidade do usuário fica sempre à direita, em todos os
+               tamanhos (antes vivia dentro da sidebar). -->
+          <header class="flex items-center gap-3 shrink-0 px-4 pt-4 md:px-0 md:pt-0">
             <button
               (click)="toggleSidebar()"
-              class="p-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+              class="sidebar-link-icone md:hidden hover:bg-[var(--cor-fundo-sutil-forte)] hover:text-[var(--cor-texto-principal)]"
             >
-              <i class="fa-solid fa-bars text-lg"></i>
+              <i class="fa-solid fa-bars"></i>
             </button>
 
-            <!-- Logo + título (visível em todos os tamanhos no header) -->
-            <div class="flex items-center gap-3 flex-1 min-w-0">
-              <img
-                src="logo-curso.webp"
-                alt="Logo Seminário"
-                class="h-9 w-auto object-contain rounded shrink-0"
-              >
-              <div class="min-w-0">
-                <p class="sidebar-titulo text-white font-semibold text-sm leading-tight">Guia de Estudos</p>
-                <p class="text-[var(--cor-texto-terciario)] text-xs hidden sm:block truncate">{{ nomeTurma() }}</p>
-              </div>
+            <div class="flex items-center gap-2 md:hidden min-w-0 flex-1">
+              <svg viewBox="0 0 32 32" fill="none" class="h-8 w-8 shrink-0 text-[var(--cor-texto-principal)]">
+                <path d="M13 9H28C28 9 29 9 29 10V30C29 30 29 31 28 31H4C4 31 3 31 3 30V5M3 5C3 1 7 1 7 1H29M3 5C3 9 7 9 7 9M7 5V17L10 15L13 17V5H27" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <p class="sidebar-titulo font-semibold text-sm leading-tight text-[var(--cor-texto-principal)] truncate">Guia de Estudos</p>
             </div>
 
-            <button (click)="sair()" title="Sair" class="p-1.5 rounded-lg text-white/50 hover:bg-white/10 hover:text-white transition-colors shrink-0">
-              <i class="fa-solid fa-right-from-bracket text-sm"></i>
-            </button>
+            <div class="hidden md:block flex-1"></div>
+
+            <a routerLink="/perfil" (click)="onNavClick()" class="flex items-center gap-3 shrink-0 rounded-full px-2 py-1.5 transition-colors hover:bg-[var(--cor-fundo-sutil)]">
+              <img [src]="avatarUrlDe(avatarSeed())" alt="Seu avatar" class="w-11 h-11 rounded-full bg-white shrink-0">
+              <div class="hidden sm:block min-w-0 text-left">
+                <p class="text-sm font-medium text-[var(--cor-texto-principal)] truncate leading-tight">{{ auth.perfil()?.nome }}</p>
+                <p class="text-xs text-[var(--cor-texto-secundario)] truncate leading-tight mt-0.5">{{ gamificacao.nivel().titulo }}</p>
+              </div>
+            </a>
           </header>
 
           <!-- Conteúdo da página -->
