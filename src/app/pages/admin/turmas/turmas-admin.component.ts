@@ -123,7 +123,7 @@ export class TurmasAdminComponent {
   form = this.fb.nonNullable.group({
     nome: ['', Validators.required],
     ativa: [true],
-    tema: ['padrao', Validators.required],
+    tema: ['moderno', Validators.required],
   });
 
   temaSelecionadoDescricao(): string {
@@ -147,12 +147,12 @@ export class TurmasAdminComponent {
 
   editar(t: Turma): void {
     this.editandoId.set(t.id);
-    this.form.setValue({ nome: t.nome, ativa: t.ativa, tema: t.temaId ?? 'padrao' });
+    this.form.setValue({ nome: t.nome, ativa: t.ativa, tema: t.temaId ?? 'moderno' });
   }
 
   cancelarEdicao(): void {
     this.editandoId.set(null);
-    this.form.reset({ nome: '', ativa: true, tema: 'padrao' });
+    this.form.reset({ nome: '', ativa: true, tema: 'moderno' });
   }
 
   async salvar(): Promise<void> {

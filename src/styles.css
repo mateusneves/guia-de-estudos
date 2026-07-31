@@ -112,6 +112,45 @@
   --cor-sucesso-borda: #22c55e;
 }
 
+/* Variante escura do tema Moderno — alternada pelo próprio usuário (TemaService.modo,
+   persistido em localStorage, não é escolha da turma/admin como o tema em si), aplicada
+   via o atributo `data-modo="dark"` em <html> junto de `data-tema="moderno"`. Só
+   redefine o que muda em relação ao bloco [data-tema="moderno"] acima — --fonte-titulo,
+   --cor-sidebar-inicio/-fim etc. continuam valendo dali (cascata normal de CSS: uma
+   regra mais específica não "reseta" propriedades que não redeclara).
+
+   cor-primaria vira o limão escuro que já era --cor-secundaria no modo claro (não preto
+   — preto sobre um card escuro ficaria quase invisível), porque essa variável também é
+   usada como FUNDO de botão/badge com texto branco em cima, e esse tom de limão
+   (~#4d7c0f) já foi calibrado no modo claro pra ter contraste bom com texto branco
+   (~5:1, ver comentário em [data-tema="moderno"] acima) — o mesmo valor funciona nos
+   dois papéis. cor-secundaria sobe pro limão neon vibrante (#a3e635), reservado pra
+   texto/acento sobre fundo escuro, onde ele tem MUITO contraste (ao contrário de sobre
+   branco, onde ficaria ilegível — por isso não é usado no modo claro). */
+[data-tema="moderno"][data-modo="dark"] {
+  color-scheme: dark;
+  --cor-primaria: #4d7c0f;
+  --cor-primaria-hover: #5c9411;
+  --cor-primaria-30: rgba(77, 124, 15, 0.3);
+  --cor-secundaria: #a3e635;
+  --cor-fundo: #0d0e10;
+  --cor-card-fundo: #1a1b1e;
+  --cor-card-borda: rgba(255, 255, 255, 0.08);
+  --sombra-card: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --cor-texto-principal: #f3f4f2;
+  --cor-texto-secundario: #a3a8ad;
+  --cor-texto-terciario: #6b7178;
+  --cor-fundo-sutil: #242527;
+  --cor-fundo-sutil-forte: #303234;
+  --cor-borda-sutil: rgba(255, 255, 255, 0.08);
+  --cor-borda-media: rgba(255, 255, 255, 0.16);
+  --cor-erro-fundo: rgba(220, 38, 38, 0.15);
+  --cor-erro-texto: #f28b82;
+  --cor-sucesso-fundo: color-mix(in srgb, var(--cor-primaria) 35%, var(--cor-card-fundo) 65%);
+  --cor-sucesso-borda-sutil: color-mix(in srgb, var(--cor-primaria) 55%, white 10%);
+  --cor-sucesso-borda: color-mix(in srgb, var(--cor-primaria) 70%, white 30%);
+}
+
 @layer base {
   html, body {
     height: 100%;
@@ -236,6 +275,13 @@
 [data-tema="medieval"] .border-green-100 { border-color: var(--cor-sucesso-borda-sutil); }
 [data-tema="medieval"] .border-green-500 { border-color: var(--cor-sucesso-borda); }
 [data-tema="medieval"] .bg-green-500 { background-color: var(--cor-sucesso-borda); }
+
+/* Mesmo problema, mesma solução, no modo escuro do Moderno (card escuro também não
+   combina com o verde-claro genérico do Tailwind) — ver comentário acima. */
+[data-tema="moderno"][data-modo="dark"] .bg-green-50 { background-color: var(--cor-sucesso-fundo); }
+[data-tema="moderno"][data-modo="dark"] .border-green-100 { border-color: var(--cor-sucesso-borda-sutil); }
+[data-tema="moderno"][data-modo="dark"] .border-green-500 { border-color: var(--cor-sucesso-borda); }
+[data-tema="moderno"][data-modo="dark"] .bg-green-500 { background-color: var(--cor-sucesso-borda); }
 
 /* Tema Moderno — a diferença do Padrão/Medieval aqui não é só cor, é a "linguagem de
    forma": cantos bem mais arredondados e títulos de página maiores/mais compactos

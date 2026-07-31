@@ -22,6 +22,9 @@ export const TEMAS: DefinicaoTema[] = [
   { id: 'moderno', nome: 'Moderno', descricao: 'Preto, branco e verde-limão — visual minimalista e editorial.' },
 ];
 
+/** "Moderno" é o tema padrão do app (pré-login e para qualquer turma sem `temaId`/com
+ * um id desconhecido) — não é mais o primeiro item do array por acaso, é resolvido
+ * explicitamente por id para não depender da ordem de `TEMAS`. */
 export function temaPorId(id: string | undefined | null): DefinicaoTema {
-  return TEMAS.find(t => t.id === id) ?? TEMAS[0];
+  return TEMAS.find(t => t.id === id) ?? TEMAS.find(t => t.id === 'moderno') ?? TEMAS[0];
 }

@@ -399,10 +399,15 @@ links to `/perfil`. If you add another avatar-rendering spot, reuse
 
 Each turma can have its own visual theme (`turmas/{turmaId}.temaId`, admin-only —
 edited via the "Tema visual" `<select>` in `/admin/turmas`, same form as
-nome/ativa). Two themes exist today: `padrao` (the app's original look) and
-`medieval` (a parchment/illuminated-manuscript reskin). No `firestore.rules`
-change was needed — `temaId` is just another field on the existing `turmas`
-document, covered by the existing read/write rules for that collection.
+nome/ativa). Three themes exist today: `padrao` (the app's original look),
+`medieval` (a parchment/illuminated-manuscript reskin), and `moderno` (black +
+lime-green, minimalist/editorial — added 2026-07-30, see below). **`moderno`
+is the app's default theme** (not `padrao`, despite the name) — `temaPorId()`
+falls back to it for pre-login rendering and for any turma with no
+`temaId`/an unknown id; new turmas created in `/admin/turmas` also default to
+it. No `firestore.rules` change was needed — `temaId` is just another field on
+the existing `turmas` document, covered by the existing read/write rules for
+that collection.
 
 **Architecture — CSS custom properties, not per-component logic.** All theme
 colors/fonts are CSS variables defined in `src/styles.css`: `:root` holds the
@@ -416,16 +421,34 @@ exception: `disciplinas-admin.component.ts`'s color-*picker* default value
 (`cor: '#1e3a5f'`, the default color for a *new disciplina*) is unrelated
 content data, not UI chrome — don't theme it.
 
-`TemaService` (`services/tema.service.ts`) is the only piece of runtime logic:
-it computes the logged-in user's own turma's `temaId` (defaulting to `padrao`
-for no turma/unknown id, via `temaPorId()`) and writes `data-tema="<id>"` onto
-`<html>` in an `effect()`. It's injected eagerly by root `App` (same
-lightweight pattern as `GamificacaoService`) purely to keep that effect alive;
-no template reads it directly. Since it derives from `authService.perfil()`
-(null pre-auth) rather than owning its own Firestore subscription, it doesn't
-need the `logado()`-gated resubscription pattern the eager pre-auth pitfall
-requires elsewhere — it naturally resolves to `padrao` on `/login`/`/cadastro`
-and updates once the user's profile loads.
+`TemaService` (`services/tema.service.ts`) computes the logged-in user's own
+turma's `temaId` (defaulting to `moderno` for no turma/unknown id, via
+`temaPorId()`) and writes `data-tema="<id>"` onto `<html>` in an `effect()`.
+It's injected eagerly by root `App` (same lightweight pattern as
+`GamificacaoService`), and — as of 2026-07-30 — its `tema` property is public
+because the header's light/dark toggle button reads `tema.temaAtivo()` and
+calls `tema.alternarModo()` directly (previously it existed purely to keep its
+effect alive, with no template reading it). Since it derives from
+`authService.perfil()` (null pre-auth) rather than owning its own Firestore
+subscription, it doesn't need the `logado()`-gated resubscription pattern the
+eager pre-auth pitfall requires elsewhere — it naturally resolves to `moderno`
+on `/login`/`/cadastro` and updates once the user's profile loads.
+
+**Light/dark mode (added 2026-07-30).** `TemaService` also owns `modo: Signal<'light'|'dark'>`
+— a *personal* preference, orthogonal to `temaAtivo` (which is the *turma's*
+admin-chosen brand). Unlike everything else theme-related, `modo` is **not**
+stored in Firestore — it's read/written to `localStorage` directly (key
+`guia-estudos-modo`), since it's a display preference of the browser, not
+something that needs to sync across a user's devices. Initial value on first
+visit falls back to the OS's `prefers-color-scheme` media query, then to
+`'light'`. Applied as `data-modo="<light|dark>"` on `<html>`, alongside
+`data-tema`. **Only `[data-tema="moderno"][data-modo="dark"]` has CSS defined**
+(`styles.css`) — Padrão and Medieval have no dark-mode override, so toggling
+`modo` while one of those is active sets the attribute but changes nothing
+visually (harmless, not a bug). The header's toggle button (`app.ts`) is
+accordingly only rendered `@if (tema.temaAtivo().id === 'moderno')`. If Padrão
+or Medieval ever get their own dark variant, add a matching
+`[data-tema="<id>"][data-modo="dark"]` block and drop that `@if` guard.
 
 `src/app/shared/temas-catalogo.ts` is the static catalog (mirrors
 `gamificacao-catalogo.ts`'s "catalog in code, per-entity state in DB" split) —
@@ -436,17 +459,15 @@ block in `styles.css` defining the same set of tokens `:root` already has. No
 component changes needed — this is the intended "upload a new theme" workflow
 for a future theme, done entirely in these two files.
 
-The sidebar's interactive chrome (hover/active nav background, section-divider
-lines, "Administração" header color/font) is themed too, via its own tokens
-(`--cor-sidebar-hover`, `--cor-sidebar-ativo`, `--cor-sidebar-ativo-borda`,
-`--cor-sidebar-divisor`) and two utility classes, `.sidebar-titulo` (applies
-`--fonte-titulo`) and `.sidebar-divisor` (applies the divider color) — these
-were added after the initial theme rollout only reskinned the gradient
-background and left every hover/active/divider state hardcoded to a plain
-white overlay, which made the sidebar look almost unchanged between themes.
-**Any new sidebar element with a border/hover/active state should use these
-classes/tokens, not a literal `border-white/10` or `bg-white/10`-style
-Tailwind utility**, or it'll have the same "doesn't actually reskin" problem.
+**Superseded (kept for history, see "Sidebar as floating nav-item cards"
+below for the current design):** the sidebar used to be one continuous
+gradient-filled panel, themed via dedicated tokens (`--cor-sidebar-hover`,
+`--cor-sidebar-ativo`, `--cor-sidebar-ativo-borda`, `--cor-sidebar-divisor`)
+and a `.sidebar-divisor` class. As of 2026-07-30 the sidebar has no panel
+background at all and those tokens/class no longer exist — nav items are
+individual cards that reuse the same `.card`/text tokens as the rest of the
+app instead of a sidebar-specific palette. `.sidebar-titulo` (applies
+`--fonte-titulo`) is the only survivor from that era.
 
 Similarly, **every progress/status/XP bar's outer track div carries a
 `.barra-progresso` class** (`.card`/`.badge`-style shared class, not a
@@ -464,7 +485,7 @@ each Dashboard stat card its own distinct colored background like the
 reference image — recreating that would mean per-component styling instead of
 theme tokens, deliberately out of scope for a token-based system.
 
-#### Layout: floating sidebar card + margin (added 2026-07-11, revised 2026-07-11)
+#### Layout: sidebar as floating nav-item cards (added 2026-07-11, rewritten 2026-07-30)
 
 The app shell (`app.ts`)'s root flex container is **desktop-only** margin: `p-0
 gap-0 md:p-6 md:gap-6`. On mobile there's deliberately no margin at all — the
@@ -475,19 +496,54 @@ breakpoint the outer padding and the `gap` between the sidebar and the content
 area are always kept equal (`p-6`/`gap-6`, both driven off the same Tailwind
 spacing step) — this is intentional, not incidental: the margin around the
 whole app and the gap between sidebar and content should read as one
-consistent spacing unit, not two different ones. The sidebar is a `rounded-2xl`
-floating card only on desktop (`rounded-none md:rounded-2xl` on the `<aside>`
-in `app.ts`) — on mobile it's flush to the screen edges (no margin, per
-above), so rounded corners there would look like a rendering glitch rather
-than a floating card; only round it where it actually floats. It also has no
-border, just its own shadow/corners (`.sidebar-frame` in `styles.css` — an
-earlier medieval-only gold border around the whole sidebar was removed since
-it read as too heavy); its `fixed` positioning
-is plain `inset-y-0 left-0` at every breakpoint now (flush to the viewport on
-mobile, and ignored on desktop where `md:relative` plus the parent's
-`gap-6`/`p-6` is what actually creates its spacing). If you ever want the
-sidebar to float with its own margin on mobile again, that's a deliberate
-reversal of this note, not a bug.
+consistent spacing unit, not two different ones.
+
+**The `<aside>` itself has no visual identity of its own anymore** — no panel
+background, no shadow, no rounded corners (`rounded-none md:rounded-2xl` /
+`.sidebar-frame` from the original 2026-07-11 design no longer exist). It's
+purely a positioning shell (`fixed` drawer on mobile sliding 0→16rem wide,
+`md:relative` on desktop) with `background-color: var(--cor-fundo)` so the
+gaps between its contents show plain page canvas, not a colored panel. Inside
+it, every section is its own **floating `.card`** (or `.sidebar-link`, see
+below) stacked with `gap-3`: a logo card, then nav links, then a "Sair" card
+pinned to the bottom via a `flex-1` spacer. This card-per-item look is a
+deliberate reversal of the original single-panel sidebar — don't reintroduce
+a shared sidebar background/border wrapping multiple items.
+
+**Nav items (`.sidebar-link` in `styles.css`) are not boxed cards** — an
+earlier version tried wrapping each link in a bordered/shadowed card like the
+logo/Sair blocks and it read as "too many cards." Instead: only the icon sits
+in a colored circle (`.sidebar-link-icone`, same visual language as the
+Dashboard stat-card icon chips — `var(--cor-card-fundo)` at rest, tinted with
+`--cor-primaria` on hover, solid `--cor-primaria` + white icon when
+`.active`), and the text label floats next to it with no background of its
+own. The row itself gets a faint `--cor-fundo-sutil` pill highlight on
+hover/active just to keep the clickable area legible. Follow this same
+"icon-in-circle, label outside" pattern for any new icon+label control — the
+mobile hamburger button and the light/dark toggle button (see "Light/dark
+mode" above) both reuse the literal `.sidebar-link-icone` class for this
+reason, not a one-off style.
+
+**User identity moved out of the sidebar into a header, top-right, visible on
+every page/breakpoint** (it used to live in the sidebar, under the logo). The
+header (`app.ts`, above `<main>`) shows, right-aligned: the light/dark toggle
+(Moderno only) and a `routerLink="/perfil"` chip with just the avatar circle
+(`bg-white`, `w-11 h-11`) and name/level text floating beside it — no card
+wrapper around that chip either, same reasoning as nav items. On mobile the
+header's left side additionally shows the hamburger (drawer toggle, styled
+via `.sidebar-link-icone` with a permanent `--cor-primaria`/white
+override — not the default hover-tinted look, since it's a persistent
+control, not a nav item with active/inactive state) and a compact logo+title
+lockup (hidden on desktop, where the sidebar's own logo card already shows
+it).
+
+**Logo**: no longer an uploaded image (`logo-curso.webp`, now an orphaned
+unused file in `public/`) — it's an inline `<svg>` (a simple open-book glyph)
+repeated in the sidebar logo card, the mobile header, and the login/cadastro
+screens, using `stroke="currentColor"` so it inherits `text-*` color per
+context (dark text on light chrome inside the app, white on the login page's
+`--cor-primaria` circle backdrop) instead of needing separate light/dark
+image assets.
 
 #### Text/subtle-background tokens — dark-card fidelity (added 2026-07-11)
 
@@ -574,11 +630,12 @@ buttons/links), `--cor-secundaria: #d8cfc4` (its "Pastel Gray"/cream, used for
 secondary accents — deliberately *not* another gold tone, for contrast
 against primaria), `--cor-fundo: #100e0b` (near-black page canvas),
 `--cor-card-fundo: #1c1912` (dark warm-gray cards, one step lighter than the
-canvas for elevation), `--cor-card-borda` and `--cor-sidebar-ativo-borda` both
-gold at partial opacity (keeps the "illuminated manuscript" gold-trim identity
-from the theme's first version, even though the reference itself relies on
-shadow/elevation rather than colored borders). The sidebar gradient
-(`--cor-sidebar-inicio/fim`) uses a dark teal-black blend evoking the
+canvas for elevation), `--cor-card-borda` gold at partial opacity (keeps the
+"illuminated manuscript" gold-trim identity from the theme's first version,
+even though the reference itself relies on shadow/elevation rather than
+colored borders). The sidebar gradient (`--cor-sidebar-inicio/fim`, now used
+only for the login/cadastro page background — see "Sidebar as floating
+nav-item cards" above) uses a dark teal-black blend evoking the
 reference palette's "Japanese Indigo" swatch, even though indigo isn't used as
 a major UI accent anywhere else — it seemed better suited to a moody
 background gradient than to competing with gold as a second brand color.

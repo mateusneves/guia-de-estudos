@@ -59,7 +59,12 @@ interface AulaDoDia {
             <div class="barra-progresso w-full bg-[var(--cor-fundo-sutil)] rounded-full h-2 mt-2">
               <div class="h-2 rounded-full bg-[var(--cor-primaria)] transition-all" [style.width.%]="gamificacao.progressoNivel()"></div>
             </div>
-            @if (!gamificacaoExpandida() && !gamificacao.proximoNivel()) {
+            @if (gamificacao.proximoNivel(); as prox) {
+              <p class="text-xs text-[var(--cor-texto-terciario)] mt-1.5 flex items-center gap-1.5">
+                <i [class]="prox.icone" [style.color]="prox.cor"></i>
+                <span>Próximo nível: <span class="font-medium text-[var(--cor-texto-secundario)]">{{ prox.titulo }}</span> · faltam {{ prox.xpMinimo - gamificacao.xp() }} XP</span>
+              </p>
+            } @else if (!gamificacaoExpandida()) {
               <p class="text-xs text-[var(--cor-texto-terciario)] mt-1">Nível máximo alcançado — o XP continua contando!</p>
             }
           </div>

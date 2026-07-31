@@ -123,6 +123,18 @@ interface NavItem {
 
             <div class="hidden md:block flex-1"></div>
 
+            <!-- Alternar modo claro/escuro — preferência pessoal do usuário (não da
+                 turma), só tem efeito visual no tema Moderno hoje (ver TemaService). -->
+            @if (tema.temaAtivo().id === 'moderno') {
+              <button
+                (click)="tema.alternarModo()"
+                class="sidebar-link-icone shrink-0"
+                [title]="tema.modo() === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'"
+              >
+                <i [class]="tema.modo() === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
+              </button>
+            }
+
             <a routerLink="/perfil" (click)="onNavClick()" class="flex items-center gap-3 shrink-0 rounded-full px-2 py-1.5 transition-colors hover:bg-[var(--cor-fundo-sutil)]">
               <img [src]="avatarUrlDe(avatarSeed(), !!auth.perfil()?.avatarComBarba)" alt="Seu avatar" class="w-11 h-11 rounded-full bg-white shrink-0">
               <div class="hidden sm:block min-w-0 text-left">
@@ -153,9 +165,9 @@ export class App {
   // reagir a conclusões de atividade mesmo quando o aluno está em outra tela.
   // Público porque a sidebar também mostra nível/XP ao lado do avatar.
   gamificacao = inject(GamificacaoService);
-  // Só precisa existir para rodar seu effect() (aplica data-tema em <html>) — nenhum
-  // template lê este serviço diretamente.
-  private tema = inject(TemaService);
+  // Roda os effects que aplicam data-tema/data-modo em <html>; público porque o botão
+  // de alternar modo claro/escuro no cabeçalho lê/chama tema.modo()/alternarModo().
+  tema = inject(TemaService);
   private router = inject(Router);
 
   avatarUrlDe = avatarUrl;
