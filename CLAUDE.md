@@ -334,6 +334,61 @@ against a known-good source) — keep that distinction if you touch either:
 reconciliation always sets the true value, only the routine per-grant mirror
 uses `increment`.
 
+### Questionário Diário (added 2026-07-31)
+
+A daily bonus-XP quiz, gamification-adjacent but deliberately kept as its own
+small feature rather than folded into `GamificacaoService`'s reconciliation
+system (which is for atividade/disciplina/período completion tracking — this
+is a simple, one-shot, never-revoked grant, closer in shape to the login
+bonus than to activity completion).
+
+- `shared/questionario-westminster.ts` — static catalog of 92 questions
+  (`QuestaoQuiz[]`: `id`, `capitulo`, `pergunta`, `alternativas` (5, one
+  correct), `respostaCorreta`, `explicacao`), generated from a JSON file the
+  user supplied. That JSON arrived with corrupted encoding (UTF-8 bytes
+  double-decoded through Latin-1, plus a handful of characters that had lost
+  a byte entirely — e.g. "Ãxodo" → "Êxodo", a bare "Ã," → "É,", a lone "â" →
+  em dash "—" — un-recoverable from the byte pattern alone and fixed by
+  reading the intended Portuguese). If this catalog is ever regenerated from
+  a fresh source file, don't assume a blind `.encode('latin1').decode('utf8')`
+  round-trip is sufficient — verify a sample of entries by eye first.
+- `models.ts` `QuestionarioDiarioEstado` (`dia`, `questaoId`, `tentativas`,
+  `concluido`, `acertou`) lives as a single field, `Progresso.questionarioDiario`,
+  on the existing `progresso/{uid}` document — no new collection, no
+  `firestore.rules` change, since that document is already self/admin-only
+  read/write.
+- `QuizDiarioService` decides whether "today" already has a question assigned
+  by checking `questionarioDiario.dia` against today's local date — **not**
+  any session/localStorage flag. The very first time in a day that this
+  resolves to "no record yet," it picks a random question, persists
+  `{dia: hoje, ...}` immediately (so the choice is stable across reloads even
+  mid-answer), and opens the modal automatically. Once that record exists for
+  today (answered or not), the service never reopens the modal on its own
+  again that day — only `abrirModal()` (wired to the Dashboard's "pergunta
+  bônus" banner, shown while `disponivelHoje()`) does. This means "primeiro
+  acesso do dia" is resolved server-side/per-account, not per-browser-session
+  — the same account opened on a second device later the same day sees the
+  already-assigned question but does *not* get a second automatic popup.
+- Two attempts allowed (`TENTATIVAS_MAX = 2`); a correct answer grants
+  `XP_QUESTIONARIO_DIARIO = 30` XP once. Unlike activity/discipline XP, this
+  is **never revoked** — there's no "uncheck" action for a quiz answer, so
+  `GamificacaoService`'s reconciliation model doesn't apply here.
+- `GamificacaoService.registrarXpExtra(delta, motivo)` is a small public
+  method added specifically so `QuizDiarioService` (and any future
+  XP source outside the reconciliation system) can reuse the same
+  ledger-write + toast + level-up-check sequence every other XP grant in the
+  app already goes through, instead of duplicating that logic.
+- The catalog file is ~100KB — `QuizDiarioService` is injected eagerly by
+  root `App` (needs to offer the quiz regardless of which page loads first),
+  so it imports `questionario-westminster.ts` with a dynamic `import(...)`
+  the first time it's actually needed (existing record found for today, or a
+  new one about to be created), not a static top-level import. A static
+  import would put the whole catalog in the initial bundle for every user on
+  every page load, which blew the `angular.json` initial-bundle budget when
+  first tried — confirmed fixed by checking `dashboard`/`ranking`/etc. still
+  show as separate lazy chunks and `questionario-westminster` shows as its
+  own lazy chunk in `ng build` output.
+
 ### Service layer and how turma/período-scoping propagates
 
 - `services/firebase.ts` — the only place that calls `initializeApp`; exports

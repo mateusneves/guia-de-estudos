@@ -2,6 +2,9 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DisciplinasService } from '../../services/disciplinas.service';
 import { ProgressoService } from '../../services/progresso.service';
+import { AuthService } from '../../services/auth.service';
+import { GamificacaoService } from '../../services/gamificacao.service';
+import { avatarUrl } from '../../shared/avatar';
 import { Disciplina } from '../../models/models';
 
 @Component({
@@ -12,6 +15,26 @@ import { Disciplina } from '../../models/models';
       <div>
         <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Progresso do Semestre</h1>
         <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">Acompanhamento geral de avaliações e pontuação</p>
+      </div>
+
+      <!-- Cabeçalho de perfil -->
+      <div class="card flex items-center gap-5">
+        <img
+          [src]="avatarUrlDe(avatarSeed(), !!auth.perfil()?.avatarComBarba)"
+          alt="Seu avatar"
+          class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white shrink-0"
+          style="box-shadow: 0 4px 14px rgba(0,0,0,0.12);"
+        >
+        <div class="min-w-0">
+          <p class="text-lg md:text-xl font-bold text-[var(--cor-texto-principal)] truncate">{{ auth.perfil()?.nome }}</p>
+          <p class="text-sm mt-1 flex items-center gap-2" [style.color]="gamificacao.nivel().cor">
+            <i [class]="gamificacao.nivel().icone"></i>
+            <span class="font-medium">{{ gamificacao.nivel().titulo }}</span>
+          </p>
+          <p class="text-sm mt-2 text-[var(--cor-texto-secundario)]">
+            <span class="font-bold text-[var(--cor-texto-principal)]">{{ gamificacao.xp() }}</span> XP acumulado
+          </p>
+        </div>
       </div>
 
       <!-- Visão geral -->
@@ -237,7 +260,15 @@ import { Disciplina } from '../../models/models';
 })
 export class ProgressoComponent {
   private disciplinasService = inject(DisciplinasService);
+  auth = inject(AuthService);
+  gamificacao = inject(GamificacaoService);
   get disciplinas() { return this.disciplinasService.disciplinas(); }
+
+  avatarUrlDe = avatarUrl;
+
+  avatarSeed(): string {
+    return this.auth.perfil()?.avatarSeed || this.auth.usuario()?.uid || '';
+  }
 
   mensagemFeedback = signal('');
   tipoFeedback = signal<'sucesso' | 'erro'>('sucesso');

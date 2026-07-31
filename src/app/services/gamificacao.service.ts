@@ -411,6 +411,20 @@ export class GamificacaoService {
     await this.registrarMudancasDeNivel(xpAntes, xpAntes + deltaTotal);
   }
 
+  /**
+   * Concede XP a partir de uma fonte externa ao ciclo normal de reconciliação
+   * (atividade/disciplina/login) — hoje só QuizDiarioService (Questionário Diário) usa
+   * isso. Mesma sequência ledger+toast+verificação de nível que os demais grants já
+   * fazem internamente, exposta aqui como método público pra não duplicar essa lógica
+   * em cada novo serviço que precisar conceder XP.
+   */
+  async registrarXpExtra(delta: number, motivo: string): Promise<void> {
+    const xpAntes = this.xp();
+    await this.progressoService.registrarEventoXp(delta, motivo);
+    this.notificar(delta, motivo);
+    await this.registrarMudancasDeNivel(xpAntes, xpAntes + delta);
+  }
+
   private notificar(delta: number, motivo: string): void {
     const texto = delta !== 0 ? `${delta > 0 ? '+' : ''}${delta} XP — ${motivo}` : motivo;
     const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;

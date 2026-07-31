@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { DisciplinasService } from '../../services/disciplinas.service';
 import { ProgressoService } from '../../services/progresso.service';
 import { GamificacaoService, XP_POR_ATIVIDADE } from '../../services/gamificacao.service';
+import { QuizDiarioService, XP_QUESTIONARIO_DIARIO } from '../../services/quiz-diario.service';
 import { Avaliacao } from '../../models/models';
 import { AtividadeCardComponent, AtividadeCardVm } from '../../shared/atividade-card/atividade-card.component';
 
@@ -25,6 +26,25 @@ interface AulaDoDia {
         <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Dashboard</h1>
         <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">Bem-vindo ao seu guia de estudos — {{ nomesDia[diaSemanaAtual] }}</p>
       </div>
+
+      <!-- Questionário Diário pendente -->
+      @if (quizDiario.disponivelHoje()) {
+        <button
+          type="button"
+          (click)="quizDiario.abrirModal()"
+          class="w-full flex items-center gap-3 p-4 rounded-2xl border text-left transition-all hover:shadow-md"
+          style="background-color: var(--cor-card-fundo); border-color: var(--cor-borda-sutil);"
+        >
+          <span class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background-color: var(--cor-secundaria);">
+            <i class="fa-solid fa-book-bible text-white"></i>
+          </span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-semibold text-[var(--cor-texto-principal)]">Você tem uma pergunta bônus esperando</span>
+            <span class="block text-xs text-[var(--cor-texto-secundario)] mt-0.5">Responda o Questionário Diário e ganhe +{{ xpQuestionario }} XP</span>
+          </span>
+          <i class="fa-solid fa-chevron-right text-[var(--cor-texto-terciario)] shrink-0"></i>
+        </button>
+      }
 
       <!-- Gamificação -->
       <div class="card">
@@ -265,6 +285,8 @@ interface AulaDoDia {
 export class DashboardComponent {
   private disciplinasService = inject(DisciplinasService);
   gamificacao = inject(GamificacaoService);
+  quizDiario = inject(QuizDiarioService);
+  xpQuestionario = XP_QUESTIONARIO_DIARIO;
   gamificacaoExpandida = signal(false);
   get disciplinas() { return this.disciplinasService.disciplinas(); }
 

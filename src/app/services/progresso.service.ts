@@ -2,7 +2,7 @@ import { Injectable, NgZone, computed, effect, inject, signal } from '@angular/c
 import { addDoc, arrayRemove, arrayUnion, collection, doc, increment, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { AuthService } from './auth.service';
-import { Progresso } from '../models/models';
+import { Progresso, QuestionarioDiarioEstado } from '../models/models';
 
 const LEGACY_STORAGE_KEY = 'guia-estudos-conclusoes';
 const LEGACY_NOTAS_KEY = 'guia-estudos-notas';
@@ -19,7 +19,7 @@ export class ProgressoService {
   private authService = inject(AuthService);
   private ngZone = inject(NgZone);
 
-  private readonly _progresso = signal<Progresso>({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null });
+  private readonly _progresso = signal<Progresso>({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null, questionarioDiario: null });
   private unsub: (() => void) | null = null;
 
   // equal por conteúdo: snap.data() cria um array novo em toda leitura do Firestore,
@@ -31,6 +31,7 @@ export class ProgressoService {
   });
   readonly xp = computed(() => this._progresso().xp);
   readonly ultimoDiaXp = computed(() => this._progresso().ultimoDiaXp);
+  readonly questionarioDiario = computed(() => this._progresso().questionarioDiario ?? null);
 
   // false enquanto o valor acima é só o placeholder local (logout, ou login recém-feito
   // mas o onSnapshot real ainda não respondeu) — NUNCA reflete o Firestore de verdade
@@ -46,7 +47,7 @@ export class ProgressoService {
       const uid = this.authService.usuario()?.uid ?? null;
       this.unsub?.();
       this.unsub = null;
-      this._progresso.set({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null });
+      this._progresso.set({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null, questionarioDiario: null });
       this._carregado.set(false);
       if (!uid) return;
 
@@ -60,6 +61,7 @@ export class ProgressoService {
             notas: dados.notas ?? {},
             xp: xpNovo,
             ultimoDiaXp: dados.ultimoDiaXp ?? null,
+            questionarioDiario: dados.questionarioDiario ?? null,
           });
           this._carregado.set(true);
 
@@ -160,6 +162,16 @@ export class ProgressoService {
       delta: xpLogin,
       motivo: 'Login do dia',
     });
+  }
+
+  /** Substitui o estado do Questionário Diário inteiro — usado por QuizDiarioService.
+   * setDoc+merge com um objeto aninhado real (não chave com ponto) faz merge profundo
+   * correto no campo `questionarioDiario`, mesmo padrão já usado por outros estados
+   * aninhados no app (ver "Historical bugs" no CLAUDE.md sobre a armadilha de dot-notation). */
+  async salvarQuestionarioDiario(estado: QuestionarioDiarioEstado): Promise<void> {
+    const uid = this.authService.usuario()?.uid;
+    if (!uid) return;
+    await setDoc(doc(db, 'progresso', uid), { questionarioDiario: estado }, { merge: true });
   }
 
   exportar(): void {

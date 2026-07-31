@@ -5,7 +5,9 @@ import { TurmasService } from './services/turmas.service';
 import { PeriodosService } from './services/periodos.service';
 import { GamificacaoService } from './services/gamificacao.service';
 import { TemaService } from './services/tema.service';
+import { QuizDiarioService } from './services/quiz-diario.service';
 import { XpToastComponent } from './shared/xp-toast/xp-toast.component';
+import { QuizDiarioModalComponent } from './shared/quiz-diario-modal/quiz-diario-modal.component';
 import { avatarUrl } from './shared/avatar';
 
 interface NavItem {
@@ -16,7 +18,7 @@ interface NavItem {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, XpToastComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, XpToastComponent, QuizDiarioModalComponent],
   template: `
     @if (auth.logado()) {
       <div class="flex h-screen overflow-hidden bg-[var(--cor-fundo)] p-0 gap-0 md:p-6 md:gap-6">
@@ -152,6 +154,7 @@ interface NavItem {
         </div>
       </div>
       <app-xp-toast />
+      <app-quiz-diario-modal />
     } @else {
       <router-outlet />
     }
@@ -168,6 +171,10 @@ export class App {
   // Roda os effects que aplicam data-tema/data-modo em <html>; público porque o botão
   // de alternar modo claro/escuro no cabeçalho lê/chama tema.modo()/alternarModo().
   tema = inject(TemaService);
+  // Injetado aqui (não só na Dashboard) pra sortear/abrir a pergunta do dia assim que o
+  // app carrega, em qualquer página — não precisa ser público, <app-quiz-diario-modal>
+  // injeta o serviço direto.
+  private quizDiario = inject(QuizDiarioService);
   private router = inject(Router);
 
   avatarUrlDe = avatarUrl;

@@ -104,6 +104,20 @@ export interface Usuario {
   xp?: number;
 }
 
+/** Estado do Questionário Diário (added 2026-07-31) — um por dia local, dentro de `progresso/{uid}`
+ * (não numa coleção própria: é só mais um campo do documento que já é privado ao dono). `dia` é
+ * o que determina se o estado ainda vale "hoje" — um `dia` diferente do local atual é tratado como
+ * inexistente por QuizDiarioService, que sorteia e persiste uma questão nova. */
+export interface QuestionarioDiarioEstado {
+  dia: string;
+  questaoId: number;
+  /** tentativas erradas já usadas (máximo 2, ver TENTATIVAS_MAX em quiz-diario.service.ts). */
+  tentativas: number;
+  /** true quando acertou OU esgotou as tentativas — controla se o botão da Dashboard aparece. */
+  concluido: boolean;
+  acertou: boolean;
+}
+
 export interface Progresso {
   concluidas: string[];
   notas: Record<string, string>;
@@ -111,6 +125,8 @@ export interface Progresso {
   xp: number;
   /** Último dia (local, "AAAA-MM-DD") em que o XP de login diário já foi concedido — evita conceder duas vezes no mesmo dia. */
   ultimoDiaXp: string | null;
+  /** null até a primeira pergunta do dia ser sorteada (ver QuizDiarioService) — usuários antigos também não têm este campo até então. */
+  questionarioDiario?: QuestionarioDiarioEstado | null;
 }
 
 /** Estado de gamificação de um usuário dentro de um período específico — zera a cada novo período em curso. Doc id: "{uid}_{periodoId}". */
