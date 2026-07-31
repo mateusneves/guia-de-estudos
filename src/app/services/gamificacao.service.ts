@@ -5,10 +5,11 @@ import { AuthService } from './auth.service';
 import { PeriodosService } from './periodos.service';
 import { ProgressoService } from './progresso.service';
 import { Avaliacao, Disciplina, ProgressoPeriodo } from '../models/models';
-import { DefinicaoSelo, MARCOS_PROGRESSO, SELOS, nivelPorXp, proximoNivel, seloPorId } from '../shared/gamificacao-catalogo';
+import { DefinicaoSelo, MARCOS_PROGRESSO, NIVEIS, SELOS, nivelPorXp, proximoNivel, seloPorId } from '../shared/gamificacao-catalogo';
 
 const XP_LOGIN_DIARIO = 10;
-const XP_POR_ATIVIDADE = 50;
+// Exportado — app-atividade-card exibe esse valor por atividade (é fixo, não varia por atividade individual).
+export const XP_POR_ATIVIDADE = 50;
 const XP_POR_DISCIPLINA = 200;
 const XP_POR_SEMESTRE = 500;
 
@@ -234,6 +235,7 @@ export class GamificacaoService {
     const hoje = diaLocalDeHoje();
     if (this.progressoService.ultimoDiaXp() === hoje) return;
 
+    const xpAntes = this.xp();
     await this.progressoService.registrarLoginDoDia(hoje, XP_LOGIN_DIARIO);
     this.notificar(XP_LOGIN_DIARIO, 'Login do dia');
 
@@ -249,6 +251,45 @@ export class GamificacaoService {
       diasComLogin: increment(1),
       ...(Object.keys(novosSelos).length > 0 ? { selos: novosSelos } : {}),
     });
+
+    // Antes, essas 3 conquistas de frequência eram gravadas silenciosamente — nem toast
+    // nem linha no Histórico. Agora viram evento (0 XP) como qualquer outra conquista.
+    for (const id of Object.keys(novosSelos)) {
+      const selo = seloPorId(id);
+      if (!selo) continue;
+      await this.progressoService.registrarEventoXp(0, `Conquista desbloqueada: ${selo.titulo}`);
+      this.notificar(0, `Conquista desbloqueada: ${selo.titulo}`);
+    }
+
+    await this.registrarMudancasDeNivel(xpAntes, xpAntes + XP_LOGIN_DIARIO);
+  }
+
+  /**
+   * Detecta se o XP cruzou uma fronteira de nível (pra cima ou pra baixo, já que XP pode
+   * ser revogado) e grava um evento (0 XP, só informativo) no Histórico + toast pra cada
+   * nível cruzado — normalmente só um, mas cobre o caso raro de um lote de XP cruzar mais
+   * de um nível de uma vez. Recebe xpAntes/xpDepois calculados aritmeticamente pelo
+   * chamador (nunca relendo `this.xp()` depois de um `await`: o snapshot local do
+   * Firestore ecoa a própria escrita de forma assíncrona, então o valor "fresco" do sinal
+   * não é confiável logo após o await — ver "Historical bugs" no CLAUDE.md).
+   */
+  private async registrarMudancasDeNivel(xpAntes: number, xpDepois: number): Promise<void> {
+    if (xpAntes === xpDepois) return;
+    const nivelAntes = nivelPorXp(xpAntes);
+    const nivelDepois = nivelPorXp(xpDepois);
+    if (nivelAntes.nivel === nivelDepois.nivel) return;
+
+    const subindo = nivelDepois.nivel > nivelAntes.nivel;
+    const cruzados = NIVEIS
+      .filter(n => subindo
+        ? n.nivel > nivelAntes.nivel && n.nivel <= nivelDepois.nivel
+        : n.nivel < nivelAntes.nivel && n.nivel >= nivelDepois.nivel)
+      .sort((a, b) => subindo ? a.nivel - b.nivel : b.nivel - a.nivel);
+
+    for (const n of cruzados) {
+      await this.progressoService.registrarEventoXp(0, `Novo nível alcançado: ${n.titulo}`);
+      this.notificar(0, `Novo nível alcançado: ${n.titulo}`);
+    }
   }
 
   /**
@@ -301,6 +342,12 @@ export class GamificacaoService {
       && selosAdicionados.length === 0 && selosRemovidos.length === 0;
     if (nadaMudou) return;
 
+    // xpAntes + a soma dos deltas abaixo (nunca relendo this.xp() de novo depois de um
+    // await) é o que registrarMudancasDeNivel usa pra saber se este lote cruzou um nível
+    // — ver comentário desse método.
+    const xpAntes = this.xp();
+    let deltaTotal = 0;
+
     // Grava primeiro os campos "de estado" (bonificadas/selos) — os eventos de XP abaixo
     // usam registrarEventoXp (increment + ledger), independentes deste write.
     const selosPatch: Record<string, unknown> = {};
@@ -318,35 +365,50 @@ export class GamificacaoService {
       const titulo = av?.nome || av?.descricao || 'Atividade';
       await this.progressoService.registrarEventoXp(XP_POR_ATIVIDADE, `Atividade concluída: ${titulo}`);
       this.notificar(XP_POR_ATIVIDADE, `Atividade concluída: ${titulo}`);
+      deltaTotal += XP_POR_ATIVIDADE;
     }
     for (const id of atividadesRemovidas) {
       await this.progressoService.registrarEventoXp(-XP_POR_ATIVIDADE, 'Atividade desmarcada');
       this.notificar(-XP_POR_ATIVIDADE, 'Atividade desmarcada');
+      deltaTotal -= XP_POR_ATIVIDADE;
     }
     for (const id of disciplinasAdicionadas) {
       const nome = disciplinas.find(d => d.id === id)?.nome || 'Disciplina';
       await this.progressoService.registrarEventoXp(XP_POR_DISCIPLINA, `Disciplina concluída: ${nome}`);
       this.notificar(XP_POR_DISCIPLINA, `Disciplina concluída: ${nome}`);
+      deltaTotal += XP_POR_DISCIPLINA;
     }
     for (const id of disciplinasRemovidas) {
       const nome = disciplinas.find(d => d.id === id)?.nome || 'Disciplina';
       await this.progressoService.registrarEventoXp(-XP_POR_DISCIPLINA, `Disciplina não está mais concluída: ${nome}`);
       this.notificar(-XP_POR_DISCIPLINA, `Disciplina não está mais concluída: ${nome}`);
+      deltaTotal -= XP_POR_DISCIPLINA;
     }
     if (selosAdicionados.includes('progresso_100')) {
       await this.progressoService.registrarEventoXp(XP_POR_SEMESTRE, '100% do período concluído');
       this.notificar(XP_POR_SEMESTRE, '100% do período concluído');
+      deltaTotal += XP_POR_SEMESTRE;
     }
     if (selosRemovidos.includes('progresso_100')) {
       await this.progressoService.registrarEventoXp(-XP_POR_SEMESTRE, 'Período não está mais 100% concluído');
       this.notificar(-XP_POR_SEMESTRE, 'Período não está mais 100% concluído');
+      deltaTotal -= XP_POR_SEMESTRE;
     }
-    // Selos sem XP associado (marcos parciais de %) — ainda vale avisar o aluno.
+    // Toda conquista desbloqueada vira sua própria linha no Histórico (0 XP quando ela
+    // não carrega XP próprio — os 3 marcos acima já disparam seu próprio toast "+X XP",
+    // então só evitam um SEGUNDO toast redundante aqui; a linha no Histórico é gravada
+    // de qualquer forma, pra toda conquista aparecer lá).
     for (const id of selosAdicionados) {
-      if (id === 'progresso_100' || id === 'disciplina_concluida' || id === 'primeira_vitoria') continue;
       const selo = seloPorId(id);
-      if (selo) this.notificar(0, `Selo desbloqueado: ${selo.titulo}`);
+      if (!selo) continue;
+      await this.progressoService.registrarEventoXp(0, `Conquista desbloqueada: ${selo.titulo}`);
+      const jaTemToastProprio = id === 'progresso_100' || id === 'disciplina_concluida' || id === 'primeira_vitoria';
+      if (!jaTemToastProprio) {
+        this.notificar(0, `Conquista desbloqueada: ${selo.titulo}`);
+      }
     }
+
+    await this.registrarMudancasDeNivel(xpAntes, xpAntes + deltaTotal);
   }
 
   private notificar(delta: number, motivo: string): void {

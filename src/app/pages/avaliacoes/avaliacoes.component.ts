@@ -1,8 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { DisciplinasService } from '../../services/disciplinas.service';
 import { ProgressoService } from '../../services/progresso.service';
+import { XP_POR_ATIVIDADE } from '../../services/gamificacao.service';
 import { Avaliacao } from '../../models/models';
+import { AtividadeCardComponent, AtividadeCardVm } from '../../shared/atividade-card/atividade-card.component';
 
 type Filtro = 'todas' | 'pendentes' | 'concluidas' | 'sem-data';
 type Tipo = string;
@@ -14,7 +15,7 @@ interface AvaliacaoComDisciplina extends Avaliacao {
 
 @Component({
   selector: 'app-avaliacoes',
-  imports: [RouterLink],
+  imports: [AtividadeCardComponent],
   template: `
     <div class="p-6 max-w-5xl mx-auto space-y-6">
       <div>
@@ -67,62 +68,13 @@ interface AvaliacaoComDisciplina extends Avaliacao {
                 <span class="text-xs font-semibold text-[var(--cor-texto-secundario)] uppercase tracking-wider">{{ grupo.mes }}</span>
                 <div class="h-px flex-1 bg-[var(--cor-fundo-sutil-forte)]"></div>
               </div>
-              <div class="space-y-2">
+              <div class="space-y-3">
                 @for (av of grupo.avaliacoes; track av.id) {
-                  <div
-                    class="flex items-start gap-3 p-4 rounded-xl border transition-all group"
-                    [class.bg-green-50]="storage.isConcluida(av.id)"
-                    [class.border-green-100]="storage.isConcluida(av.id)"
-                    [class.shadow-sm]="!storage.isConcluida(av.id)"
-                    [style.background-color]="storage.isConcluida(av.id) ? null : 'var(--cor-card-fundo)'"
-                    [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-sutil)'"
-                  >
-                    <button
-                      (click)="storage.toggleConcluida(av.id)"
-                      class="mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
-                      [class.border-green-500]="storage.isConcluida(av.id)"
-                      [class.bg-green-500]="storage.isConcluida(av.id)"
-                      [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-media)'"
-                    >
-                      @if (storage.isConcluida(av.id)) {
-                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                        </svg>
-                      }
-                    </button>
-
-                    <div class="flex-1 min-w-0">
-                      <p
-                        class="text-sm font-medium leading-snug"
-                        [class.line-through]="storage.isConcluida(av.id)"
-                        [style.color]="storage.isConcluida(av.id) ? 'var(--cor-texto-terciario)' : 'var(--cor-texto-principal)'"
-                      >{{ av.nome || av.descricao }}</p>
-                      @if (av.nome && av.descricao) {
-                        <p class="text-xs text-[var(--cor-texto-secundario)] mt-0.5 leading-snug">{{ av.descricao }}</p>
-                      }
-                      <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                        <a [routerLink]="['/disciplinas', av.disciplinaId]"
-                           class="badge text-white text-xs hover:opacity-80 transition-opacity"
-                           [style.background-color]="av.disciplinaCor">
-                          {{ av.disciplinaNome }}
-                        </a>
-                        <span class="badge text-white text-xs" [style.background-color]="getCorTipo(av.tipo)">{{ labelTipo(av.tipo) }}</span>
-                        <span class="text-xs text-[var(--cor-texto-terciario)]">{{ av.pontos }} pts</span>
-                      </div>
-                    </div>
-
-                    <div class="shrink-0 text-right">
-                      <p
-                        class="text-sm font-bold"
-                        [class.text-rose-500]="isUrgente(av.data) && !storage.isConcluida(av.id)"
-                        [class.text-amber-500]="isEmBreve(av.data) && !isUrgente(av.data) && !storage.isConcluida(av.id)"
-                        [style.color]="(!isUrgente(av.data) && !isEmBreve(av.data) || storage.isConcluida(av.id)) ? 'var(--cor-texto-secundario)' : null"
-                      >{{ av.dataDisplay }}</p>
-                      @if (av.data && !storage.isConcluida(av.id)) {
-                        <p class="text-xs text-[var(--cor-texto-terciario)]">{{ getDiasRestantes(av.data) }}</p>
-                      }
-                    </div>
-                  </div>
+                  <app-atividade-card
+                    [atividade]="paraVm(av)"
+                    [linkDisciplina]="true"
+                    (concluidaChange)="storage.toggleConcluida(av.id)"
+                  />
                 }
               </div>
             </div>
@@ -138,49 +90,13 @@ interface AvaliacaoComDisciplina extends Avaliacao {
             <span class="text-xs font-semibold text-[var(--cor-texto-secundario)] uppercase tracking-wider">Contínuas / Sem data fixa</span>
             <div class="h-px flex-1 bg-[var(--cor-fundo-sutil-forte)]"></div>
           </div>
-          <div class="space-y-2">
+          <div class="space-y-3">
             @for (av of avaliacoesSemData(); track av.id) {
-              <div
-                class="flex items-start gap-3 p-4 rounded-xl border transition-all"
-                [class.bg-green-50]="storage.isConcluida(av.id)"
-                [class.border-green-100]="storage.isConcluida(av.id)"
-                [class.shadow-sm]="!storage.isConcluida(av.id)"
-                [style.background-color]="storage.isConcluida(av.id) ? null : 'var(--cor-card-fundo)'"
-                [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-sutil)'"
-              >
-                <button
-                  (click)="storage.toggleConcluida(av.id)"
-                  class="mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
-                  [class.border-green-500]="storage.isConcluida(av.id)"
-                  [class.bg-green-500]="storage.isConcluida(av.id)"
-                  [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-media)'"
-                >
-                  @if (storage.isConcluida(av.id)) {
-                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  }
-                </button>
-                <div class="flex-1 min-w-0">
-                  <p
-                    class="text-sm font-medium leading-snug"
-                    [class.line-through]="storage.isConcluida(av.id)"
-                    [style.color]="storage.isConcluida(av.id) ? 'var(--cor-texto-terciario)' : 'var(--cor-texto-principal)'"
-                  >{{ av.nome || av.descricao }}</p>
-                  @if (av.nome && av.descricao) {
-                    <p class="text-xs text-[var(--cor-texto-secundario)] mt-0.5 leading-snug">{{ av.descricao }}</p>
-                  }
-                  <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                    <span class="w-2 h-2 rounded-full shrink-0" [style.background-color]="av.disciplinaCor"></span>
-                    <a [routerLink]="['/disciplinas', av.disciplinaId]" class="text-xs text-[var(--cor-texto-secundario)] hover:text-[var(--cor-primaria)]">{{ av.disciplinaNome }}</a>
-                    <span class="badge text-white text-xs" [style.background-color]="getCorTipo(av.tipo)">{{ labelTipo(av.tipo) }}</span>
-                    <span class="text-xs text-[var(--cor-texto-terciario)]">{{ av.pontos }} pts</span>
-                  </div>
-                </div>
-                <div class="shrink-0">
-                  <p class="text-xs text-[var(--cor-texto-terciario)] text-right">{{ av.dataDisplay }}</p>
-                </div>
-              </div>
+              <app-atividade-card
+                [atividade]="paraVm(av)"
+                [linkDisciplina]="true"
+                (concluidaChange)="storage.toggleConcluida(av.id)"
+              />
             }
           </div>
         </div>
@@ -306,5 +222,25 @@ export class AvaliacoesComponent {
       declaracao: '#0891b2', tarefa: '#2563eb', atividade: '#2563eb',
     };
     return map[tipo] ?? '#64748b';
+  }
+
+  paraVm(av: AvaliacaoComDisciplina): AtividadeCardVm {
+    const concluida = this.storage.isConcluida(av.id);
+    return {
+      titulo: av.nome || av.descricao,
+      descricaoSecundaria: av.nome && av.descricao ? av.descricao : null,
+      concluida,
+      tipo: av.tipo,
+      tipoLabel: this.labelTipo(av.tipo),
+      tipoCor: this.getCorTipo(av.tipo),
+      pontos: av.pontos,
+      xp: XP_POR_ATIVIDADE,
+      dataDisplay: av.dataDisplay,
+      diasRestantes: av.data ? this.getDiasRestantes(av.data) : null,
+      urgencia: this.isUrgente(av.data) ? 'urgente' : this.isEmBreve(av.data) ? 'em-breve' : 'normal',
+      disciplinaId: av.disciplinaId,
+      disciplinaNome: av.disciplinaNome,
+      disciplinaCor: av.disciplinaCor,
+    };
   }
 }

@@ -2,8 +2,9 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DisciplinasService } from '../../services/disciplinas.service';
 import { ProgressoService } from '../../services/progresso.service';
-import { GamificacaoService } from '../../services/gamificacao.service';
+import { GamificacaoService, XP_POR_ATIVIDADE } from '../../services/gamificacao.service';
 import { Avaliacao } from '../../models/models';
+import { AtividadeCardComponent, AtividadeCardVm } from '../../shared/atividade-card/atividade-card.component';
 
 interface AulaDoDia {
   dia: string;
@@ -15,7 +16,7 @@ interface AulaDoDia {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink],
+  imports: [RouterLink, AtividadeCardComponent],
   template: `
     <div class="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
 
@@ -168,6 +169,27 @@ interface AulaDoDia {
               <p class="text-xs text-[var(--cor-texto-terciario)]">Aproveite para estudar!</p>
             </div>
           }
+
+          <!-- Próximo dia com aula — sempre o próximo dia da semana (a partir de amanhã) que tem algum horário cadastrado, mesmo que hoje também tenha aulas. -->
+          @if (proximoDiaComAula; as prox) {
+            <div class="mt-4 pt-4 border-t" style="border-color: var(--cor-borda-sutil);">
+              <p class="text-xs font-semibold uppercase tracking-wide text-[var(--cor-texto-terciario)] mb-3">{{ prox.label }}</p>
+              <div class="space-y-3">
+                @for (aula of prox.aulas; track aula.horario) {
+                  <div class="flex items-start gap-3 p-3 rounded-lg opacity-80 bg-[var(--cor-fundo-sutil)]">
+                    <span
+                      class="inline-flex items-center justify-center w-7 h-7 rounded-md text-white text-xs font-bold shrink-0"
+                      [style.background-color]="getCorDisciplina(aula.disciplinaId)"
+                    >{{ aula.modulo }}</span>
+                    <div class="min-w-0">
+                      <p class="text-sm font-medium text-[var(--cor-texto-principal)] leading-snug truncate">{{ getNomeCurto(aula.disciplina) }}</p>
+                      <p class="text-xs text-[var(--cor-texto-terciario)] mt-0.5">{{ aula.horario }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
         </div>
 
         <!-- Próximas entregas -->
@@ -177,59 +199,12 @@ interface AulaDoDia {
             <a routerLink="/avaliacoes" class="text-xs text-[var(--cor-primaria)] hover:underline">Ver todas</a>
           </div>
           @if (proximasAvaliacoes.length > 0) {
-            <div class="space-y-2">
+            <div class="space-y-3">
               @for (av of proximasAvaliacoes; track av.id) {
-                <div
-                  class="flex items-start gap-3 p-3 rounded-lg border transition-colors"
-                  [class.border-green-100]="progresso.isConcluida(av.id)"
-                  [class.bg-green-50]="progresso.isConcluida(av.id)"
-                  [style.border-color]="progresso.isConcluida(av.id) ? null : 'var(--cor-borda-sutil)'"
-                  [style.background-color]="progresso.isConcluida(av.id) ? null : 'var(--cor-fundo-sutil)'"
-                >
-                  <!-- Checkbox -->
-                  <button
-                    (click)="progresso.toggleConcluida(av.id)"
-                    class="mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
-                    [class.border-green-500]="progresso.isConcluida(av.id)"
-                    [class.bg-green-500]="progresso.isConcluida(av.id)"
-                    [style.border-color]="progresso.isConcluida(av.id) ? null : 'var(--cor-borda-media)'"
-                  >
-                    @if (progresso.isConcluida(av.id)) {
-                      <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                      </svg>
-                    }
-                  </button>
-
-                  <!-- Conteúdo — empilhado, sem bloco fixo na direita -->
-                  <div class="flex-1 min-w-0">
-                    <p
-                      class="text-sm font-medium leading-snug"
-                      [class.line-through]="progresso.isConcluida(av.id)"
-                      [style.color]="progresso.isConcluida(av.id) ? 'var(--cor-texto-terciario)' : 'var(--cor-texto-principal)'"
-                    >{{ av.nome || av.descricao }}</p>
-                    @if (av.nome && av.descricao) {
-                      <p class="text-xs text-[var(--cor-texto-secundario)] mt-0.5 leading-snug">{{ av.descricao }}</p>
-                    }
-                    <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <span
-                        class="inline-block w-2 h-2 rounded-full shrink-0"
-                        [style.background-color]="getCorDisciplina(av.disciplinaId)"
-                      ></span>
-                      <span class="text-xs text-[var(--cor-texto-secundario)]">{{ getNomeDisciplina(av.disciplinaId) }}</span>
-                      <span
-                        class="badge text-white"
-                        [style.background-color]="getCorTipo(av.tipo)"
-                      >{{ labelTipo(av.tipo) }}</span>
-                      <span
-                        class="text-xs font-semibold"
-                        [class.text-rose-500]="isUrgente(av.data)"
-                        [style.color]="isUrgente(av.data) ? null : 'var(--cor-texto-secundario)'"
-                      >{{ av.dataDisplay }}</span>
-                      <span class="text-xs text-[var(--cor-texto-terciario)]">· {{ av.pontos }} pts</span>
-                    </div>
-                  </div>
-                </div>
+                <app-atividade-card
+                  [atividade]="paraVm(av)"
+                  (concluidaChange)="progresso.toggleConcluida(av.id)"
+                />
               }
             </div>
           } @else {
@@ -315,6 +290,23 @@ export class DashboardComponent {
       .filter(a => a.dia === this.diaSemanaAtual);
   }
 
+  // Busca a partir de amanhã (offset 1) o próximo dia da semana com algum horário
+  // cadastrado — pode cair de volta no mesmo dia de hoje (offset 7) se esse for o
+  // único dia com aula, o que é correto: a próxima ocorrência é semana que vem.
+  get proximoDiaComAula(): { dia: string; label: string; aulas: AulaDoDia[] } | null {
+    const todasAulas = this.disciplinas
+      .flatMap(d => d.horarios.map(h => ({ ...h, disciplinaId: d.id, disciplina: d.nomeCompleto })));
+    const hojeIndex = new Date().getDay();
+    for (let offset = 1; offset <= 7; offset++) {
+      const dia = this.diasSemana[(hojeIndex + offset) % 7];
+      const aulas = todasAulas.filter(a => a.dia === dia);
+      if (aulas.length > 0) {
+        return { dia, label: offset === 1 ? 'Amanhã' : (this.nomesDia[dia] ?? dia), aulas };
+      }
+    }
+    return null;
+  }
+
   get totalDisciplinas() {
     return this.disciplinas.length;
   }
@@ -376,6 +368,16 @@ export class DashboardComponent {
     return diff < 7 * 24 * 60 * 60 * 1000;
   }
 
+  getDiasRestantes(data: string | null): string {
+    if (!data) return '';
+    const diff = new Date(data).getTime() - new Date().getTime();
+    if (diff < 0) return 'Vencida';
+    const dias = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    if (dias === 0) return 'Hoje!';
+    if (dias === 1) return 'Amanhã';
+    return `em ${dias} dias`;
+  }
+
   labelTipo(tipo: string): string {
     const map: Record<string, string> = {
       prova: 'Prova', trabalho: 'Trabalho', leitura: 'Leitura',
@@ -392,5 +394,25 @@ export class DashboardComponent {
       declaracao: '#0891b2', tarefa: '#2563eb', atividade: '#2563eb',
     };
     return map[tipo] ?? '#64748b';
+  }
+
+  paraVm(av: Avaliacao): AtividadeCardVm {
+    const concluida = this.progresso.isConcluida(av.id);
+    return {
+      titulo: av.nome || av.descricao,
+      descricaoSecundaria: av.nome && av.descricao ? av.descricao : null,
+      concluida,
+      tipo: av.tipo,
+      tipoLabel: this.labelTipo(av.tipo),
+      tipoCor: this.getCorTipo(av.tipo),
+      pontos: av.pontos,
+      xp: XP_POR_ATIVIDADE,
+      dataDisplay: av.dataDisplay,
+      diasRestantes: av.data ? this.getDiasRestantes(av.data) : null,
+      urgencia: this.isUrgente(av.data) ? 'urgente' : 'normal',
+      disciplinaId: av.disciplinaId,
+      disciplinaNome: this.getNomeDisciplina(av.disciplinaId),
+      disciplinaCor: this.getCorDisciplina(av.disciplinaId),
+    };
   }
 }

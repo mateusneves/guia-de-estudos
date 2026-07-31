@@ -254,6 +254,15 @@
   .barra-progresso {
     overflow: hidden;
   }
+
+  /* Realce sutil de borda no hover do card de atividade (app-atividade-card) — não dá
+     pra fazer isso com [style.border-color] porque um binding não reage a :hover, por
+     isso é uma classe CSS em vez de token inline como o resto do componente. Só se
+     aplica ao estado "não concluída" — o estado concluído (bg-green-50/border-green-100)
+     já tem identidade visual própria e não precisa de realce extra. */
+  .atividade-card:not(.border-green-100):hover {
+    border-color: var(--cor-borda-media);
+  }
 }
 
 /* Textura sutil de pergaminho/couro no tema medieval — só um leve gradiente, sem imagens. */

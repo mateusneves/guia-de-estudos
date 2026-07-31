@@ -200,6 +200,19 @@ knowing before touching it:
    `app.ts`, auto-dismissing after 5s) — added specifically so XP grants (and
    reversals) are immediately visible instead of a silent Firestore write,
    which had made a previous bug much harder to notice/diagnose.
+   As of 2026-07-31, `registrarEventoXp` also accepts `delta: 0` — used for
+   purely informational ledger entries that don't touch the XP counter at all
+   (every newly-unlocked selo, and every level crossed — see
+   `registrarMudancasDeNivel()`, which diffs `nivelPorXp(xpAntes)` against
+   `nivelPorXp(xpDepois)` computed *arithmetically* from the batch's summed
+   deltas, never by re-reading the `xp()` signal after an `await`, for the
+   same echo-timing reason described in "Historical bugs" below). `/historico`
+   renders `delta === 0` entries with a star-badge icon instead of a "+0 XP"
+   pill. This means an achievement that also carries XP (e.g. `progresso_100`,
+   `disciplina_concluida`) now produces **two** ledger lines — one for the XP
+   reason, one for the selo unlock — a deliberate small redundancy in exchange
+   for every conquista always being its own visible event, not just folded
+   into an XP-reason string.
 5. **Reentrancy guards** (`avaliarEmAndamento`/`loginEmAndamento` booleans) skip
    a new invocation while a previous `avaliarProgresso`/`registrarLoginDiario`
    call's writes haven't round-tripped back into `_progressoPeriodo` yet — see
@@ -589,9 +602,8 @@ confirmation, not a persistent page element, and reads fine either way.
 **Second exception, added 2026-07-11**: the "atividade concluída" card/checkbox
 fill (`bg-green-50`/`border-green-100`/`border-green-500`/`bg-green-500` —
 these 4 exact Tailwind classes are used *only* for this one feature across the
-whole app, in `dashboard`, `avaliacoes`, `progresso`, and `disciplina-detalhe`)
-does get rethemed in Medieval, by explicit user request to reuse the sidebar's
-own green rather than a generic success-green. `--cor-sucesso-fundo`/
+whole app) does get rethemed in Medieval, by explicit user request to reuse
+the sidebar's own green rather than a generic success-green. `--cor-sucesso-fundo`/
 `-borda-sutil`/`-borda` in `styles.css` hold this — the `padrao` values just
 mirror the Tailwind green-50/100/500 hex codes (so it's a visual no-op there),
 while the `medieval` values are computed with `color-mix()` directly off
@@ -604,6 +616,31 @@ component template. **Don't extend this pattern to `text-green-600`/
 `text-green-700`** — those two are shared with the unrelated "Em curso"/"Ativo"
 admin badges and the perfil success messages, which should stay literal per
 the rule above.
+
+**`app-atividade-card` (added 2026-07-31)**: `shared/atividade-card/atividade-card.component.ts`
+is the one shared, presentational rendering of a single avaliação as a full
+card (checkbox, "ATIVIDADE" eyebrow + type icon, título, 2-line-clamped
+descrição, a neutral points badge, and a bottom metadata row — tipo badge,
+disciplina, date/urgency, points again). It replaced three near-identical
+copies of this markup that had drifted slightly out of sync across
+`dashboard` ("Próximas Entregas"), `avaliacoes` (both the com-data and
+sem-data lists), and `disciplina-detalhe` ("Avaliações"). Each page still owns
+its own `labelTipo`/`getCorTipo`/`isUrgente`/`isEmBreve`/`getDiasRestantes`
+logic (unchanged, deliberately not centralized — only the *rendering* was
+duplicated, not this business logic) and just maps its `Avaliacao` into the
+component's `AtividadeCardVm` shape via a `paraVm()` method before handing it
+to `<app-atividade-card [atividade]="paraVm(av)">`. Two `@Input`s adapt it per
+page: `mostrarDisciplina` (false in `disciplina-detalhe`, already scoped to
+one disciplina) and `linkDisciplina` (true only in `avaliacoes`, where the
+disciplina metadata links to `/disciplinas/:id`). Still uses the same literal
+`bg-green-50`/`border-green-100`/`border-green-500`/`bg-green-500` classes
+from the exception above for the completed state — don't rename them, the
+Medieval/Moderno-dark overrides target those exact class names.
+`progresso.component.ts`'s per-disciplina avaliação list is a deliberate
+**non**-adopter — it's a compact nested row inside another `.card` (no
+border/shadow/padding of its own, smaller text, no points/description
+detail), a genuinely different, more compact context, not a 4th copy of the
+same card.
 
 **A recurring hazard hit repeatedly while converting dynamic `[class.x]="cond"`
 bindings to theme-token classes**: Angular's `[class.foo]` binding syntax

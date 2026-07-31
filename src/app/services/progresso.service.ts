@@ -114,11 +114,19 @@ export class ProgressoService {
    * (ex: desmarcar uma atividade tira de volta o XP que ela tinha dado). Também grava
    * o motivo em `progresso/{uid}/historico`, um ledger append-only usado tanto pelo
    * toast de "+X XP" quanto pela tela de Histórico.
+   *
+   * `delta` pode ser 0 — usado para eventos puramente informativos que não mexem no
+   * XP (conquista desbloqueada, mudança de nível), que ainda assim devem aparecer no
+   * Histórico. Só o `updateDoc` de XP é pulado nesse caso; o lançamento no ledger
+   * sempre acontece (por isso o guard antigo, que também pulava o registro quando
+   * `delta === 0`, foi removido).
    */
   async registrarEventoXp(delta: number, motivo: string): Promise<void> {
     const uid = this.authService.usuario()?.uid;
-    if (!uid || delta === 0) return;
-    await updateDoc(doc(db, 'progresso', uid), { xp: increment(delta) });
+    if (!uid) return;
+    if (delta !== 0) {
+      await updateDoc(doc(db, 'progresso', uid), { xp: increment(delta) });
+    }
     await addDoc(collection(db, 'progresso', uid, 'historico'), {
       data: new Date().toISOString(),
       delta,

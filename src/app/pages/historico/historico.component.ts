@@ -9,7 +9,7 @@ import { HistoricoService } from '../../services/historico.service';
 
       <div>
         <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Histórico de XP</h1>
-        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">Todo ponto de XP que você já ganhou (ou perdeu), com o motivo — seu XP é vitalício, então este histórico também é.</p>
+        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">Todo ponto de XP que você já ganhou (ou perdeu), toda conquista desbloqueada e toda mudança de nível — seu XP é vitalício, então este histórico também é.</p>
       </div>
 
       <div class="card">
@@ -24,15 +24,24 @@ import { HistoricoService } from '../../services/historico.service';
           <div class="divide-y divide-[var(--cor-borda-sutil)]">
             @for (ev of historico.eventos(); track ev.id) {
               <div class="flex items-center justify-between py-3 gap-3">
-                <div class="min-w-0">
-                  <p class="text-sm text-[var(--cor-texto-principal)] truncate">{{ ev.motivo }}</p>
-                  <p class="text-xs text-[var(--cor-texto-terciario)]">{{ formatarData(ev.data) }}</p>
+                <div class="flex items-center gap-3 min-w-0">
+                  @if (ev.delta === 0) {
+                    <span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background-color: #eab308;">
+                      <i class="fa-solid fa-star text-white text-sm"></i>
+                    </span>
+                  }
+                  <div class="min-w-0">
+                    <p class="text-sm text-[var(--cor-texto-principal)] truncate">{{ ev.motivo }}</p>
+                    <p class="text-xs text-[var(--cor-texto-terciario)]">{{ formatarData(ev.data) }}</p>
+                  </div>
                 </div>
-                <span
-                  class="text-sm font-semibold shrink-0"
-                  [class.text-emerald-600]="ev.delta >= 0"
-                  [class.text-rose-500]="ev.delta < 0"
-                >{{ ev.delta >= 0 ? '+' : '' }}{{ ev.delta }} XP</span>
+                @if (ev.delta !== 0) {
+                  <span
+                    class="text-sm font-semibold shrink-0"
+                    [class.text-emerald-600]="ev.delta > 0"
+                    [class.text-rose-500]="ev.delta < 0"
+                  >{{ ev.delta > 0 ? '+' : '' }}{{ ev.delta }} XP</span>
+                }
               </div>
             }
           </div>

@@ -2,11 +2,13 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DisciplinasService } from '../../services/disciplinas.service';
 import { ProgressoService } from '../../services/progresso.service';
+import { XP_POR_ATIVIDADE } from '../../services/gamificacao.service';
 import { Avaliacao, Disciplina } from '../../models/models';
+import { AtividadeCardComponent, AtividadeCardVm } from '../../shared/atividade-card/atividade-card.component';
 
 @Component({
   selector: 'app-disciplina-detalhe',
-  imports: [RouterLink],
+  imports: [RouterLink, AtividadeCardComponent],
   template: `
     @if (disciplina(); as d) {
       <div class="p-6 max-w-5xl mx-auto space-y-6">
@@ -67,61 +69,11 @@ import { Avaliacao, Disciplina } from '../../models/models';
                 </h2>
                 <div class="space-y-3">
                   @for (av of d.avaliacoes; track av.id) {
-                    <div
-                      class="flex items-start gap-3 p-3 rounded-xl border transition-all"
-                      [class.bg-green-50]="storage.isConcluida(av.id)"
-                      [class.border-green-100]="storage.isConcluida(av.id)"
-                      [style.background-color]="storage.isConcluida(av.id) ? null : 'var(--cor-fundo-sutil)'"
-                      [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-sutil)'"
-                    >
-                      <!-- Checkbox -->
-                      <button
-                        (click)="storage.toggleConcluida(av.id)"
-                        class="mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
-                        [class.hover:border-green-400]="!storage.isConcluida(av.id)"
-                        [class.border-green-500]="storage.isConcluida(av.id)"
-                        [class.bg-green-500]="storage.isConcluida(av.id)"
-                        [style.border-color]="storage.isConcluida(av.id) ? null : 'var(--cor-borda-media)'"
-                      >
-                        @if (storage.isConcluida(av.id)) {
-                          <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                          </svg>
-                        }
-                      </button>
-
-                      <!-- Content -->
-                      <div class="flex-1 min-w-0">
-                        <p
-                          class="text-sm font-medium leading-snug"
-                          [class.line-through]="storage.isConcluida(av.id)"
-                          [style.color]="storage.isConcluida(av.id) ? 'var(--cor-texto-terciario)' : 'var(--cor-texto-principal)'"
-                        >{{ av.nome || av.descricao }}</p>
-                        @if (av.nome && av.descricao) {
-                          <p class="text-xs text-[var(--cor-texto-secundario)] mt-0.5 leading-snug">{{ av.descricao }}</p>
-                        }
-                        <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                          <span
-                            class="badge text-white text-xs"
-                            [style.background-color]="getCorTipo(av.tipo)"
-                          >{{ labelTipo(av.tipo) }}</span>
-                          <span class="text-xs text-[var(--cor-texto-terciario)]">{{ av.pontos }} pontos</span>
-                        </div>
-                      </div>
-
-                      <!-- Data -->
-                      <div class="shrink-0 text-right">
-                        <p
-                          class="text-xs font-semibold"
-                          [class.text-rose-500]="isUrgente(av.data) && !storage.isConcluida(av.id)"
-                          [class.text-amber-500]="isEmBreve(av.data) && !isUrgente(av.data) && !storage.isConcluida(av.id)"
-                          [style.color]="(!isUrgente(av.data) && !isEmBreve(av.data) || storage.isConcluida(av.id)) ? 'var(--cor-texto-secundario)' : null"
-                        >{{ av.dataDisplay }}</p>
-                        @if (av.data && !storage.isConcluida(av.id)) {
-                          <p class="text-xs text-[var(--cor-texto-terciario)]">{{ getDiasRestantes(av.data) }}</p>
-                        }
-                      </div>
-                    </div>
+                    <app-atividade-card
+                      [atividade]="paraVm(av)"
+                      [mostrarDisciplina]="false"
+                      (concluidaChange)="storage.toggleConcluida(av.id)"
+                    />
                   }
                 </div>
               </div>
@@ -251,5 +203,25 @@ export class DisciplinaDetalheComponent {
       declaracao: '#0891b2', tarefa: '#2563eb', atividade: '#2563eb',
     };
     return map[tipo] ?? '#64748b';
+  }
+
+  paraVm(av: Avaliacao): AtividadeCardVm {
+    const concluida = this.storage.isConcluida(av.id);
+    return {
+      titulo: av.nome || av.descricao,
+      descricaoSecundaria: av.nome && av.descricao ? av.descricao : null,
+      concluida,
+      tipo: av.tipo,
+      tipoLabel: this.labelTipo(av.tipo),
+      tipoCor: this.getCorTipo(av.tipo),
+      pontos: av.pontos,
+      xp: XP_POR_ATIVIDADE,
+      dataDisplay: av.dataDisplay,
+      diasRestantes: av.data ? this.getDiasRestantes(av.data) : null,
+      urgencia: this.isUrgente(av.data) ? 'urgente' : this.isEmBreve(av.data) ? 'em-breve' : 'normal',
+      disciplinaId: null,
+      disciplinaNome: null,
+      disciplinaCor: null,
+    };
   }
 }
