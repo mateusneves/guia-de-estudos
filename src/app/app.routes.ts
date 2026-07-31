@@ -13,6 +13,7 @@ export const routes: Routes = [
   { path: 'avaliacoes', canActivate: [authGuard], loadComponent: () => import('./pages/avaliacoes/avaliacoes.component').then(m => m.AvaliacoesComponent) },
   { path: 'progresso', canActivate: [authGuard], loadComponent: () => import('./pages/progresso/progresso.component').then(m => m.ProgressoComponent) },
   { path: 'historico', canActivate: [authGuard], loadComponent: () => import('./pages/historico/historico.component').then(m => m.HistoricoComponent) },
+  { path: 'ranking', canActivate: [authGuard], loadComponent: () => import('./pages/ranking/ranking.component').then(m => m.RankingComponent) },
   { path: 'perfil', canActivate: [authGuard], loadComponent: () => import('./pages/perfil/perfil.component').then(m => m.PerfilComponent) },
 
   { path: 'admin/turmas', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/turmas/turmas-admin.component').then(m => m.TurmasAdminComponent) },

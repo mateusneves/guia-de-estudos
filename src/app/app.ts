@@ -212,6 +212,7 @@ export class App {
     { path: '/avaliacoes',  label: 'Atividades',       icon: 'fa-solid fa-list-check' },
     { path: '/progresso',   label: 'Progresso',        icon: 'fa-solid fa-chart-line' },
     { path: '/historico',   label: 'Histórico de XP',  icon: 'fa-solid fa-clock-rotate-left' },
+    { path: '/ranking',     label: 'Ranking',          icon: 'fa-solid fa-ranking-star' },
   ];
 
   adminNavItems: NavItem[] = [

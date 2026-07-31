@@ -9,10 +9,26 @@ import { Role, Usuario } from '../../../models/models';
   imports: [],
   template: `
     <div class="p-6 max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Usuários</h1>
-        <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">{{ usuarios.usuarios().length }} usuários cadastrados.</p>
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Usuários</h1>
+          <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">{{ usuarios.usuarios().length }} usuários cadastrados.</p>
+        </div>
+        <button
+          (click)="sincronizarXp()"
+          [disabled]="sincronizando()"
+          class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+          style="background-color: var(--cor-fundo-sutil); color: var(--cor-texto-secundario);"
+          title="Corrige o XP exibido no /ranking para usuários que ainda não logaram desde que essa sincronização foi ativada"
+        >
+          <i class="fa-solid fa-arrows-rotate" [class.fa-spin]="sincronizando()"></i>
+          {{ sincronizando() ? 'Sincronizando...' : 'Sincronizar XP do Ranking' }}
+        </button>
       </div>
+
+      @if (mensagemSincronizacao()) {
+        <p class="text-sm text-[var(--cor-texto-secundario)] bg-[var(--cor-fundo-sutil)] rounded-lg px-3 py-2">{{ mensagemSincronizacao() }}</p>
+      }
 
       <!-- Filtro por turma -->
       <div class="flex flex-wrap gap-2">
@@ -117,6 +133,8 @@ export class UsuariosAdminComponent {
 
   filtroTurma = signal<string | null>(null);
   erro = signal<string | null>(null);
+  sincronizando = signal(false);
+  mensagemSincronizacao = signal<string | null>(null);
 
   usuariosFiltrados(): Usuario[] {
     const turmaId = this.filtroTurma();
@@ -145,6 +163,23 @@ export class UsuariosAdminComponent {
       await this.usuarios.atualizar(u.uid, { ativo: !u.ativo });
     } catch (e) {
       this.erro.set(e instanceof Error ? `Não foi possível salvar: ${e.message}` : 'Não foi possível mudar o status.');
+    }
+  }
+
+  async sincronizarXp(): Promise<void> {
+    this.sincronizando.set(true);
+    this.mensagemSincronizacao.set(null);
+    try {
+      const atualizados = await this.usuarios.sincronizarXp();
+      this.mensagemSincronizacao.set(
+        atualizados > 0
+          ? `${atualizados} usuário(s) corrigido(s) — o Ranking já reflete o XP real.`
+          : 'Tudo já estava sincronizado.'
+      );
+    } catch (e) {
+      this.erro.set(e instanceof Error ? `Não foi possível sincronizar: ${e.message}` : 'Não foi possível sincronizar o XP.');
+    } finally {
+      this.sincronizando.set(false);
     }
   }
 }

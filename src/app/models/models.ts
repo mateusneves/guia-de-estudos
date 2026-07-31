@@ -96,6 +96,12 @@ export interface Usuario {
   avatarComBarba?: boolean;
   /** Código de autorização usado no cadastro (registro/auditoria) — não tem função depois de criada a conta. */
   codigoConvite?: string;
+  /** Espelho de progresso/{uid}.xp, mantido por ProgressoService a cada grant/revogação de XP.
+   * Existe só para a página /ranking: as regras do Firestore liberaram a leitura de usuarios/{uid}
+   * para colegas da mesma turma, mas progresso/{uid} continua restrito a self/admin (tem notas
+   * pessoais e a lista de atividades concluídas, que não devem ficar visíveis para colegas) — por
+   * isso o XP é replicado aqui em vez do ranking ler progresso/{uid} de cada colega diretamente. */
+  xp?: number;
 }
 
 export interface Progresso {

@@ -53,13 +53,25 @@ export class ProgressoService {
       this.unsub = onSnapshot(doc(db, 'progresso', uid), snap => this.ngZone.run(() => {
         if (snap.exists()) {
           const dados = snap.data() as Progresso;
+          const xpNovo = dados.xp ?? 0;
+          const xpAnterior = this._progresso().xp;
           this._progresso.set({
             concluidas: dados.concluidas ?? [],
             notas: dados.notas ?? {},
-            xp: dados.xp ?? 0,
+            xp: xpNovo,
             ultimoDiaXp: dados.ultimoDiaXp ?? null,
           });
           this._carregado.set(true);
+
+          // Espelha em usuarios/{uid}.xp sempre que o valor real muda em relação ao que
+          // este cliente já conhecia — cobre tanto a sincronização normal (registrarEventoXp/
+          // registrarLoginDoDia já fazem isso via increment) quanto o backfill de contas que
+          // já tinham XP acumulado ANTES desse espelho existir (o valor placeholder inicial é
+          // 0, então a primeira carga real já dispara este write com o valor correto). setDoc
+          // com o valor absoluto, não increment — aqui é reconciliação, não um novo grant.
+          if (xpNovo !== xpAnterior) {
+            setDoc(doc(db, 'usuarios', uid), { xp: xpNovo }, { merge: true }).catch(() => {});
+          }
         } else {
           this.criarDocInicial(uid).then(() => this._carregado.set(true));
         }
@@ -126,6 +138,9 @@ export class ProgressoService {
     if (!uid) return;
     if (delta !== 0) {
       await updateDoc(doc(db, 'progresso', uid), { xp: increment(delta) });
+      // Espelha em usuarios/{uid}.xp — é o que a página /ranking lê (ver comentário no
+      // model Usuario.xp: evita expor progresso/{uid} inteiro, com notas pessoais, a colegas).
+      await updateDoc(doc(db, 'usuarios', uid), { xp: increment(delta) });
     }
     await addDoc(collection(db, 'progresso', uid, 'historico'), {
       data: new Date().toISOString(),
@@ -139,6 +154,7 @@ export class ProgressoService {
     const uid = this.authService.usuario()?.uid;
     if (!uid) return;
     await updateDoc(doc(db, 'progresso', uid), { xp: increment(xpLogin), ultimoDiaXp: diaLocal });
+    await updateDoc(doc(db, 'usuarios', uid), { xp: increment(xpLogin) });
     await addDoc(collection(db, 'progresso', uid, 'historico'), {
       data: new Date().toISOString(),
       delta: xpLogin,

@@ -48,8 +48,14 @@ service cloud.firestore {
     }
 
     // Usuários: cada um lê/edita (parcialmente) o próprio perfil; admin gerencia todos.
+    // Leitura também liberada para colegas da mesma turma (não só self/admin) desde
+    // 2026-07-31, para a página /ranking — cada aluno precisa ler nome/avatar/xp dos
+    // demais da própria turma para montar a lista ordenada por XP. Isso também expõe
+    // email/role/ativo do documento inteiro aos colegas (regras do Firestore não fazem
+    // masking por campo) — aceitável numa turma pequena e já confiável entre si, mas é
+    // uma mudança real de superfície de exposição de dados, registrada aqui de propósito.
     match /usuarios/{uid} {
-      allow read: if logado() && (request.auth.uid == uid || souAdmin());
+      allow read: if logado() && (request.auth.uid == uid || souAdmin() || resource.data.turmaId == minhaTurma());
 
       // Cadastro (autocadastro): só o próprio usuário criando o próprio doc,
       // sempre como 'aluno', vinculado a uma turma existente, e só se o código de

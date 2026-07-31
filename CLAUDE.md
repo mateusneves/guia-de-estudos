@@ -283,6 +283,57 @@ misbehaves again:
   next login is a candidate for this same bug** if something downstream
   reconciles against it as ground truth rather than as "not yet known."
 
+### Ranking (added 2026-07-31)
+
+`/ranking` (`pages/ranking/ranking.component.ts`, `authGuard` only — every
+logged-in user, not just admin) lists every active user of the logged-in
+user's own turma sorted by lifetime XP descending, with avatar, nome, current
+nível (icon/color/title from `nivelPorXp()`, same catalog the Dashboard's
+gamification card uses), and XP total. Top 3 get a trophy badge (gold/silver/
+bronze) instead of a plain position number; the logged-in user's own row is
+highlighted (reuses the same `bg-green-50` "positive state" convention as
+elsewhere, see the theming section above).
+
+**`RankingService` reads `usuarios` (filtered by `turmaId`, sorted client-side
+by `xp` — no Firestore `orderBy`, so no composite index needed), not
+`progresso`.** This is deliberate: `progresso/{uid}` also holds a student's
+personal notes (`notas`) and completed-activity list (`concluidas`), and those
+must stay private between classmates — only `progresso/{uid}`'s owner and
+admins can read it, unchanged. Instead, `Usuario.xp` (models.ts) is a
+denormalized mirror of `progresso/{uid}.xp`, kept in sync by
+`ProgressoService.registrarEventoXp()`/`registrarLoginDoDia()` — both now also
+`updateDoc` `usuarios/{uid}` with the same `increment(delta)` right after (not
+batched/transactional with the `progresso` write; a moment of drift between
+the two on a slow connection is an acceptable trade-off for a display-only
+ranking, not something any invariant depends on). If you add another XP grant
+path, mirror it the same way or the ranking will silently drift stale for that
+path. This required broadening the `usuarios/{uid}` **read** rule to same-turma
+users (see "Security rules" below) — `RankingService` is only constructed when
+`/ranking` loads (not injected eagerly by root `App`), so like
+`DisciplinasService`/`UsuariosService` it doesn't need the `logado()`-gated
+resubscription pattern described under "Pitfall already hit once" below.
+
+**Backfill gap and its fix.** `usuarios/{uid}.xp` didn't exist before this
+feature, so accounts with XP earned pre-2026-07-31 initially showed 0/blank in
+the ranking — the mirror only reacted to *new* grants, it never retroactively
+copied the existing `progresso/{uid}.xp` total. Two fixes layered on top of
+each other: (1) `ProgressoService`'s `onSnapshot` handler now compares the
+freshly-loaded `xp` against what it previously held locally and, on any
+difference (including the very first load, where the placeholder was 0),
+`setDoc`s the absolute value into `usuarios/{uid}.xp` (merge, not increment —
+this is reconciliation, not a new grant) — this self-heals **the logged-in
+user's own** mirror the moment their session loads, no migration script
+needed for them. (2) That still leaves classmates who haven't logged in since
+stuck stale, since nobody else's session ever touches their doc — for those,
+`UsuariosService.sincronizarXp()` is an admin-only one-time action (button in
+`/admin/usuarios`, "Sincronizar XP do Ranking") that reads every user's
+`progresso/{uid}.xp` (allowed for admin per the existing read rule) and
+corrects `usuarios/{uid}.xp` to match. Both paths write the same field the
+same way (absolute `setDoc`/`updateDoc`, never `increment`, when reconciling
+against a known-good source) — keep that distinction if you touch either:
+reconciliation always sets the true value, only the routine per-grant mirror
+uses `increment`.
+
 ### Service layer and how turma/período-scoping propagates
 
 - `services/firebase.ts` — the only place that calls `initializeApp`; exports
@@ -784,7 +835,23 @@ itself), ownership is checked via a `uid` *field* inside the document
 (`resource.data.uid == request.auth.uid`) rather than the path segment. Rules
 are not deployed via CI — publish changes manually through the
 Firebase Console (Firestore → Rules) or `firebase deploy --only firestore:rules`
-(project id lives in `.firebaserc`).
+(project id lives in `.firebaserc`). **Any `firestore.rules` edit in this repo is
+inert until that manual step happens** — a change checked into git alone does
+nothing in production, so always call this out explicitly when a task touches
+the file (e.g. the `/ranking` read-rule broadening below).
+
+**`usuarios/{uid}` read rule broadened, 2026-07-31**: originally self/admin only;
+now also `resource.data.turmaId == minhaTurma()`, so any logged-in student can
+read any classmate's `usuarios` doc (needed for `/ranking`, see below). This is
+a real widening of what's exposed — the whole document is readable this way,
+including `email`/`role`/`ativo`/`codigoConvite`, not just the name/avatar/xp
+the UI actually renders (Firestore rules can't mask individual fields on read).
+Accepted as reasonable for a small, already-mutually-known class cohort; if
+that stops being true, the fix is a separate, deliberately-narrow public-profile
+document rather than loosening this rule further. `progresso/{uid}` (which has
+personal notes and the completed-activities list) was deliberately **not**
+similarly loosened — see the `Usuario.xp` field below for how the ranking gets
+XP without that.
 
 ### Invite-gated signup (added 2026-07-10)
 
