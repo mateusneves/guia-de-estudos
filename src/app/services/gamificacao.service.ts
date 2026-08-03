@@ -175,22 +175,30 @@ export class GamificacaoService {
     });
 
     // Login diário — concede XP/selo uma vez por dia local, quando tudo estiver carregado.
+    // A lógica de fato mora em tentarRegistrarLoginDiario(); chamá-la aqui dentro do
+    // effect() ainda registra periodoDoc()/carregado() como dependências normalmente —
+    // o rastreamento do Angular é por leitura durante a execução síncrona do efeito, não
+    // por posição léxica, então mover a leitura pra dentro do método não quebra isso (e
+    // esse mesmo método é reusado pelo listener de visibilitychange logo abaixo).
     effect(() => {
-      const periodoDoc = this._progressoPeriodo();
-      // Lido incondicionalmente antes de qualquer "return" abaixo — mesmo motivo do
-      // comentário no efeito de avaliação logo adiante: preserva o rastreamento de
-      // dependência do Angular mesmo quando a guarda faz um retorno antecipado.
-      const progressoCarregado = this.progressoService.carregado();
-      if (!periodoDoc || !progressoCarregado) return;
-      if (this.loginEmAndamento) return;
-      this.loginEmAndamento = true;
-      this.registrarLoginDiario(periodoDoc)
-        .catch(err => {
-          console.error('[Gamificação] falha ao registrar login diário:', err);
-          this.erro.set('Não foi possível registrar seu progresso de hoje.');
-        })
-        .finally(() => { this.loginEmAndamento = false; });
+      this.tentarRegistrarLoginDiario();
     });
+
+    // Sessão do Firebase Auth persiste indefinidamente por padrão (não é bug) — um
+    // usuário pode manter a aba aberta atravessando a virada do dia sem nunca recarregar
+    // a página. Como o effect acima só reage a mudança de sinal (período/progresso
+    // carregados), nada nele observa "o relógio virou meia-noite" sozinho — sem isto, o
+    // bônus de login do dia simplesmente nunca dispara pra quem não fecha/recarrega a
+    // aba. Reavalia também sempre que a aba volta a ficar visível (troca de aba, celular
+    // desbloqueado, janela reaberta) — idempotente, tentarRegistrarLoginDiario() já
+    // confere ultimoDiaXp() antes de conceder qualquer coisa.
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this.ngZone.run(() => this.tentarRegistrarLoginDiario());
+        }
+      });
+    }
 
     // Atividades/disciplinas/% do semestre — reavalia sempre que algo relevante mudar.
     effect(() => {
@@ -229,6 +237,25 @@ export class GamificacaoService {
         })
         .finally(() => { this.avaliarEmAndamento = false; });
     });
+  }
+
+  /** Lida com a reentrância e delega pra registrarLoginDiario() — chamado tanto pelo
+   * effect() reativo quanto pelo listener de visibilitychange (ver constructor). */
+  private tentarRegistrarLoginDiario(): void {
+    const periodoDoc = this._progressoPeriodo();
+    // Lido incondicionalmente antes de qualquer "return" abaixo — mesmo motivo do
+    // comentário no efeito de avaliação: preserva o rastreamento de dependência do
+    // Angular quando isto roda dentro do effect() acima, mesmo com um retorno antecipado.
+    const progressoCarregado = this.progressoService.carregado();
+    if (!periodoDoc || !progressoCarregado) return;
+    if (this.loginEmAndamento) return;
+    this.loginEmAndamento = true;
+    this.registrarLoginDiario(periodoDoc)
+      .catch(err => {
+        console.error('[Gamificação] falha ao registrar login diário:', err);
+        this.erro.set('Não foi possível registrar seu progresso de hoje.');
+      })
+      .finally(() => { this.loginEmAndamento = false; });
   }
 
   private async registrarLoginDiario(periodoDoc: ProgressoPeriodo): Promise<void> {

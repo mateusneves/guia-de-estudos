@@ -220,11 +220,13 @@ knowing before touching it:
 
 #### Historical bugs worth remembering
 
-Three separate bugs have hit this area in production so far (a runaway-XP
+Five separate bugs have hit this area in production so far (a runaway-XP
 incident that hit ~4.5 million before manual correction, a silent stop to all
-future grants, and a login-triggered false revoke that went negative) — all
-now fixed, but the failure modes are worth recognizing if something here
-misbehaves again:
+future grants, a login-triggered false revoke that went negative, a
+`firestore.rules` gap that silently zeroed out gamification for every
+non-admin account, and a "once per day" check with no trigger to notice a
+new day had started) — all now fixed, but the failure modes are worth
+recognizing if something here misbehaves again:
 
 - **`setDoc(..., {merge:true})` does not parse dot-notation string keys as
   nested paths** — only `updateDoc` does that. An earlier version wrote selo
@@ -282,6 +284,51 @@ misbehaves again:
   reset to a "safe-looking" default on logout before being reloaded on the
   next login is a candidate for this same bug** if something downstream
   reconciles against it as ground truth rather than as "not yet known."
+- **Referencing `resource.data` in a security rule for a document that might
+  not exist yet is an evaluation error, not `false` — and that error can be
+  silently absorbed by an unrelated `||` branch.** `progresso_periodo`'s
+  `read` rule was `resource.data.uid == request.auth.uid || souAdmin()`. The
+  very first time `GamificacaoService` evaluates a given (uid, período) pair,
+  the doc doesn't exist yet — `resource` is null, so `resource.data.uid`
+  errors. CEL's `||` only survives an error on one side if the *other* side
+  evaluates to `true`; for an admin account `souAdmin()` **is** true, so the
+  error got masked and reads kept working — for every "aluno" account
+  `souAdmin()` is false, so the error propagated and the entire read was
+  denied. Practical effect: every student's gamification (XP from logins,
+  activities, disciplines — all of it, not just the daily bonus) stayed
+  permanently at zero, because `GamificacaoService` could never even get past
+  checking "does my progresso_periodo doc exist?" to create it — and this was
+  invisible in dev/testing because the developer's own account is an admin,
+  which never hit the error path. Fixed by putting
+  `!exists(/databases/$(database)/documents/progresso_periodo/$(docId))`
+  first in the `||` chain — `exists()` is the sanctioned way to test for a
+  document's presence without touching `resource.data`, and once it's `true`
+  the rest of the OR short-circuits before ever erroring. **Any rule of the
+  shape `resource.data.field == x || someOtherCondition` on a collection
+  where documents get created lazily by the client (not pre-seeded) is a
+  candidate for this same bug** — reorder so an `exists()`/`!exists()` check
+  guards the `resource.data` access, and double-check newly-added rules
+  against a **non-admin** test account, since admin-shaped `||` branches
+  routinely hide exactly this class of error.
+- **Nothing in the app observes "the clock crossed midnight."** The daily
+  login-XP effect only reran when one of its *signal* dependencies changed
+  (`progresso_periodo` doc, `progressoService.carregado()`) — both of which
+  are set once per full page load and then sit still for as long as the tab
+  stays open. Firebase Auth sessions persist indefinitely by design (that's
+  correct, expected behavior, not a bug), so a user who never closes/reloads
+  the tab across a day boundary kept a perfectly valid session with a
+  `GamificacaoService` that had already run its one-time check *yesterday*
+  and had no reason to run it again — the daily bonus silently stopped
+  arriving for exactly the users least likely to notice (the ones who use the
+  app enough to leave it open). Fixed 2026-08-03: the login-check logic was
+  extracted into `tentarRegistrarLoginDiario()`, still called from the
+  reactive `effect()` as before, but *also* called from a `visibilitychange`
+  listener (tab regains focus/becomes visible again) registered in the same
+  constructor — cheap, no polling interval needed, and safe to call anytime
+  since it re-checks `ultimoDiaXp()` before granting anything. **Any
+  "once per day" check gated purely on reactive signals (not wall-clock
+  time) is a candidate for this same bug** — it needs an independent trigger
+  that doesn't require the page to reload to notice a new day has started.
 
 ### Ranking (added 2026-07-31)
 

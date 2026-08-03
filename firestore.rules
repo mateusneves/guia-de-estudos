@@ -114,8 +114,27 @@ service cloud.firestore {
     // login) — zera a cada novo período em curso, por isso é um doc separado de
     // "progresso" (que é vitalício). Doc id "{uid}_{periodoId}"; cada aluno só
     // lê/escreve o próprio, verificado pelo campo "uid" dentro do documento.
+    //
+    // A checagem `!exists(...)` no "read" é essencial, não estilo: pra um doc que AINDA
+    // não existe (todo aluno, na primeira vez que gamificação avalia um período novo),
+    // `resource` é null — referenciar `resource.data.uid` nesse caso é um ERRO de
+    // avaliação, não `false`. Erro em um operando do `||` só é "absorvido" se o OUTRO
+    // operando for `true` — o que só acontecia pra admins (`souAdmin()` verdadeiro
+    // mascarava o erro). Pra qualquer aluno normal, `souAdmin()` é false, o erro do lado
+    // esquerdo se propaga, e o `onSnapshot`/`get` inteiro falhava com permission-denied —
+    // GamificacaoService nunca conseguia nem checar "existe?" pra então criar o doc
+    // vazio, então TODA a gamificação (XP de login, de atividade, de disciplina, selos)
+    // ficava travada em zero pra qualquer aluno cujo progresso_periodo do período atual
+    // ainda não existisse. `!exists(...)` primeiro no OR faz o caminho "não existe ainda"
+    // sempre retornar true sem nunca chegar a ler `resource.data` (exists() não erra pra
+    // doc inexistente, é literalmente pra isso que serve) — só depois disso é seguro
+    // comparar `resource.data.uid` pra um doc que se sabe existir.
     match /progresso_periodo/{docId} {
-      allow read: if logado() && (resource.data.uid == request.auth.uid || souAdmin());
+      allow read: if logado() && (
+        !exists(/databases/$(database)/documents/progresso_periodo/$(docId)) ||
+        resource.data.uid == request.auth.uid ||
+        souAdmin()
+      );
       allow create: if logado() && request.resource.data.uid == request.auth.uid;
       allow update: if logado() && resource.data.uid == request.auth.uid;
     }
