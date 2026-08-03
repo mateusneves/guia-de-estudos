@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { QuizDiarioService, ResultadoResposta, XP_QUESTIONARIO_DIARIO } from '../../services/quiz-diario.service';
+import { QuizDiarioService, XP_QUESTIONARIO_DIARIO } from '../../services/quiz-diario.service';
 
 type EstadoLocal = 'pendente' | 'incorreto' | 'correto' | 'esgotado';
 
@@ -26,13 +26,21 @@ type EstadoLocal = 'pendente' | 'incorreto' | 'correto' | 'esgotado';
               </button>
             </div>
 
-            <p class="text-base font-semibold text-[var(--cor-texto-principal)] mb-4 leading-snug">{{ q.pergunta }}</p>
+            <p
+              class="text-lg font-semibold text-[var(--cor-texto-principal)] mb-3 leading-snug"
+              style="font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;"
+            >{{ q.pergunta }}</p>
+
+            <div class="mb-4 px-3 py-2 rounded-lg flex items-center gap-2" style="background-color: var(--cor-fundo-sutil);">
+              <i class="fa-solid fa-bolt text-xs" style="color: var(--cor-secundaria);"></i>
+              <p class="text-xs text-[var(--cor-texto-secundario)]">Resposta correta vale <strong class="text-[var(--cor-texto-principal)]">+{{ xp }} XP</strong></p>
+            </div>
 
             <div class="space-y-2">
               @for (alt of q.alternativas; track alt) {
                 <button
                   type="button"
-                  (click)="escolher(alt)"
+                  (click)="selecionar(alt)"
                   [disabled]="resultado() === 'correto' || resultado() === 'esgotado'"
                   class="w-full text-left px-4 py-3 rounded-xl border text-sm transition-colors disabled:cursor-default"
                   [style.background-color]="corFundo(alt)"
@@ -71,8 +79,15 @@ type EstadoLocal = 'pendente' | 'incorreto' | 'correto' | 'esgotado';
             } @else {
               <button
                 type="button"
+                (click)="confirmar()"
+                [disabled]="!selecionada() || confirmando()"
+                class="mt-4 w-full px-4 py-2.5 rounded-full text-sm font-medium text-white transition-colors disabled:opacity-40"
+                style="background-color: var(--cor-primaria);"
+              >{{ confirmando() ? 'Confirmando...' : 'Confirmar resposta' }}</button>
+              <button
+                type="button"
                 (click)="quiz.fecharModal()"
-                class="mt-4 w-full px-4 py-2 rounded-full text-xs font-medium text-[var(--cor-texto-secundario)] transition-colors hover:bg-[var(--cor-fundo-sutil)]"
+                class="mt-2 w-full px-4 py-2 rounded-full text-xs font-medium text-[var(--cor-texto-secundario)] transition-colors hover:bg-[var(--cor-fundo-sutil)]"
               >Responder depois</button>
             }
           </div>
@@ -87,12 +102,28 @@ export class QuizDiarioModalComponent {
 
   selecionada = signal<string | null>(null);
   resultado = signal<EstadoLocal>('pendente');
+  confirmando = signal(false);
 
-  async escolher(alt: string): Promise<void> {
+  /** Só marca a escolha — não envia nada ainda, precisa confirmar. Reabrir a seleção
+   * depois de uma resposta incorreta (ainda há tentativa) limpa o feedback anterior. */
+  selecionar(alt: string): void {
     if (this.resultado() === 'correto' || this.resultado() === 'esgotado') return;
     this.selecionada.set(alt);
-    const r: ResultadoResposta = await this.quiz.responder(alt);
-    this.resultado.set(r);
+    if (this.resultado() === 'incorreto') {
+      this.resultado.set('pendente');
+    }
+  }
+
+  async confirmar(): Promise<void> {
+    const alt = this.selecionada();
+    if (!alt || this.confirmando()) return;
+    this.confirmando.set(true);
+    try {
+      const r = await this.quiz.responder(alt);
+      this.resultado.set(r);
+    } finally {
+      this.confirmando.set(false);
+    }
   }
 
   corFundo(alt: string): string {
@@ -104,6 +135,7 @@ export class QuizDiarioModalComponent {
       if (alt === this.selecionada()) return '#fef2f2';
     }
     if (r === 'incorreto' && alt === this.selecionada()) return '#fef2f2';
+    if (r === 'pendente' && alt === this.selecionada()) return 'var(--cor-fundo-sutil-forte)';
     return 'var(--cor-fundo-sutil)';
   }
 
@@ -116,6 +148,7 @@ export class QuizDiarioModalComponent {
       if (alt === this.selecionada()) return '#fca5a5';
     }
     if (r === 'incorreto' && alt === this.selecionada()) return '#fca5a5';
+    if (r === 'pendente' && alt === this.selecionada()) return 'var(--cor-primaria)';
     return 'var(--cor-borda-sutil)';
   }
 }
