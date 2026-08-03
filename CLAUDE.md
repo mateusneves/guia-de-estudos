@@ -220,13 +220,14 @@ knowing before touching it:
 
 #### Historical bugs worth remembering
 
-Five separate bugs have hit this area in production so far (a runaway-XP
+Six separate bugs have hit this area in production so far (a runaway-XP
 incident that hit ~4.5 million before manual correction, a silent stop to all
 future grants, a login-triggered false revoke that went negative, a
 `firestore.rules` gap that silently zeroed out gamification for every
-non-admin account, and a "once per day" check with no trigger to notice a
-new day had started) — all now fixed, but the failure modes are worth
-recognizing if something here misbehaves again:
+non-admin account, a "once per day" check with no trigger to notice a new day
+had started, and a cache-vs-server race that silently reset real XP back to
+zero) — all now fixed, but the failure modes are worth recognizing if
+something here misbehaves again:
 
 - **`setDoc(..., {merge:true})` does not parse dot-notation string keys as
   nested paths** — only `updateDoc` does that. An earlier version wrote selo
@@ -329,6 +330,49 @@ recognizing if something here misbehaves again:
   "once per day" check gated purely on reactive signals (not wall-clock
   time) is a candidate for this same bug** — it needs an independent trigger
   that doesn't require the page to reload to notice a new day has started.
+- **A Firestore `onSnapshot`'s first emission can come from local cache and
+  say "doesn't exist" even when the document is real on the server** —
+  `snap.exists() === false` is not proof of absence, only `snap.exists() ===
+  false && !snap.metadata.fromCache` is. `ProgressoService`'s listener on
+  `progresso/{uid}` treated any `!snap.exists()` as "brand-new account, seed
+  it," calling `criarDocInicial()` — which does `setDoc(..., {xp: 0,
+  ultimoDiaXp: null}, {merge: true})`. On a browser/profile whose local
+  IndexedDB persistence had never cached that specific document yet (new
+  device, cleared site data, or just an unlucky first-snapshot timing), the
+  cache-only "not found" fired first and got treated as ground truth — the
+  merge write then **clobbered a real, existing, much larger `xp` total back
+  to 0** on the server, seconds before the real server snapshot would have
+  arrived and proven the doc existed all along. Symptom reported by the user:
+  reloading the app "lost" XP that the `historico` ledger still fully
+  accounted for (the ledger write only happens inside `registrarEventoXp`/
+  `registrarLoginDoDia`, never inside `criarDocInicial`, so the ledger stayed
+  correct while the `xp` field itself got reset — comparing the two is what
+  exposed this). Fixed by only calling `criarDocInicial()` when `!snap.exists()
+  && !snap.metadata.fromCache` — a cache-only negative result now does
+  nothing and waits for the next (server) snapshot before deciding.
+  **Any code that reacts to "document doesn't exist" from an `onSnapshot`
+  callback by creating/overwriting data is a candidate for this same bug** —
+  check `snap.metadata.fromCache` before trusting a negative existence result,
+  the same way `carregado`/"not yet known" gating is already required
+  elsewhere in this file for the analogous "signal hasn't loaded yet" case.
+
+**Recovery tool added alongside these fixes (2026-08-03):** because the
+`progresso_periodo` permission bug and the cache-clobber bug above could
+independently have reset or suppressed XP for an unknown subset of accounts
+before either was caught, `/admin/usuarios` gained a **"Zerar XP de todos"**
+button (`UsuariosService.zerarXpDeTodos()`) — a manual, confirmation-gated
+action that sets every user's `progresso/{uid}.xp` and the `usuarios/{uid}.xp`
+mirror to 0 and appends one `historico` entry per affected user (delta
+`-xpAtual`, motivo explaining the reset) so the ledger stays a complete,
+honest record rather than silently jumping to zero. It deliberately does
+**not** touch `progresso_periodo` (selos, `atividadesBonificadas`,
+`disciplinasBonificadas`, `diasComLogin`) — clearing those would make
+`avaliarProgresso()`'s next reconciliation re-pay every already-completed
+atividade/disciplina from scratch, which would silently undo the reset. This
+required loosening `firestore.rules`: `progresso/{uid}` `update` and its
+`historico` subcollection's `create` now also allow `souAdmin()` (previously
+strictly self-only, "admin só lê") — a deliberate, narrow expansion for this
+one administrative correction path, not a general opening.
 
 ### Ranking (added 2026-07-31)
 
@@ -930,10 +974,14 @@ doc but only with `role: 'aluno'`; only an existing admin can change `role`,
 `turmaId`, or `ativo` on any user; disciplinas/avaliacoes reads require the
 caller's `turmaId` to match the `turmaId` of the período the document belongs to
 (checked via a `get()` on `periodos/{periodoId}` inside the rule — see
-`turmaDoPeriodo()`), or the caller is admin; `progresso/{uid}` is writable only by
-that uid. `progresso_periodo/{docId}` uses the same "writable only by its owner"
-shape, but since its doc id is a composite (`${uid}_${periodoId}`, not the uid
-itself), ownership is checked via a `uid` *field* inside the document
+`turmaDoPeriodo()`), or the caller is admin; `progresso/{uid}` is created only by
+that uid, and updated by that uid **or an admin** (the admin branch was added
+2026-08-03 specifically for `/admin/usuarios`'s XP-reset tool — see
+"Historical bugs" under Gamificação — it's a narrow correction path, not
+general admin write access to student data). `progresso_periodo/{docId}` uses
+the same "writable only by its owner" shape for `create`/`update` (no admin
+branch there), but since its doc id is a composite (`${uid}_${periodoId}`,
+not the uid itself), ownership is checked via a `uid` *field* inside the document
 (`resource.data.uid == request.auth.uid`) rather than the path segment. Rules
 are not deployed via CI — publish changes manually through the
 Firebase Console (Firestore → Rules) or `firebase deploy --only firestore:rules`

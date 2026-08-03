@@ -97,16 +97,23 @@ service cloud.firestore {
       allow update, delete: if souAdmin();
     }
 
-    // Progresso: cada aluno só lê/escreve o próprio; admin só lê (acompanhamento).
+    // Progresso: cada aluno lê/escreve o próprio; admin lê tudo (acompanhamento) e, desde
+    // 2026-08-03, também pode ATUALIZAR (não criar) — usado pela ação administrativa de
+    // zerar o XP de todos em /admin/usuarios (correção pontual, não uma abertura geral;
+    // "create" continua só do próprio dono, o doc inicial de cada aluno nasce só no
+    // primeiro login dele, nunca criado por outra pessoa).
     match /progresso/{uid} {
       allow read: if logado() && (request.auth.uid == uid || souAdmin());
       allow create: if logado() && request.auth.uid == uid;
-      allow update: if logado() && request.auth.uid == uid;
+      allow update: if logado() && (request.auth.uid == uid || souAdmin());
 
-      // Ledger de XP (append-only) — cada aluno só lê/cria o próprio, nunca edita/apaga um lançamento já feito.
+      // Ledger de XP (append-only) — cada aluno lê/cria o próprio; admin também lê tudo e,
+      // pelo mesmo motivo acima, pode CRIAR um lançamento (nunca editar/apagar um já feito)
+      // em nome de outro usuário — é assim que a ação de reset registra a correção no
+      // histórico de cada um.
       match /historico/{eventoId} {
         allow read: if logado() && (request.auth.uid == uid || souAdmin());
-        allow create: if logado() && request.auth.uid == uid;
+        allow create: if logado() && (request.auth.uid == uid || souAdmin());
       }
     }
 

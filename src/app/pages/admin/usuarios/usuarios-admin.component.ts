@@ -14,20 +14,57 @@ import { Role, Usuario } from '../../../models/models';
           <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Usuários</h1>
           <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">{{ usuarios.usuarios().length }} usuários cadastrados.</p>
         </div>
-        <button
-          (click)="sincronizarXp()"
-          [disabled]="sincronizando()"
-          class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
-          style="background-color: var(--cor-fundo-sutil); color: var(--cor-texto-secundario);"
-          title="Corrige o XP exibido no /ranking para usuários que ainda não logaram desde que essa sincronização foi ativada"
-        >
-          <i class="fa-solid fa-arrows-rotate" [class.fa-spin]="sincronizando()"></i>
-          {{ sincronizando() ? 'Sincronizando...' : 'Sincronizar XP do Ranking' }}
-        </button>
+        <div class="flex flex-wrap gap-2">
+          <button
+            (click)="sincronizarXp()"
+            [disabled]="sincronizando()"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+            style="background-color: var(--cor-fundo-sutil); color: var(--cor-texto-secundario);"
+            title="Corrige o XP exibido no /ranking para usuários que ainda não logaram desde que essa sincronização foi ativada"
+          >
+            <i class="fa-solid fa-arrows-rotate" [class.fa-spin]="sincronizando()"></i>
+            {{ sincronizando() ? 'Sincronizando...' : 'Sincronizar XP do Ranking' }}
+          </button>
+          <button
+            (click)="confirmarZerarXp.set(true)"
+            [disabled]="zerandoXp()"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 transition-colors disabled:opacity-50 hover:bg-rose-50"
+            style="background-color: var(--cor-fundo-sutil);"
+            title="Zera o XP vitalício de todos os usuários e registra isso no histórico de cada um"
+          >
+            <i class="fa-solid fa-rotate-left" [class.fa-spin]="zerandoXp()"></i>
+            {{ zerandoXp() ? 'Zerando...' : 'Zerar XP de todos' }}
+          </button>
+        </div>
       </div>
 
       @if (mensagemSincronizacao()) {
         <p class="text-sm text-[var(--cor-texto-secundario)] bg-[var(--cor-fundo-sutil)] rounded-lg px-3 py-2">{{ mensagemSincronizacao() }}</p>
+      }
+
+      @if (mensagemZerarXp()) {
+        <p class="text-sm text-[var(--cor-texto-secundario)] bg-[var(--cor-fundo-sutil)] rounded-lg px-3 py-2">{{ mensagemZerarXp() }}</p>
+      }
+
+      @if (confirmarZerarXp()) {
+        <div class="p-4 rounded-lg border border-rose-200 bg-rose-50">
+          <p class="text-sm font-semibold text-rose-800 mb-1">Zerar o XP vitalício de TODOS os usuários?</p>
+          <p class="text-xs text-rose-700 mb-3">
+            Isso zera o XP e o espelho usado pelo Ranking de cada usuário, registrando a correção no
+            Histórico de cada um (o extrato antigo continua lá, só ganha uma linha nova). Selos e conquistas já
+            desbloqueados não são afetados. Essa ação não pode ser desfeita automaticamente.
+          </p>
+          <div class="flex gap-2">
+            <button
+              (click)="zerarXpDeTodos()"
+              class="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-medium hover:bg-rose-700 transition-colors"
+            >Sim, zerar o XP de todos</button>
+            <button
+              (click)="confirmarZerarXp.set(false)"
+              class="px-3 py-1.5 bg-[var(--cor-fundo-sutil)] border border-[var(--cor-borda-media)] text-[var(--cor-texto-secundario)] rounded-lg text-xs font-medium hover:bg-[var(--cor-fundo-sutil)] transition-colors"
+            >Cancelar</button>
+          </div>
+        </div>
       }
 
       <!-- Filtro por turma -->
@@ -135,6 +172,9 @@ export class UsuariosAdminComponent {
   erro = signal<string | null>(null);
   sincronizando = signal(false);
   mensagemSincronizacao = signal<string | null>(null);
+  confirmarZerarXp = signal(false);
+  zerandoXp = signal(false);
+  mensagemZerarXp = signal<string | null>(null);
 
   usuariosFiltrados(): Usuario[] {
     const turmaId = this.filtroTurma();
@@ -180,6 +220,24 @@ export class UsuariosAdminComponent {
       this.erro.set(e instanceof Error ? `Não foi possível sincronizar: ${e.message}` : 'Não foi possível sincronizar o XP.');
     } finally {
       this.sincronizando.set(false);
+    }
+  }
+
+  async zerarXpDeTodos(): Promise<void> {
+    this.confirmarZerarXp.set(false);
+    this.zerandoXp.set(true);
+    this.mensagemZerarXp.set(null);
+    try {
+      const afetados = await this.usuarios.zerarXpDeTodos();
+      this.mensagemZerarXp.set(
+        afetados > 0
+          ? `XP zerado para ${afetados} usuário(s) — cada um ganhou uma linha no próprio Histórico explicando a correção.`
+          : 'Ninguém tinha XP para zerar.'
+      );
+    } catch (e) {
+      this.erro.set(e instanceof Error ? `Não foi possível zerar o XP: ${e.message}` : 'Não foi possível zerar o XP.');
+    } finally {
+      this.zerandoXp.set(false);
     }
   }
 }

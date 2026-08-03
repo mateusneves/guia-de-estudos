@@ -74,7 +74,17 @@ export class ProgressoService {
           if (xpNovo !== xpAnterior) {
             setDoc(doc(db, 'usuarios', uid), { xp: xpNovo }, { merge: true }).catch(() => {});
           }
-        } else {
+        } else if (!snap.metadata.fromCache) {
+          // Só cria o doc inicial quando o SERVIDOR confirma que ele realmente não existe.
+          // Um snapshot que vem só do cache local reportando "não existe" (snap.metadata.
+          // fromCache === true) pode só significar que este navegador/dispositivo nunca
+          // cacheou o doc ainda (perfil novo, cache limpo, primeira vez neste aparelho) —
+          // não que ele não existe de verdade no servidor. Agir sobre isso cedo demais foi
+          // exatamente o que apagou XP real: criarDocInicial() usa setDoc+merge com
+          // `xp: 0, ultimoDiaXp: null`, que SOBRESCREVE esses campos mesmo quando o
+          // documento real (ainda não sincronizado neste cache) tinha um total maior.
+          // Esperar o snapshot vindo do servidor evita agir sobre um "ainda não sei",
+          // mesmo padrão já usado em outros lugares deste serviço (ver `carregado`).
           this.criarDocInicial(uid).then(() => this._carregado.set(true));
         }
       }));
