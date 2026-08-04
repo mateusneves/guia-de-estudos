@@ -306,10 +306,17 @@ export class DashboardComponent {
     return this.diasSemana[new Date().getDay()];
   }
 
+  // Ordena por módulo (M1, M2, M3...) em vez da ordem "de chegada" das disciplinas —
+  // comparação numérica pra "M10" não vir antes de "M2" caso a turma cresça além de M9.
+  private ordenarPorModulo(aulas: AulaDoDia[]): AulaDoDia[] {
+    return [...aulas].sort((a, b) => a.modulo.localeCompare(b.modulo, undefined, { numeric: true }));
+  }
+
   get aulasHoje(): AulaDoDia[] {
-    return this.disciplinas
+    const aulas = this.disciplinas
       .flatMap(d => d.horarios.map(h => ({ ...h, disciplinaId: d.id, disciplina: d.nomeCompleto })))
       .filter(a => a.dia === this.diaSemanaAtual);
+    return this.ordenarPorModulo(aulas);
   }
 
   // Busca a partir de amanhã (offset 1) o próximo dia da semana com algum horário
@@ -323,7 +330,7 @@ export class DashboardComponent {
       const dia = this.diasSemana[(hojeIndex + offset) % 7];
       const aulas = todasAulas.filter(a => a.dia === dia);
       if (aulas.length > 0) {
-        return { dia, label: offset === 1 ? 'Amanhã' : (this.nomesDia[dia] ?? dia), aulas };
+        return { dia, label: offset === 1 ? 'Amanhã' : (this.nomesDia[dia] ?? dia), aulas: this.ordenarPorModulo(aulas) };
       }
     }
     return null;

@@ -180,7 +180,10 @@ export class HorarioComponent {
   }
 
   getAulasDia(dia: string): AulaDoDia[] {
-    return this.todasAulas.filter(a => a.dia === dia);
+    // Ordena por módulo (M1, M2, M3...) — comparação numérica pra "M10" não vir antes de "M2".
+    return this.todasAulas
+      .filter(a => a.dia === dia)
+      .sort((a, b) => a.modulo.localeCompare(b.modulo, undefined, { numeric: true }));
   }
 
   get listaHorario(): AulaDoDia[] {
