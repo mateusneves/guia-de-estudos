@@ -6,10 +6,16 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="icons/icon-96x96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
   <link rel="manifest" href="site.webmanifest">
+  <!-- iOS Safari não instala a partir só do manifest — precisa destas meta tags pra
+       "Adicionar à Tela de Início" abrir em modo standalone (sem chrome do navegador)
+       usando o apple-touch-icon acima como ícone. -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Guia Estudos">
   <script>
     (function(l) {
       if (l.search[1] === '/') {
