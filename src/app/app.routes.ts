@@ -14,6 +14,7 @@ export const routes: Routes = [
   { path: 'progresso', canActivate: [authGuard], loadComponent: () => import('./pages/progresso/progresso.component').then(m => m.ProgressoComponent) },
   { path: 'historico', canActivate: [authGuard], loadComponent: () => import('./pages/historico/historico.component').then(m => m.HistoricoComponent) },
   { path: 'ranking', canActivate: [authGuard], loadComponent: () => import('./pages/ranking/ranking.component').then(m => m.RankingComponent) },
+  { path: 'avisos', canActivate: [authGuard], loadComponent: () => import('./pages/avisos/avisos.component').then(m => m.AvisosComponent) },
   { path: 'perfil', canActivate: [authGuard], loadComponent: () => import('./pages/perfil/perfil.component').then(m => m.PerfilComponent) },
 
   { path: 'admin/turmas', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin/turmas/turmas-admin.component').then(m => m.TurmasAdminComponent) },

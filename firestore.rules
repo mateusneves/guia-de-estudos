@@ -136,6 +136,14 @@ service cloud.firestore {
     // sempre retornar true sem nunca chegar a ler `resource.data` (exists() não erra pra
     // doc inexistente, é literalmente pra isso que serve) — só depois disso é seguro
     // comparar `resource.data.uid` pra um doc que se sabe existir.
+    // Quadro de avisos: leitura para qualquer autenticado da mesma turma do aviso;
+    // postar/excluir só admin, e só avisos da própria turma dele (nunca de outra).
+    match /avisos/{avisoId} {
+      allow read: if logado() && resource.data.turmaId == minhaTurma();
+      allow create: if souAdmin() && request.resource.data.turmaId == minhaTurma();
+      allow delete: if souAdmin() && resource.data.turmaId == minhaTurma();
+    }
+
     match /progresso_periodo/{docId} {
       allow read: if logado() && (
         !exists(/databases/$(database)/documents/progresso_periodo/$(docId)) ||

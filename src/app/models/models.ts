@@ -136,6 +136,23 @@ export interface Progresso {
   questionarioDiario?: QuestionarioDiarioEstado | null;
   /** Links pessoais por disciplina, mesmo esquema de chave que `notas`. Ausente em docs antigos. */
   linksUteis?: Record<string, LinkUtil[]>;
+  /** ISO do aviso mais recente que este usuário já visualizou em /avisos — null/ausente
+   * significa "nunca visitou" (todo aviso existente conta como não visto). Usado só para
+   * decidir o indicador de "novo aviso" na Dashboard, não controla acesso a nada. */
+  ultimoAvisoVistoEm?: string | null;
+}
+
+/** Um aviso postado por um administrador para todos os usuários da própria turma —
+ * "Quadro de Avisos" (/avisos). Não é escopado por período (como `progresso`): um
+ * aviso permanece visível independente da virada de semestre, só some se o admin excluir. */
+export interface Aviso {
+  id: string;
+  turmaId: string;
+  titulo: string;
+  mensagem: string;
+  autorNome: string;
+  /** ISO. */
+  criadoEm: string;
 }
 
 /** Estado de gamificação de um usuário dentro de um período específico — zera a cada novo período em curso. Doc id: "{uid}_{periodoId}". */

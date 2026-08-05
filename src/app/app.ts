@@ -214,6 +214,7 @@ export class App {
 
   navItems: NavItem[] = [
     { path: '/dashboard',   label: 'Dashboard',        icon: 'fa-solid fa-gauge-high' },
+    { path: '/avisos',      label: 'Avisos',           icon: 'fa-solid fa-bullhorn' },
     { path: '/horario',     label: 'Horário Semanal',  icon: 'fa-solid fa-calendar-week' },
     { path: '/disciplinas', label: 'Disciplinas',      icon: 'fa-solid fa-book-open' },
     { path: '/avaliacoes',  label: 'Atividades',       icon: 'fa-solid fa-list-check' },

@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DisciplinasService } from '../../services/disciplinas.service';
 import { ProgressoService } from '../../services/progresso.service';
+import { AvisosService } from '../../services/avisos.service';
 import { GamificacaoService, XP_POR_ATIVIDADE } from '../../services/gamificacao.service';
 import { QuizDiarioService, XP_QUESTIONARIO_DIARIO } from '../../services/quiz-diario.service';
 import { Avaliacao } from '../../models/models';
@@ -26,6 +27,24 @@ interface AulaDoDia {
         <h1 class="text-2xl font-bold text-[var(--cor-texto-principal)]">Dashboard</h1>
         <p class="text-[var(--cor-texto-secundario)] text-sm mt-1">Bem-vindo ao seu guia de estudos — {{ nomesDia[diaSemanaAtual] }}</p>
       </div>
+
+      <!-- Aviso novo no quadro -->
+      @if (temAvisoNovo()) {
+        <a
+          routerLink="/avisos"
+          class="w-full flex items-center gap-3 p-4 rounded-2xl border text-left transition-all hover:shadow-md"
+          style="background-color: var(--cor-card-fundo); border-color: var(--cor-borda-sutil);"
+        >
+          <span class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background-color: var(--cor-primaria);">
+            <i class="fa-solid fa-bullhorn text-white"></i>
+          </span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-semibold text-[var(--cor-texto-principal)]">Novo aviso no quadro</span>
+            <span class="block text-xs text-[var(--cor-texto-secundario)] mt-0.5 truncate">{{ avisos.avisos()[0].titulo }}</span>
+          </span>
+          <i class="fa-solid fa-chevron-right text-[var(--cor-texto-terciario)] shrink-0"></i>
+        </a>
+      }
 
       <!-- Questionário Diário pendente -->
       @if (quizDiario.disponivelHoje()) {
@@ -168,16 +187,19 @@ interface AulaDoDia {
           @if (aulasHoje.length > 0) {
             <div class="space-y-3">
               @for (aula of aulasHoje; track aula.horario) {
-                <div class="flex items-start gap-3 p-3 rounded-lg bg-[var(--cor-fundo-sutil)]">
+                <a
+                  [routerLink]="['/disciplinas', aula.disciplinaId]"
+                  class="flex items-start gap-3 p-3 rounded-lg bg-[var(--cor-fundo-sutil)] hover:shadow-md transition-shadow cursor-pointer group"
+                >
                   <span
                     class="inline-flex items-center justify-center w-7 h-7 rounded-md text-white text-xs font-bold shrink-0"
                     [style.background-color]="getCorDisciplina(aula.disciplinaId)"
                   >{{ aula.modulo }}</span>
                   <div class="min-w-0">
-                    <p class="text-sm font-medium text-[var(--cor-texto-principal)] leading-snug truncate">{{ getNomeCurto(aula.disciplina) }}</p>
+                    <p class="text-sm font-medium text-[var(--cor-texto-principal)] leading-snug truncate group-hover:text-[var(--cor-primaria)] transition-colors">{{ getNomeCurto(aula.disciplina) }}</p>
                     <p class="text-xs text-[var(--cor-texto-terciario)] mt-0.5">{{ aula.horario }}</p>
                   </div>
-                </div>
+                </a>
               }
             </div>
           } @else {
@@ -196,16 +218,19 @@ interface AulaDoDia {
               <p class="text-xs font-semibold uppercase tracking-wide text-[var(--cor-texto-terciario)] mb-3">{{ prox.label }}</p>
               <div class="space-y-3">
                 @for (aula of prox.aulas; track aula.horario) {
-                  <div class="flex items-start gap-3 p-3 rounded-lg opacity-80 bg-[var(--cor-fundo-sutil)]">
+                  <a
+                    [routerLink]="['/disciplinas', aula.disciplinaId]"
+                    class="flex items-start gap-3 p-3 rounded-lg opacity-80 bg-[var(--cor-fundo-sutil)] hover:shadow-md hover:opacity-100 transition-all cursor-pointer group"
+                  >
                     <span
                       class="inline-flex items-center justify-center w-7 h-7 rounded-md text-white text-xs font-bold shrink-0"
                       [style.background-color]="getCorDisciplina(aula.disciplinaId)"
                     >{{ aula.modulo }}</span>
                     <div class="min-w-0">
-                      <p class="text-sm font-medium text-[var(--cor-texto-principal)] leading-snug truncate">{{ getNomeCurto(aula.disciplina) }}</p>
+                      <p class="text-sm font-medium text-[var(--cor-texto-principal)] leading-snug truncate group-hover:text-[var(--cor-primaria)] transition-colors">{{ getNomeCurto(aula.disciplina) }}</p>
                       <p class="text-xs text-[var(--cor-texto-terciario)] mt-0.5">{{ aula.horario }}</p>
                     </div>
-                  </div>
+                  </a>
                 }
               </div>
             </div>
@@ -284,11 +309,22 @@ interface AulaDoDia {
 })
 export class DashboardComponent {
   private disciplinasService = inject(DisciplinasService);
+  avisos = inject(AvisosService);
   gamificacao = inject(GamificacaoService);
   quizDiario = inject(QuizDiarioService);
   xpQuestionario = XP_QUESTIONARIO_DIARIO;
   gamificacaoExpandida = signal(false);
   get disciplinas() { return this.disciplinasService.disciplinas(); }
+
+  // "Novo" = mais recente do que o último aviso que este usuário já visitou /avisos
+  // pra ver (ProgressoService.ultimoAvisoVistoEm, gravado só quando AvisosComponent
+  // é aberto) — nunca marcado como visto aqui na Dashboard, só clicando no banner.
+  temAvisoNovo = computed(() => {
+    const lista = this.avisos.avisos();
+    if (lista.length === 0) return false;
+    const visto = this.progresso.ultimoAvisoVistoEm();
+    return !visto || lista[0].criadoEm > visto;
+  });
 
   nomesDia: Record<string, string> = {
     'Segunda': 'Segunda-feira',

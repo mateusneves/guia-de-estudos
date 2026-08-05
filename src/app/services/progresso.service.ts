@@ -19,7 +19,7 @@ export class ProgressoService {
   private authService = inject(AuthService);
   private ngZone = inject(NgZone);
 
-  private readonly _progresso = signal<Progresso>({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null, questionarioDiario: null, linksUteis: {} });
+  private readonly _progresso = signal<Progresso>({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null, questionarioDiario: null, linksUteis: {}, ultimoAvisoVistoEm: null });
   private unsub: (() => void) | null = null;
 
   // equal por conteúdo: snap.data() cria um array novo em toda leitura do Firestore,
@@ -32,6 +32,7 @@ export class ProgressoService {
   readonly xp = computed(() => this._progresso().xp);
   readonly ultimoDiaXp = computed(() => this._progresso().ultimoDiaXp);
   readonly questionarioDiario = computed(() => this._progresso().questionarioDiario ?? null);
+  readonly ultimoAvisoVistoEm = computed(() => this._progresso().ultimoAvisoVistoEm ?? null);
 
   // false enquanto o valor acima é só o placeholder local (logout, ou login recém-feito
   // mas o onSnapshot real ainda não respondeu) — NUNCA reflete o Firestore de verdade
@@ -47,7 +48,7 @@ export class ProgressoService {
       const uid = this.authService.usuario()?.uid ?? null;
       this.unsub?.();
       this.unsub = null;
-      this._progresso.set({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null, questionarioDiario: null, linksUteis: {} });
+      this._progresso.set({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null, questionarioDiario: null, linksUteis: {}, ultimoAvisoVistoEm: null });
       this._carregado.set(false);
       if (!uid) return;
 
@@ -63,6 +64,7 @@ export class ProgressoService {
             ultimoDiaXp: dados.ultimoDiaXp ?? null,
             questionarioDiario: dados.questionarioDiario ?? null,
             linksUteis: dados.linksUteis ?? {},
+            ultimoAvisoVistoEm: dados.ultimoAvisoVistoEm ?? null,
           });
           this._carregado.set(true);
 
@@ -152,6 +154,17 @@ export class ProgressoService {
     if (!uid) return;
     const restantes = this.getLinks(disciplinaId).filter(l => l.id !== linkId);
     await updateDoc(doc(db, 'progresso', uid), { [`linksUteis.${disciplinaId}`]: restantes });
+  }
+
+  /** Marca até quando os avisos já foram vistos — usado por AvisosComponent ao abrir
+   * /avisos, pra apagar o indicador de "novo aviso" na Dashboard. `dataIso` é o
+   * `criadoEm` do aviso mais recente no momento da visita, não `new Date()`: assim,
+   * se um aviso novo chegar via onSnapshot enquanto a página já está aberta, ele
+   * ainda conta como "não visto" até a próxima vez que a página for (re)aberta. */
+  async marcarAvisosVistos(dataIso: string): Promise<void> {
+    const uid = this.authService.usuario()?.uid;
+    if (!uid) return;
+    await updateDoc(doc(db, 'progresso', uid), { ultimoAvisoVistoEm: dataIso });
   }
 
   /**

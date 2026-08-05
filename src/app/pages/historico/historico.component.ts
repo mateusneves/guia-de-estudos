@@ -1,5 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { HistoricoService } from '../../services/historico.service';
+import { NIVEIS, SELOS } from '../../shared/gamificacao-catalogo';
+import { EventoXp } from '../../models/models';
+
+const PREFIXO_SELO = 'Conquista desbloqueada: ';
+const PREFIXO_NIVEL = 'Novo nível alcançado: ';
+const ICONE_PADRAO = { icone: 'fa-solid fa-star', cor: '#eab308' };
 
 @Component({
   selector: 'app-historico',
@@ -26,8 +32,8 @@ import { HistoricoService } from '../../services/historico.service';
               <div class="flex items-center justify-between py-3 gap-3">
                 <div class="flex items-center gap-3 min-w-0">
                   @if (ev.delta === 0) {
-                    <span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background-color: #eab308;">
-                      <i class="fa-solid fa-star text-white text-sm"></i>
+                    <span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" [style.background-color]="iconePara(ev).cor">
+                      <i [class]="iconePara(ev).icone + ' text-white text-sm'"></i>
                     </span>
                   }
                   <div class="min-w-0">
@@ -56,5 +62,23 @@ export class HistoricoComponent {
 
   formatarData(iso: string): string {
     return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  // Entradas com delta 0 (conquista desbloqueada / nível alcançado) não carregam o id do
+  // selo/nível no ledger, só o `motivo` já formatado por GamificacaoService — resolve o
+  // ícone/cor reais a partir do título embutido nesse texto (título é único em cada
+  // catálogo, ver gamificacao-catalogo.ts), em vez do badge genérico usado antes, que
+  // fazia toda conquista parecer a mesma no Histórico mesmo já sendo distinta na Dashboard.
+  iconePara(ev: EventoXp): { icone: string; cor: string } {
+    if (ev.motivo.startsWith(PREFIXO_SELO)) {
+      const titulo = ev.motivo.slice(PREFIXO_SELO.length);
+      const selo = SELOS.find(s => s.titulo === titulo);
+      if (selo) return { icone: selo.icone, cor: selo.cor };
+    } else if (ev.motivo.startsWith(PREFIXO_NIVEL)) {
+      const titulo = ev.motivo.slice(PREFIXO_NIVEL.length);
+      const nivel = NIVEIS.find(n => n.titulo === titulo);
+      if (nivel) return { icone: nivel.icone, cor: nivel.cor };
+    }
+    return ICONE_PADRAO;
   }
 }
