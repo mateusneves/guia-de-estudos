@@ -118,6 +118,13 @@ export interface QuestionarioDiarioEstado {
   acertou: boolean;
 }
 
+/** Um link útil pessoal, adicionado por um aluno para uma disciplina específica (não visível a outros usuários). */
+export interface LinkUtil {
+  id: string;
+  titulo: string;
+  url: string;
+}
+
 export interface Progresso {
   concluidas: string[];
   notas: Record<string, string>;
@@ -127,6 +134,8 @@ export interface Progresso {
   ultimoDiaXp: string | null;
   /** null até a primeira pergunta do dia ser sorteada (ver QuizDiarioService) — usuários antigos também não têm este campo até então. */
   questionarioDiario?: QuestionarioDiarioEstado | null;
+  /** Links pessoais por disciplina, mesmo esquema de chave que `notas`. Ausente em docs antigos. */
+  linksUteis?: Record<string, LinkUtil[]>;
 }
 
 /** Estado de gamificação de um usuário dentro de um período específico — zera a cada novo período em curso. Doc id: "{uid}_{periodoId}". */

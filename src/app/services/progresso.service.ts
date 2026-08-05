@@ -2,7 +2,7 @@ import { Injectable, NgZone, computed, effect, inject, signal } from '@angular/c
 import { addDoc, arrayRemove, arrayUnion, collection, doc, increment, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { AuthService } from './auth.service';
-import { Progresso, QuestionarioDiarioEstado } from '../models/models';
+import { LinkUtil, Progresso, QuestionarioDiarioEstado } from '../models/models';
 
 const LEGACY_STORAGE_KEY = 'guia-estudos-conclusoes';
 const LEGACY_NOTAS_KEY = 'guia-estudos-notas';
@@ -19,7 +19,7 @@ export class ProgressoService {
   private authService = inject(AuthService);
   private ngZone = inject(NgZone);
 
-  private readonly _progresso = signal<Progresso>({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null, questionarioDiario: null });
+  private readonly _progresso = signal<Progresso>({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null, questionarioDiario: null, linksUteis: {} });
   private unsub: (() => void) | null = null;
 
   // equal por conteúdo: snap.data() cria um array novo em toda leitura do Firestore,
@@ -47,7 +47,7 @@ export class ProgressoService {
       const uid = this.authService.usuario()?.uid ?? null;
       this.unsub?.();
       this.unsub = null;
-      this._progresso.set({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null, questionarioDiario: null });
+      this._progresso.set({ concluidas: [], notas: {}, xp: 0, ultimoDiaXp: null, questionarioDiario: null, linksUteis: {} });
       this._carregado.set(false);
       if (!uid) return;
 
@@ -62,6 +62,7 @@ export class ProgressoService {
             xp: xpNovo,
             ultimoDiaXp: dados.ultimoDiaXp ?? null,
             questionarioDiario: dados.questionarioDiario ?? null,
+            linksUteis: dados.linksUteis ?? {},
           });
           this._carregado.set(true);
 
@@ -131,6 +132,26 @@ export class ProgressoService {
     const uid = this.authService.usuario()?.uid;
     if (!uid) return;
     await updateDoc(doc(db, 'progresso', uid), { [`notas.${disciplinaId}`]: texto });
+  }
+
+  getLinks(disciplinaId: string): LinkUtil[] {
+    return this._progresso().linksUteis?.[disciplinaId] ?? [];
+  }
+
+  async adicionarLink(disciplinaId: string, link: { titulo: string; url: string }): Promise<void> {
+    const uid = this.authService.usuario()?.uid;
+    if (!uid) return;
+    const novo: LinkUtil = { id: crypto.randomUUID(), titulo: link.titulo, url: link.url };
+    await updateDoc(doc(db, 'progresso', uid), { [`linksUteis.${disciplinaId}`]: arrayUnion(novo) });
+  }
+
+  // Reescreve o array inteiro (filtrado) em vez de arrayRemove: arrayRemove exige
+  // igualdade exata do objeto, frágil para itens com múltiplos campos.
+  async removerLink(disciplinaId: string, linkId: string): Promise<void> {
+    const uid = this.authService.usuario()?.uid;
+    if (!uid) return;
+    const restantes = this.getLinks(disciplinaId).filter(l => l.id !== linkId);
+    await updateDoc(doc(db, 'progresso', uid), { [`linksUteis.${disciplinaId}`]: restantes });
   }
 
   /**

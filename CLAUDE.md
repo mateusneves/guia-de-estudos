@@ -99,7 +99,9 @@ Firestore collections (see `src/app/models/models.ts` for the matching TS types)
   persists across semesters even as `periodoId` scoping moves them into new
   disciplinas/avaliações each term. As of 2026-07-10 also carries `xp` (lifetime,
   never decreases) and `ultimoDiaXp` (last local calendar date the daily-login XP
-  was granted) — see "Gamification" below.
+  was granted) — see "Gamification" below. As of 2026-08-04 also carries
+  `linksUteis?: Record<disciplinaId, LinkUtil[]>` (`LinkUtil = {id, titulo, url}`)
+  — see "Links Úteis" below.
 - `progresso_periodo/{uid}_{periodoId}` — the *período-scoped* half of
   gamification: `selos` (map of achievement id → ISO unlock timestamp),
   `atividadesBonificadas`/`disciplinasBonificadas` (ids already paid their XP
@@ -479,6 +481,60 @@ bonus than to activity completion).
   first tried — confirmed fixed by checking `dashboard`/`ranking`/etc. still
   show as separate lazy chunks and `questionario-westminster` shows as its
   own lazy chunk in `ng build` output.
+
+### Links Úteis (added 2026-08-04)
+
+Per-disciplina, per-student personal links (e.g. a link to slides, a video, an
+external reference) — not gamification-related, not visible to classmates,
+purely a personal organizing tool shown on `/disciplinas/:id`.
+
+- `models.ts` `LinkUtil` (`{id, titulo, url}`) backs a new
+  `Progresso.linksUteis?: Record<disciplinaId, LinkUtil[]>` field on the
+  existing `progresso/{uid}` document — same "no new collection, no
+  `firestore.rules` change" reasoning as `questionarioDiario`, and the exact
+  same `Record<disciplinaId, ...>` keying `notas` already uses. `ProgressoService`
+  seeds `linksUteis: {}` in all three places the default `Progresso` shape is
+  set (constructor, the auth-change reset, and the `onSnapshot` populate,
+  where it falls back to `?? {}` for docs written before this field existed)
+  — any future field added to `Progresso` needs the same three-place update,
+  not just the model type.
+- `ProgressoService.getLinks(disciplinaId)` / `adicionarLink(disciplinaId,
+  {titulo, url})` / `removerLink(disciplinaId, linkId)`. `adicionarLink` writes
+  via `updateDoc` + a dot-path key (`linksUteis.${disciplinaId}`) +
+  `arrayUnion`, the same pattern `setNota`/`toggleConcluida` already use.
+  `removerLink` does **not** use `arrayRemove` — that requires an exact
+  object match, which is fragile for multi-field items — it instead reads the
+  current array, filters out the id client-side, and writes the whole
+  filtered array back to the same dot-path key. Each link gets a
+  `crypto.randomUUID()` id at creation so removal can target it precisely.
+- `disciplina-detalhe.component.ts` renders the list in a "Links Úteis" card
+  directly below "Notas Pessoais" — each link opens in a new tab
+  (`target="_blank" rel="noopener noreferrer"`) with a small external-link
+  FontAwesome icon (`fa-arrow-up-right-from-square`) next to the title
+  (falls back to showing the bare `url` when `titulo` is empty), plus a
+  "Remover" action. A URL typed without a protocol is auto-prefixed with
+  `https://` before saving (`adicionarLink` in the component, not the
+  service) so the saved link is always a working absolute URL.
+- The add-link form does **not** sit inline in the card — clicking
+  "+ Adicionar link" opens it inside `<app-modal>` (see
+  `shared/modal/modal.component.ts`, new alongside this feature). This was a
+  deliberate UI change from an initial always-visible-inline-form version,
+  which the user found too cluttered for a sidebar card.
+
+**`app-modal` (`shared/modal/modal.component.ts`)** is a generic, reusable
+modal *shell* — backdrop, centered `.card`, title, and a ✕ close button — with
+`[aberto]`/`titulo` `@Input`s and a `(fechar)` `@Output` (fired by both the ✕
+button and a backdrop click; the inner card stops click propagation so
+clicking inside it doesn't close it). All actual content is projected via
+`<ng-content>` — the shell has no knowledge of what it contains. It was built
+specifically so Links Úteis' add-link form didn't need its own bespoke
+backdrop/positioning markup, and so any *future* feature needing a modal (a
+confirmation dialog, another small form, etc.) can reuse it the same way
+instead of copy-pasting modal markup again. **`shared/quiz-diario-modal/`
+predates this and is not built on top of it** — it's a fully bespoke modal
+tied directly to `QuizDiarioService`'s own state (`quiz.modalAberto()`,
+answer-selection UI, etc.), not a candidate for retrofitting onto `app-modal`
+unless that component is revisited specifically for that purpose.
 
 ### Service layer and how turma/período-scoping propagates
 

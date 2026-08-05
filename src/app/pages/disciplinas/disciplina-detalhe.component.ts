@@ -5,10 +5,11 @@ import { ProgressoService } from '../../services/progresso.service';
 import { XP_POR_ATIVIDADE } from '../../services/gamificacao.service';
 import { Avaliacao, Disciplina } from '../../models/models';
 import { AtividadeCardComponent, AtividadeCardVm } from '../../shared/atividade-card/atividade-card.component';
+import { ModalComponent } from '../../shared/modal/modal.component';
 
 @Component({
   selector: 'app-disciplina-detalhe',
-  imports: [RouterLink, AtividadeCardComponent],
+  imports: [RouterLink, AtividadeCardComponent, ModalComponent],
   template: `
     @if (disciplina(); as d) {
       <div class="p-6 max-w-5xl mx-auto space-y-6">
@@ -112,6 +113,81 @@ import { AtividadeCardComponent, AtividadeCardVm } from '../../shared/atividade-
               ></textarea>
             </div>
 
+            <!-- Links úteis -->
+            <div class="card">
+              <h3 class="font-semibold text-[var(--cor-texto-principal)] mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                </svg>
+                Links Úteis
+              </h3>
+
+              @if (storage.getLinks(d.id).length > 0) {
+                <ul class="space-y-2 mb-3">
+                  @for (link of storage.getLinks(d.id); track link.id) {
+                    <li class="flex items-center justify-between gap-2 text-sm">
+                      <a
+                        [href]="link.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-1.5 min-w-0 text-[var(--cor-primaria)] hover:underline"
+                        [title]="link.url"
+                      >
+                        <span class="truncate">{{ link.titulo || link.url }}</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[0.65rem] shrink-0"></i>
+                      </a>
+                      <button
+                        type="button"
+                        class="text-red-500 hover:text-red-600 text-xs shrink-0"
+                        (click)="storage.removerLink(d.id, link.id)"
+                      >Remover</button>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="text-xs text-[var(--cor-texto-terciario)] mb-3">Nenhum link adicionado ainda.</p>
+              }
+
+              <button
+                type="button"
+                class="text-xs text-[var(--cor-primaria)] hover:underline font-medium"
+                (click)="abrirModalLink()"
+              >+ Adicionar link</button>
+            </div>
+
+            <app-modal [aberto]="modalLinkAberto()" titulo="Adicionar link útil" (fechar)="fecharModalLink()">
+              <div class="space-y-3">
+                <div>
+                  <label class="text-xs font-medium text-[var(--cor-texto-secundario)] mb-1">Título (opcional)</label>
+                  <input
+                    type="text"
+                    class="w-full text-sm border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
+                    placeholder="Ex: Slides da aula"
+                    [value]="novoLinkTitulo()"
+                    (input)="novoLinkTitulo.set($any($event.target).value)"
+                  />
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-[var(--cor-texto-secundario)] mb-1">URL</label>
+                  <input
+                    type="url"
+                    class="w-full text-sm border border-[var(--cor-borda-media)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--cor-primaria-30)]"
+                    placeholder="https://..."
+                    [value]="novoLinkUrl()"
+                    (input)="novoLinkUrl.set($any($event.target).value)"
+                    (keydown.enter)="adicionarLink(d.id)"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="w-full px-4 py-2.5 rounded-full text-sm font-medium text-white transition-colors disabled:opacity-40"
+                  style="background-color: var(--cor-primaria);"
+                  [disabled]="!novoLinkUrl().trim()"
+                  (click)="adicionarLink(d.id)"
+                >Adicionar</button>
+              </div>
+            </app-modal>
+
             <!-- Bibliografia -->
             @if (d.bibliografia.length > 0) {
               <div class="card">
@@ -151,6 +227,28 @@ export class DisciplinaDetalheComponent {
     const id = this.route.snapshot.paramMap.get('id');
     return this.disciplinasService.disciplinas().find(d => d.id === id) ?? null;
   });
+
+  modalLinkAberto = signal(false);
+  novoLinkTitulo = signal('');
+  novoLinkUrl = signal('');
+
+  abrirModalLink(): void {
+    this.novoLinkTitulo.set('');
+    this.novoLinkUrl.set('');
+    this.modalLinkAberto.set(true);
+  }
+
+  fecharModalLink(): void {
+    this.modalLinkAberto.set(false);
+  }
+
+  async adicionarLink(disciplinaId: string): Promise<void> {
+    const url = this.novoLinkUrl().trim();
+    if (!url) return;
+    const urlNormalizada = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    await this.storage.adicionarLink(disciplinaId, { titulo: this.novoLinkTitulo().trim(), url: urlNormalizada });
+    this.fecharModalLink();
+  }
 
   getConcluidas(d: Disciplina): number {
     return d.avaliacoes.filter(a => this.storage.isConcluida(a.id)).length;
