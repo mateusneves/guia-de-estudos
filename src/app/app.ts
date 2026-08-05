@@ -8,6 +8,7 @@ import { TemaService } from './services/tema.service';
 import { QuizDiarioService } from './services/quiz-diario.service';
 import { XpToastComponent } from './shared/xp-toast/xp-toast.component';
 import { QuizDiarioModalComponent } from './shared/quiz-diario-modal/quiz-diario-modal.component';
+import { PwaInstallBannerComponent } from './shared/pwa-install-banner/pwa-install-banner.component';
 import { avatarUrl } from './shared/avatar';
 
 interface NavItem {
@@ -18,7 +19,7 @@ interface NavItem {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, XpToastComponent, QuizDiarioModalComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, XpToastComponent, QuizDiarioModalComponent, PwaInstallBannerComponent],
   template: `
     @if (auth.logado()) {
       <div class="flex h-screen overflow-hidden bg-[var(--cor-fundo)] p-0 gap-0 md:p-6 md:gap-6">
@@ -145,6 +146,8 @@ interface NavItem {
               </div>
             </a>
           </header>
+
+          <app-pwa-install-banner />
 
           <!-- Conteúdo da página -->
           <main class="flex-1 overflow-y-auto overflow-x-hidden">
