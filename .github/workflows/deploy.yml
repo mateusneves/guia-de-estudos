@@ -26,7 +26,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npx ng build --base-href /guia-de-estudos/
+        run: npx ng build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
