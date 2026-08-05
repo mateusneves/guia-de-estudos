@@ -1,10 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DisciplinasService } from '../../services/disciplinas.service';
 import { ProgressoService } from '../../services/progresso.service';
 import { AuthService } from '../../services/auth.service';
 import { GamificacaoService } from '../../services/gamificacao.service';
 import { avatarUrl } from '../../shared/avatar';
+import { DefinicaoSelo, seloPorId } from '../../shared/gamificacao-catalogo';
 import { Disciplina } from '../../models/models';
 
 @Component({
@@ -18,23 +19,41 @@ import { Disciplina } from '../../models/models';
       </div>
 
       <!-- Cabeçalho de perfil -->
-      <div class="card flex items-center gap-5">
-        <img
-          [src]="avatarUrlDe(avatarSeed(), !!auth.perfil()?.avatarComBarba)"
-          alt="Seu avatar"
-          class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white shrink-0"
-          style="box-shadow: 0 4px 14px rgba(0,0,0,0.12);"
-        >
-        <div class="min-w-0">
-          <p class="text-lg md:text-xl font-bold text-[var(--cor-texto-principal)] truncate">{{ auth.perfil()?.nome }}</p>
-          <p class="text-sm mt-1 flex items-center gap-2" [style.color]="gamificacao.nivel().cor">
-            <i [class]="gamificacao.nivel().icone"></i>
-            <span class="font-medium">{{ gamificacao.nivel().titulo }}</span>
-          </p>
-          <p class="text-sm mt-2 text-[var(--cor-texto-secundario)]">
-            <span class="font-bold text-[var(--cor-texto-principal)]">{{ gamificacao.xp() }}</span> XP acumulado
-          </p>
+      <div class="card">
+        <div class="flex items-center gap-5">
+          <img
+            [src]="avatarUrlDe(avatarSeed(), !!auth.perfil()?.avatarComBarba)"
+            alt="Seu avatar"
+            class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white shrink-0"
+            style="box-shadow: 0 4px 14px rgba(0,0,0,0.12);"
+          >
+          <div class="min-w-0">
+            <p class="text-lg md:text-xl font-bold text-[var(--cor-texto-principal)] truncate">{{ auth.perfil()?.nome }}</p>
+            <p class="text-sm mt-1 flex items-center gap-2" [style.color]="gamificacao.nivel().cor">
+              <i [class]="gamificacao.nivel().icone"></i>
+              <span class="font-medium">{{ gamificacao.nivel().titulo }}</span>
+            </p>
+            <p class="text-sm mt-2 text-[var(--cor-texto-secundario)]">
+              <span class="font-bold text-[var(--cor-texto-principal)]">{{ gamificacao.xp() }}</span> XP acumulado
+            </p>
+          </div>
         </div>
+
+        <!-- Conquistas (todos os selos já desbloqueados neste período, não só as 3 últimas como na Dashboard) -->
+        @if (conquistas().length > 0) {
+          <div class="flex gap-4 flex-wrap mt-4 pt-4 border-t" style="border-color: var(--cor-borda-sutil);">
+            @for (selo of conquistas(); track selo.id) {
+              <div class="flex flex-col items-center gap-1 w-16" [title]="selo.descricao">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" [style.background-color]="selo.cor">
+                  <i [class]="selo.icone + ' text-white text-base'"></i>
+                </div>
+                <span class="text-[10px] text-[var(--cor-texto-secundario)] text-center leading-tight">{{ selo.titulo }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-xs text-[var(--cor-texto-terciario)] mt-4 pt-4 border-t" style="border-color: var(--cor-borda-sutil);">Nenhuma conquista desbloqueada ainda neste período.</p>
+        }
       </div>
 
       <!-- Visão geral -->
@@ -263,6 +282,16 @@ export class ProgressoComponent {
   auth = inject(AuthService);
   gamificacao = inject(GamificacaoService);
   get disciplinas() { return this.disciplinasService.disciplinas(); }
+
+  // Todas as conquistas já desbloqueadas neste período (não só as 3 últimas, como no
+  // resumo compacto da Dashboard) — mais recente primeiro, mesmo critério de ordenação
+  // de gamificacao.ultimasConquistas().
+  conquistas = computed<DefinicaoSelo[]>(() =>
+    Object.entries(this.gamificacao.selos())
+      .sort((a, b) => b[1].localeCompare(a[1]))
+      .map(([id]) => seloPorId(id))
+      .filter((s): s is DefinicaoSelo => !!s)
+  );
 
   avatarUrlDe = avatarUrl;
 
